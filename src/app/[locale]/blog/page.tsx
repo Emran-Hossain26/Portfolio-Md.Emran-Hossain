@@ -2,8 +2,8 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { pageMetadata } from "@/lib/seo";
-import { samplePosts } from "@/data/posts";
+import { resolvePageMetadata } from "@/lib/seo";
+import { getPosts } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
 
 export default async function BlogPage({
@@ -18,6 +18,7 @@ export default async function BlogPage({
   setRequestLocale(resolved);
 
   const t = await getTranslations("pages.blog");
+  const posts = await getPosts();
 
   return (
     <main className="wrap" id="main">
@@ -25,7 +26,7 @@ export default async function BlogPage({
         <h1 style={{ fontSize: 30, marginBottom: 26 }}>{t("heading")}</h1>
         <p>{t("intro")}</p>
         <div className="grid" style={{ marginTop: 26 }}>
-          {samplePosts.map((post) => (
+          {posts.map((post) => (
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
@@ -52,5 +53,5 @@ export async function generateMetadata({
     ? locale
     : routing.defaultLocale) as Locale;
   const t = await getTranslations({ locale: resolved, namespace: "meta.pages.blog" });
-  return pageMetadata(resolved, "/blog", t("title"), t("description"));
+  return resolvePageMetadata(resolved, "/blog", t("title"), t("description"));
 }

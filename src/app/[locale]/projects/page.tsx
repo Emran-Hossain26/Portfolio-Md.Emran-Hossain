@@ -2,8 +2,8 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { pageMetadata } from "@/lib/seo";
-import { projects } from "@/data/projects";
+import { resolvePageMetadata } from "@/lib/seo";
+import { getProjects } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
 
 export default async function ProjectsPage({
@@ -18,6 +18,7 @@ export default async function ProjectsPage({
   setRequestLocale(resolved);
 
   const t = await getTranslations("pages.projects");
+  const projects = await getProjects();
 
   return (
     <main className="wrap" id="main">
@@ -60,5 +61,5 @@ export async function generateMetadata({
     ? locale
     : routing.defaultLocale) as Locale;
   const t = await getTranslations({ locale: resolved, namespace: "meta.pages.projects" });
-  return pageMetadata(resolved, "/projects", t("title"), t("description"));
+  return resolvePageMetadata(resolved, "/projects", t("title"), t("description"));
 }

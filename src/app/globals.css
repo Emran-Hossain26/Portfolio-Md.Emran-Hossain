@@ -102,6 +102,20 @@ section h2 { font-size: 30px; margin-bottom: 26px }
 .tags span { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--mute) }
 blockquote { font-size: 16px }
 blockquote footer { margin-top: 12px; color: var(--mute); font-size: 14px }
+
+/* ---- Markdown post body (token-based; technical addition, see report) ---- */
+.prose { max-width: 70ch }
+.prose p { margin: 0 0 14px }
+.prose h2, .prose h3, .prose h4 { margin: 22px 0 10px }
+.prose ul, .prose ol { margin: 0 0 14px 22px }
+.prose a { color: var(--accent) }
+.prose code {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 1px 5px; font-size: 14px;
+}
+.prose pre { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto }
+.prose blockquote { border-left: 3px solid var(--line); padding-left: 12px; color: var(--mute) }
+
 form { display: grid; gap: 12px; max-width: 560px }
 input, textarea {
   font: inherit; background: var(--panel); color: var(--ink);
@@ -115,10 +129,42 @@ footer.site { padding: 32px 0; border-top: 1px solid var(--line); color: var(--m
   display: flex; gap: 8px; align-items: center;
 }
 
-/* ---- Media queries (verbatim from mockup) ---- */
+/* ---- Mobile menu (approved rule #9; reuses token look) ---- */
+.nav-burger { display: none }
+.nav-links { display: contents }
+.mobile-menu {
+  display: grid;
+}
+@media (max-width: 760px) {
+  .mobile-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 60px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 8px 20px 12px;
+    z-index: 4;
+  }
+}
+.mobile-menu a {
+  display: block;
+  padding: 11px 4px;
+  text-decoration: none;
+  color: var(--mute);
+  border-top: 1px dashed var(--line);
+  font-size: 15px;
+}
+.mobile-menu a:first-child { border-top: 0 }
+
+/* ---- Media queries ---- */
 @media (max-width: 760px) {
   .hero { grid-template-columns: 1fr; padding: 40px 0 }
-  nav a { display: none } /* deviation: kept as-is for pixel parity — needs your call, see report */
+  nav .nav-links { display: none } /* desktop links hide; hamburger menu takes over (rule #9, approved) */
+  .nav-burger { display: inline-block }
+}
+@media (min-width: 761px) {
+  .mobile-menu { display: none }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto }

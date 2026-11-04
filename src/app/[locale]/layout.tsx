@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hind_Siliguri, Inter, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { site, siteUrl } from "@/data/site";
+import { getThemeOverrides } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AdminAccentDemo } from "@/components/AdminAccentDemo";
@@ -31,6 +32,38 @@ const hind = Hind_Siliguri({
 
 // Deviation #7: sets theme before first paint so dark mode never flashes.
 const themeScript = `try{var t=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}`;
+
+/**
+ * Admin theme colours (site_settings: theme_light / theme_dark) injected as
+ * an override <style> AFTER globals.css mirrors the mockup's cascade.
+ * Specificity is doubled (`:root:root`, `:root[data-theme=dark]:root[data-theme=dark]`)
+ * so admin colours always win over the shipped defaults, per mode
+ * (light system users, explicit-light users, explicit-dark users;
+ * system-dark defaults stay dark). Tokens = 6-digit hex, validated in cms.ts.
+ */
+function buildThemeStyle(overrides: {
+  light: Partial<Record<string, string>>;
+  dark: Partial<Record<string, string>>;
+}) {
+  const decl = (tokens: Partial<Record<string, string>>) =>
+    Object.entries(tokens)
+      .map(([key, value]) => `--${key}:${value};`)
+      .join("");
+  const light = decl(overrides.light);
+  const dark = decl(overrides.dark);
+  if (!light && !dark) return null;
+  return [
+    light
+      ? `:root[data-theme=light]:root{${light}}`
+      : "",
+    light
+      ? `@media (prefers-color-scheme: light){:root:not([data-theme=dark]):not([data-theme=light]){${light}}}`
+      : "",
+    dark ? `:root[data-theme=dark]:root[data-theme=dark]{${dark}}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -77,6 +110,8 @@ export default async function LocaleLayout({
     : routing.defaultLocale;
   setRequestLocale(resolved);
 
+  const themeStyle = buildThemeStyle(await getThemeOverrides());
+
   return (
     <html
       lang={resolved}
@@ -85,6 +120,9 @@ export default async function LocaleLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {themeStyle ? (
+          <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
+        ) : null}
       </head>
       <body>
         <NextIntlClientProvider>

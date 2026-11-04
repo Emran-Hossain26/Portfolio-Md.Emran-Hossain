@@ -1,8 +1,8 @@
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { pageMetadata } from "@/lib/seo";
-import { placeholderTestimonials } from "@/data/testimonials";
+import { resolvePageMetadata } from "@/lib/seo";
+import { getTestimonials } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
 
 export default async function TestimonialsPage({
@@ -17,6 +17,7 @@ export default async function TestimonialsPage({
   setRequestLocale(resolved);
 
   const t = await getTranslations("pages.testimonials");
+  const testimonials = await getTestimonials();
 
   return (
     <main className="wrap" id="main">
@@ -24,11 +25,11 @@ export default async function TestimonialsPage({
         <h1 style={{ fontSize: 30, marginBottom: 26 }}>{t("heading")}</h1>
         <p>{t("intro")}</p>
         <div className="grid" style={{ marginTop: 26 }}>
-          {placeholderTestimonials.map((item, index) => (
+          {testimonials.map((item, index) => (
             <div className="card" key={index}>
               <blockquote>
                 {pick(resolved, item.quote)}
-                <footer>{pick(resolved, item.name)}</footer>
+                <footer>{item.name}</footer>
               </blockquote>
             </div>
           ))}
@@ -54,5 +55,5 @@ export async function generateMetadata({
     locale: resolved,
     namespace: "meta.pages.testimonials",
   });
-  return pageMetadata(resolved, "/testimonials", t("title"), t("description"));
+  return resolvePageMetadata(resolved, "/testimonials", t("title"), t("description"));
 }

@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
+import { getProject, getProjects } from "@/lib/cms";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
-import { getProject, projects } from "@/data/projects";
 import { pick, type Locale } from "@/data/types";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  // CMS-backed project slugs at build time.
+  const projects = await getProjects();
   return routing.locales.flatMap((locale) =>
     projects.map((project) => ({ locale, slug: project.slug })),
   );
@@ -25,7 +27,7 @@ export default async function ProjectPage({
     : routing.defaultLocale) as Locale;
   setRequestLocale(resolved);
 
-  const project = getProject(slug);
+  const project = await getProject(slug);
   if (!project) notFound();
 
   const t = await getTranslations("pages.projects");
@@ -62,9 +64,6 @@ export default async function ProjectPage({
         <p className="mute" style={{ marginTop: 18 }}>
           {t("privateNote")}
         </p>
-        <p className="mute" style={{ marginTop: 18 }}>
-          {t("stackNote")}
-        </p>
       </section>
       <JsonLd
         data={breadcrumbLd([
@@ -86,7 +85,7 @@ export async function generateMetadata({
   const resolved = (hasLocale(routing.locales, locale)
     ? locale
     : routing.defaultLocale) as Locale;
-  const project = getProject(slug);
+  const project = await getProject(slug);
   if (!project) return {};
   return pageMetadata(
     resolved,

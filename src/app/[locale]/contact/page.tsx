@@ -1,7 +1,7 @@
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { pageMetadata } from "@/lib/seo";
+import { resolvePageMetadata } from "@/lib/seo";
 import { Contact } from "@/components/home/Contact";
 import type { Locale } from "@/data/types";
 
@@ -39,5 +39,5 @@ export async function generateMetadata({
     locale: resolved,
     namespace: "meta.pages.contact",
   });
-  return pageMetadata(resolved, "/contact", t("title"), t("description"));
+  return resolvePageMetadata(resolved, "/contact", t("title"), t("description"));
 }

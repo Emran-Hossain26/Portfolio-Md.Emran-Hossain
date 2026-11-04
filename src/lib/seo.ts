@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { site, siteUrl } from "@/data/site";
 import type { Locale } from "@/data/types";
+import { getPageSeo } from "@/lib/cms";
 
 /**
  * Per-page, per-locale SEO metadata. Titles < 60 chars, descriptions < 160.
@@ -34,6 +35,33 @@ export function pageMetadata(
     },
     twitter: { card: "summary_large_image", title, description },
   };
+}
+
+/** Chooses the string for `locale`, falling back to the other language. */
+function localized(locale: Locale, value: { en: string; bn: string }) {
+  return locale === "bn" ? value.bn || value.en : value.en || value.bn;
+}
+
+/**
+ * pageMetadata with optional admin overrides (page_seo table) taking
+ * precedence; the i18n messages serve as the fallback for either language.
+ */
+export async function resolvePageMetadata(
+  locale: Locale,
+  path: string,
+  fallbackTitle: string,
+  fallbackDescription: string,
+): Promise<Metadata> {
+  const overrides = await getPageSeo(path);
+  if (!overrides) {
+    return pageMetadata(locale, path, fallbackTitle, fallbackDescription);
+  }
+  return pageMetadata(
+    locale,
+    path,
+    localized(locale, overrides.title) || fallbackTitle,
+    localized(locale, overrides.description) || fallbackDescription,
+  );
 }
 
 /** BreadcrumbList JSON-LD for subpages. */

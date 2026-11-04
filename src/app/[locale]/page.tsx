@@ -1,7 +1,7 @@
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { pageMetadata } from "@/lib/seo";
+import { resolvePageMetadata } from "@/lib/seo";
 import type { Locale } from "@/data/types";
 import { Hero } from "@/components/home/Hero";
 import { Expertise } from "@/components/home/Expertise";
@@ -20,7 +20,7 @@ export async function generateMetadata({
     ? locale
     : routing.defaultLocale) as Locale;
   const t = await getTranslations({ locale: resolved, namespace: "meta" });
-  return pageMetadata(resolved, "/", t("title"), t("description"));
+  return resolvePageMetadata(resolved, "/", t("title"), t("description"));
 }
 
 export default async function HomePage({

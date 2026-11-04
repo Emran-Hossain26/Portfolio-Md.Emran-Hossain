@@ -1,10 +1,11 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { projects } from "@/data/projects";
+import { getProjects } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
 
 export async function Projects() {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("sections");
+  const projects = await getProjects();
 
   return (
     <section id="projects">
@@ -24,7 +25,7 @@ export async function Projects() {
           );
           return project.href ? (
             <a
-              key={project.title.en}
+              key={project.slug}
               className="card"
               href={project.href}
               style={{ textDecoration: "none" }}
@@ -32,7 +33,7 @@ export async function Projects() {
               {body}
             </a>
           ) : (
-            <div className="card" key={project.title.en}>
+            <div className="card" key={project.slug}>
               {body}
             </div>
           );

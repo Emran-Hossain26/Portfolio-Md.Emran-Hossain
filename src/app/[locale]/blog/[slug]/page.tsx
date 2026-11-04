@@ -3,14 +3,17 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
+import { getPost, getPosts } from "@/lib/cms";
+import { renderMarkdown } from "@/lib/markdown";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
-import { getPost, samplePosts } from "@/data/posts";
 import { pick, type Locale } from "@/data/types";
 
-export function generateStaticParams() {
+// CMS-backed post slugs at build time (published posts only).
+export async function generateStaticParams() {
+  const posts = await getPosts();
   return routing.locales.flatMap((locale) =>
-    samplePosts.map((post) => ({ locale, slug: post.slug })),
+    posts.map((post) => ({ locale, slug: post.slug })),
   );
 }
 
@@ -25,10 +28,9 @@ export default async function PostPage({
     : routing.defaultLocale) as Locale;
   setRequestLocale(resolved);
 
-  const post = getPost(slug);
+  const post = await getPost(slug);
   if (!post) notFound();
 
-  const t = await getTranslations("pages.blog");
   const crumbs = await getTranslations("pages.crumbs");
 
   return (
@@ -44,10 +46,11 @@ export default async function PostPage({
         <p className="mute" style={{ marginTop: -16, marginBottom: 18 }}>
           {pick(resolved, post.meta)}
         </p>
-        <p>{pick(resolved, post.body)}</p>
-        <p className="mute" style={{ marginTop: 18 }}>
-          {t("note")}
-        </p>
+        {/* Admin-written Markdown, sanitised server-side */}
+        <div
+          className="prose"
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(pick(resolved, post.body)) }}
+        />
       </article>
       <JsonLd
         data={breadcrumbLd([
@@ -69,12 +72,12 @@ export async function generateMetadata({
   const resolved = (hasLocale(routing.locales, locale)
     ? locale
     : routing.defaultLocale) as Locale;
-  const post = getPost(slug);
+  const post = await getPost(slug);
   if (!post) return {};
   return pageMetadata(
     resolved,
     `/blog/${post.slug}`,
     `${pick(resolved, post.title)} | ${resolved === "en" ? "Md Emran Hossain" : "মোঃ ইমরান হোসেন"}`,
-    pick(resolved, post.body),
+    pick(resolved, post.body).slice(0, 155),
   );
 }
