@@ -1,6 +1,7 @@
 import type { Localized } from "./types";
 
 export type Project = {
+  slug: string;
   title: Localized;
   desc: Localized;
   tags: string[];
@@ -10,6 +11,7 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    slug: "likhon-tools",
     title: { en: "Likhon Tools", bn: "Likhon Tools" },
     desc: {
       en: "Bilingual Bangla/English online tools platform. Live.",
@@ -19,6 +21,7 @@ export const projects: Project[] = [
     href: "https://likhontools.com/",
   },
   {
+    slug: "media-frame-bd",
     title: { en: "Media Frame BD", bn: "Media Frame BD" },
     desc: {
       en: "Design tool for photo cards, banners and thumbnails for creators and newsrooms.",
@@ -27,6 +30,7 @@ export const projects: Project[] = [
     tags: ["TypeScript"],
   },
   {
+    slug: "osdms",
     title: { en: "OSDMS", bn: "OSDMS" },
     desc: {
       en: "Office stock, distribution and attendance management system.",
@@ -35,6 +39,7 @@ export const projects: Project[] = [
     tags: ["PHP", "Blade"],
   },
   {
+    slug: "office-tv-control",
     title: { en: "Office TV Control", bn: "অফিস টিভি কন্ট্রোল" },
     desc: {
       en: "Dashboard to control Android TVs across two floors, with live broadcast.",
@@ -43,3 +48,7 @@ export const projects: Project[] = [
     tags: ["LAN", "Android 14"],
   },
 ];
+
+export function getProject(slug: string): Project | undefined {
+  return projects.find((project) => project.slug === slug);
+}

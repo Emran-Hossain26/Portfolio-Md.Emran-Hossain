@@ -36,34 +36,10 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const resolved = hasLocale(routing.locales, locale)
-    ? locale
-    : routing.defaultLocale;
-  const t = await getTranslations({ locale: resolved, namespace: "meta" });
-
-  return {
-    metadataBase: new URL(siteUrl),
-    title: t("title"),
-    description: t("description"),
-    alternates: {
-      canonical: resolved === "bn" ? "/bn" : "/",
-      languages: { en: "/", bn: "/bn", "x-default": "/" },
-    },
-    openGraph: {
-      type: "website",
-      siteName: site.name,
-      title: t("ogTitle"),
-      description: t("ogDescription"),
-      locale: resolved === "bn" ? "bn_BD" : "en_US",
-    },
-    twitter: { card: "summary_large_image" },
-  };
+export function generateMetadata(): Metadata {
+  // Pages define their own (locale-aware) title/description/hreflang via
+  // src/lib/seo.ts. The layout only supplies the base for relative URLs.
+  return { metadataBase: new URL(siteUrl) };
 }
 
 function personJsonLd() {

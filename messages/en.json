@@ -2,8 +2,28 @@
   "meta": {
     "title": "Md Emran Hossain — IT Infrastructure & Full Stack Dev",
     "description": "IT infrastructure, cybersecurity and AI-assisted full stack development from Dhaka: Windows Server, Linux, networking, cloud security and web apps.",
-    "ogTitle": "Md Emran Hossain | IT Infrastructure, Cybersecurity & Full Stack",
-    "ogDescription": "I build and secure IT systems: networks, servers, cloud and web applications."
+    "pages": {
+      "projects": {
+        "title": "Projects | Md Emran Hossain",
+        "description": "Case studies: Windows Server, Active Directory, Linux, networking and web systems built and secured by Md Emran Hossain, Dhaka."
+      },
+      "blog": {
+        "title": "Blog | Md Emran Hossain",
+        "description": "Practical notes on Windows Server hardening, Active Directory, networking and modern web development from Dhaka, Bangladesh."
+      },
+      "testimonials": {
+        "title": "Testimonials | Md Emran Hossain",
+        "description": "Client feedback for Md Emran Hossain: IT infrastructure, cybersecurity and web development work in Dhaka."
+      },
+      "about": {
+        "title": "About | Md Emran Hossain",
+        "description": "IT infrastructure and cybersecurity engineer and AI-assisted full stack developer in Dhaka, Bangladesh. Windows Server, Linux, networking, cloud."
+      },
+      "contact": {
+        "title": "Contact | Md Emran Hossain",
+        "description": "Contact Md Emran Hossain for IT infrastructure, cybersecurity or web work: engremran.it@gmail.com, Dhaka, Bangladesh."
+      }
+    }
   },
   "nav": {
     "brand": "Emran Hossain",
@@ -41,6 +61,47 @@
     "email": "Email",
     "message": "Message",
     "footer": "© {year} Md Emran Hossain"
+  },
+  "pages": {
+    "projects": {
+      "heading": "Projects",
+      "intro": "Case studies of systems I built and secured.",
+      "privateNote": "Private client repos are shown as case studies. Source links stay private.",
+      "caseStudy": "Read case study",
+      "live": "Live site",
+      "back": "All projects",
+      "stackNote": "Full written case study text is added for real, delivered work. Nothing is invented.",
+      "stack": "Stack"
+    },
+    "blog": {
+      "heading": "Blog",
+      "intro": "Notes from the field: servers, security and code.",
+      "back": "All posts",
+      "note": "Sample placeholder post — real posts launch with the blog milestone."
+    },
+    "testimonials": {
+      "heading": "Testimonials",
+      "intro": "What clients say about working with me.",
+      "moderation": "Public submissions go through moderation before they appear here (form arrives in the testimonials milestone)."
+    },
+    "about": {
+      "heading": "About me",
+      "intro": "IT infrastructure and cybersecurity engineer; full stack developer with AI. Based in Dhaka, Bangladesh.",
+      "expTitle": "Experience",
+      "expNote": "The experience timeline will be added from the CV. No invented entries.",
+      "eduTitle": "Education",
+      "eduNote": "Education details will be added from the CV."
+    },
+    "notFound": {
+      "heading": "Page not found",
+      "text": "The page you are looking for does not exist or has moved.",
+      "back": "Back to home"
+    },
+    "crumbs": {
+      "home": "Home",
+      "projects": "Projects",
+      "blog": "Blog"
+    }
   },
   "a11y": {
     "skip": "Skip to main content"
