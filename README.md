@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# emran-portfolio
 
-## Getting Started
+Bilingual (Bangla + English) portfolio for **Md Emran Hossain** — IT Infrastructure & Cybersecurity Engineer, Full Stack Developer with AI.
 
-First, run the development server:
+Next.js (App Router, Turbopack) + TypeScript + Tailwind CSS v4 + next-intl. Data layer: Supabase (DB, admin auth, storage).
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in the values you have
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Routes: `/` (English) and `/bn` (Bangla), switched by the header button.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See `.env.example`. Never commit real values — secrets go into Vercel env vars only.
 
-## Learn More
+- `NEXT_PUBLIC_SITE_URL` — canonical site URL; swap once the real domain is bought.
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — public Supabase values.
+- `SUPABASE_SERVICE_ROLE_KEY` — **server only**, never expose to the browser.
+- `RESEND_API_KEY`, `TURNSTILE_*` — for the contact-form milestone.
 
-To learn more about Next.js, take a look at the following resources:
+## Status
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Milestone 1 (done):** scaffold, design tokens in CSS variables, theme switching (system default + persisted + no flash), language switching (`/` + `/bn`, hreflang), home page ported pixel-for-pixel from the approved mockup.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Next milestones: remaining public pages → Supabase schema + admin panel → blog → testimonials → contact form → SEO layer → performance/SEO pass → deploy.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Design reference: `../index.html` (approved mockup — do not restyle).

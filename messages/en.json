@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "title": "Md Emran Hossain — IT Infrastructure & Full Stack Dev",
+    "description": "IT infrastructure, cybersecurity and AI-assisted full stack development from Dhaka: Windows Server, Linux, networking, cloud security and web apps.",
+    "ogTitle": "Md Emran Hossain | IT Infrastructure, Cybersecurity & Full Stack",
+    "ogDescription": "I build and secure IT systems: networks, servers, cloud and web applications."
+  },
+  "nav": {
+    "brand": "Emran Hossain",
+    "expertise": "Expertise",
+    "projects": "Projects",
+    "reviews": "Reviews",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "hero": {
+    "heading": "I build and secure the systems your business runs on.",
+    "intro": "Md Emran Hossain: IT infrastructure and cybersecurity engineer, and AI-assisted full stack developer in Dhaka. Servers, networks, cloud and web applications, end to end.",
+    "hire": "Hire me",
+    "cv": "Download CV",
+    "cvSoon": "CV download will be enabled with the admin panel (milestone 3)",
+    "photoAlt": "Md Emran Hossain, IT infrastructure and cybersecurity engineer"
+  },
+  "status": {
+    "online": "online"
+  },
+  "sections": {
+    "expertise": "What I do",
+    "projects": "Selected projects",
+    "reviews": "What clients say",
+    "reviewsPlaceholder": "Placeholder review text. Replace with a real client quote.",
+    "reviewsName": "Client name, company",
+    "blog": "Latest writing",
+    "contact": "Let’s talk",
+    "send": "Send message",
+    "sendSoon": "The form goes live once email delivery and spam protection are wired up",
+    "namePh": "Name",
+    "emailPh": "Email",
+    "messagePh": "Message",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "footer": "© {year} Md Emran Hossain"
+  },
+  "a11y": {
+    "skip": "Skip to main content"
+  }
+}
