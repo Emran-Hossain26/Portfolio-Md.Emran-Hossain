@@ -7,10 +7,10 @@ import { loginAction } from "@/app/(admin)/actions";
 type Props = { error?: string | null };
 
 /**
- * "Fox & Hummingbird" login scene (user-supplied design), ported verbatim
- * from the standalone HTML into React. The card submits to the real
- * loginAction (demo handler removed). Body class scoping keeps the scene's
- * CSS isolated to this screen.
+ * "Fox" login screen (user-supplied design, hummingbird removed on request).
+ * The card submits to the real loginAction. The fox's eyes/head follow the
+ * pointer (caret while typing the email), and it dozes off on the password
+ * field. Body class scoping keeps the CSS isolated to this screen.
  */
 export function LoginScene({ error }: Props) {
   useEffect(() => {
@@ -20,43 +20,27 @@ export function LoginScene({ error }: Props) {
 
     const u = $<HTMLInputElement>("u");
     const p = $<HTMLInputElement>("p");
-    const bird = $<HTMLDivElement>("bird");
-    const birdSvg = bird?.firstElementChild as SVGSVGElement | null;
-    const fox = $<HTMLDivElement>("fox");
     const foxSvg = $<SVGSVGElement>("foxsvg");
     const head = $<SVGGElement>("head");
     const eL = $<SVGGElement>("eL");
     const eR = $<SVGGElement>("eR");
-    const cv = $<HTMLCanvasElement>("trail");
-    if (!u || !p || !bird || !birdSvg || !fox || !foxSvg || !head || !eL || !eR || !cv) {
+    if (!u || !p || !foxSvg || !head || !eL || !eR) {
       return () => document.body.classList.remove("login-scene");
     }
-    const cx = cv.getContext("2d");
-    if (!cx) return () => document.body.classList.remove("login-scene");
 
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Perch side beside the fox on the desk: -1 = screen-left, 1 = screen-right
-    const PERCH_SIDE = -1;
     let mode: "follow" | "user" | "pass" = "follow";
-    const mouse = { x: innerWidth * 0.3, y: innerHeight * 0.3 };
-    const pos = { x: -120, y: 120 };
-    const vel = { x: 0, y: 0 };
-    let perched = false, face = 1, rot = 0, sleepT = 0;
-    let hy = 0, hr = 0;
+    const mouse = { x: innerWidth * 0.5, y: innerHeight * 0.4 };
+    let sleepT = 0, hy = 0, hr = 0;
     const pl = { x: 0, y: 0 };
-    let t = 0, hop = 0, last = performance.now();
-    const trail: { x: number; y: number }[] = [];
+    let last = performance.now();
     const meas = document.createElement("canvas").getContext("2d");
 
     const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-    const size = () => { cv.width = innerWidth; cv.height = innerHeight };
-    size();
-
     const onMove = (e: PointerEvent) => { mouse.x = e.clientX; mouse.y = e.clientY };
     addEventListener("pointermove", onMove, { passive: true });
-    addEventListener("resize", size);
 
     const set = (m: "follow" | "user" | "pass") => {
       mode = m;
@@ -71,7 +55,6 @@ export function LoginScene({ error }: Props) {
     p.addEventListener("focus", () => set("pass"));
     u.addEventListener("blur", check);
     p.addEventListener("blur", check);
-    u.addEventListener("input", () => { hop = 1 });
 
     const blinkTimer = setInterval(() => {
       if (mode !== "pass") {
@@ -92,78 +75,20 @@ export function LoginScene({ error }: Props) {
       return { x: clamp(x, r.left + 30, r.right - 30), y: r.top - 19 };
     };
 
-    const target = () => {
-      if (mode === "user") return caret();
-      if (mode === "pass") {
-        const r = fox.getBoundingClientRect();
-        return {
-          x: Math.max(
-            60,
-            r.left + r.width * 0.2 + PERCH_SIDE * 0 + (PERCH_SIDE < 0 ? -34 : r.width * 0.6),
-          ),
-          y: r.bottom - 24,
-        };
-      }
-      return { x: mouse.x + 36, y: mouse.y - 34 };
-    };
-
     const frame = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      t += dt;
-      const tg = target();
-      const dx = tg.x - pos.x, dy = tg.y - pos.y;
-      const d = Math.hypot(dx, dy);
-      const sp = Math.hypot(vel.x, vel.y);
-      if (mode === "follow") perched = false;
-      else if (perched) { if (d > 30) perched = false }
-      else if (d < 8 && sp < 60) perched = true;
-      const k = perched ? 110 : 26, c = perched ? 20 : 7.2;
-      const nx = perched ? 0 : Math.sin(t * 2.7) * 5 + Math.sin(t * 6.3) * 2;
-      const ny = perched ? 0 : Math.cos(t * 3.3) * 6 + Math.sin(t * 5.1) * 2;
-      const ax = (tg.x + nx - pos.x) * k - vel.x * c;
-      const ay = (tg.y + ny - pos.y) * k - vel.y * c;
-      vel.x += ax * dt; vel.y += ay * dt;
-      pos.x += vel.x * dt; pos.y += vel.y * dt;
-      hop += (0 - hop) * dt * 8;
-      // facing: turn toward travel direction; face the field once close
-      const want =
-        mode !== "follow" && d < 60
-          ? 1
-          : dx > 10 ? 1 : dx < -10 ? -1 : Math.sign(face) || 1;
-      face += (want - face) * Math.min(1, dt * 10);
-      const pitch = perched ? (mode === "user" ? 16 + hop * 8 : 3) : -20;
-      const lean = clamp(vel.x * 0.022, -14, 14) * (perched ? 0 : 1);
-      const shake = perched ? 0 : Math.sin(t * 38) * 1.4 * Math.min(1, sp / 80 + 0.3);
-      rot += (face * pitch + lean + shake - rot) * Math.min(1, dt * 9);
-      const lift = perched ? -Math.min(d * 0.5, 8) - hop * 3 : 0;
-      bird.style.transform =
-        "translate(" + (pos.x - 52).toFixed(1) + "px," + (pos.y - 34 + lift).toFixed(1) + "px) rotate(" + rot.toFixed(1) + "deg)";
-      birdSvg.style.transform = "scaleX(" + face.toFixed(2) + ")";
-      bird.classList.toggle("perched", perched);
-      bird.style.setProperty("--flap", clamp(0.095 - sp * 0.00006, 0.05, 0.095).toFixed(3) + "s");
-      // wind trail
-      if (sp > 90 && !perched) trail.push({ x: pos.x, y: pos.y });
-      else if (trail.length) trail.shift();
-      if (trail.length > 22) trail.shift();
-      cx.clearRect(0, 0, cv.width, cv.height);
-      cx.lineCap = "round";
-      for (let i = 1; i < trail.length; i++) {
-        cx.strokeStyle = "rgba(255,255,255," + ((i / trail.length) * 0.28).toFixed(3) + ")";
-        cx.lineWidth = (i / trail.length) * 7;
-        cx.beginPath();
-        cx.moveTo(trail[i - 1].x, trail[i - 1].y + 4);
-        cx.lineTo(trail[i].x, trail[i].y + 4);
-        cx.stroke();
-      }
-      // fox watches the bird
+      // Fox looks at: the caret (email field), closed eyes on password,
+      // otherwise the pointer.
+      const tg = mode === "user" ? caret() : { x: mouse.x, y: mouse.y };
       const hb = head.getBoundingClientRect();
       const hcx = hb.left + hb.width / 2, hcy = hb.top + hb.height / 2;
-      const bx = pos.x - hcx, by = pos.y - hcy;
+      const bx = tg.x - hcx, by = tg.y - hcy;
       const bd = Math.hypot(bx, by) || 1;
       const m = Math.min(1, bd / 140) * 7;
-      pl.x += ((bx / bd) * m - pl.x) * Math.min(1, dt * 12);
-      pl.y += ((by / bd) * m - pl.y) * Math.min(1, dt * 12);
+      const look = 1 - sleepT; // eyes slide shut while dozing on the password
+      pl.x += ((bx / bd) * m * look - pl.x) * Math.min(1, dt * 12);
+      pl.y += ((by / bd) * m * look - pl.y) * Math.min(1, dt * 12);
       [eL, eR].forEach((e) => {
         const pu = e.querySelector(".pu") as SVGGElement | null;
         if (pu) pu.style.transform = "translate(" + pl.x.toFixed(2) + "px," + pl.y.toFixed(2) + "px)";
@@ -184,7 +109,6 @@ export function LoginScene({ error }: Props) {
 
     return () => {
       removeEventListener("pointermove", onMove);
-      removeEventListener("resize", size);
       clearInterval(blinkTimer);
       document.body.classList.remove("login-scene");
     };
@@ -259,42 +183,6 @@ export function LoginScene({ error }: Props) {
           </g>
           <text className="zz z1" x="188" y="86">z</text>
           <text className="zz z2" x="204" y="64">Z</text>
-        </svg>
-      </div>
-
-      <canvas id="trail" aria-hidden="true" />
-
-      <div className="bird" id="bird" aria-hidden="true">
-        <svg viewBox="0 0 120 80">
-          <defs>
-            <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="#1c7d6a" />
-              <stop offset=".6" stopColor="#35c69a" />
-              <stop offset="1" stopColor="#7a5cd0" />
-            </linearGradient>
-            <linearGradient id="wg" x1="0" y1="1" x2="1" y2="0">
-              <stop offset="0" stopColor="#7ea8a0" stopOpacity=".9" />
-              <stop offset="1" stopColor="#d9f3ee" stopOpacity=".7" />
-            </linearGradient>
-          </defs>
-          <g className="legs" stroke="#3a2a22" strokeWidth="1.6" strokeLinecap="round">
-            <path d="M60 50L58 61M67 50L68 61" />
-          </g>
-          <path d="M46 40L8 58L20 43L4 45L42 34Z" fill="#1d5b4c" />
-          <g className="wing back">
-            <path d="M58 36C48 18 30 6 6 4C24 17 38 28 58 40Z" fill="url(#wg)" stroke="#5f8a82" strokeWidth=".6" />
-          </g>
-          <ellipse cx="62" cy="42" rx="23" ry="12" fill="url(#bg1)" transform="rotate(-8 62 42)" />
-          <ellipse cx="66" cy="48" rx="15" ry="6" fill="#ece6d4" transform="rotate(-8 66 48)" />
-          <circle cx="84" cy="34" r="9.5" fill="#2fb98f" />
-          <ellipse cx="84" cy="41" rx="6" ry="4" fill="#c13fb0" />
-          <path d="M92 32L119 38L92 36Z" fill="#26211e" />
-          <circle cx="87" cy="32" r="2.3" fill="#111" />
-          <circle cx="87.7" cy="31.3" r=".8" fill="#fff" />
-          <g className="wing front">
-            <path d="M58 36C48 18 30 6 6 4C24 17 38 28 58 40Z" fill="url(#wg)" stroke="#4d7a72" strokeWidth=".7" />
-            <path d="M56 34C46 22 32 12 16 8" stroke="#4d7a72" strokeWidth=".6" fill="none" />
-          </g>
         </svg>
       </div>
     </>
