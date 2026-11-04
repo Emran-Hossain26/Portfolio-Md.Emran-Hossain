@@ -128,13 +128,17 @@ body.login-scene .legs { opacity: 0; transition: opacity 0.2s }
 body.login-scene .perched .legs { opacity: 1 }
 body.login-scene #trail { position: fixed; inset: 0; z-index: 30; pointer-events: none }
 
-/* Reduced motion: park the bird, freeze the fox breath/tail (added, not in
-   the original — makes it consistent with the site's a11y behaviour). */
+/* Reduced motion: freeze the fox breath/tail and park the bird beside the
+   fox instead of flying (consistent with the site's a11y behaviour while
+   keeping the scene intact). */
 @media (prefers-reduced-motion: reduce) {
   body.login-scene .breath, body.login-scene .tail { animation: none }
-  body.login-scene .bird { display: none }
+  body.login-scene .bird {
+    left: calc(50% - 250px);
+    top: auto;
+    bottom: calc(26vh - 8px);
+  }
 }
-body.login-scene.motion-off .bird { display: none }
 
 @media (max-width: 640px) {
   body.login-scene .fox { width: 150px; left: auto; right: 3vw; bottom: calc(26vh - 28px) }

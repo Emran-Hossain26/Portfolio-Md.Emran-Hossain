@@ -35,7 +35,6 @@ export function LoginScene({ error }: Props) {
     if (!cx) return () => document.body.classList.remove("login-scene");
 
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.body.classList.toggle("motion-off", reduced);
 
     // Perch side beside the fox on the desk: -1 = screen-left, 1 = screen-right
     const PERCH_SIDE = -1;
@@ -187,7 +186,7 @@ export function LoginScene({ error }: Props) {
       removeEventListener("pointermove", onMove);
       removeEventListener("resize", size);
       clearInterval(blinkTimer);
-      document.body.classList.remove("login-scene", "motion-off");
+      document.body.classList.remove("login-scene");
     };
   }, []);
 

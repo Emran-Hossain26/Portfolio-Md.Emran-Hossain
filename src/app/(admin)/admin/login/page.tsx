@@ -1,6 +1,10 @@
 import { LoginScene } from "@/components/admin/LoginScene";
 import "./login-scene.css";
 
+// searchParams drive the error messages; keep the route blocking rather
+// than having the shell stream twice during dev navigations.
+export const instant = false;
+
 const ERRORS: Record<string, string> = {
   auth: "Wrong email or password.",
   unauthorized: "That account is not the configured admin (ADMIN_EMAIL).",
