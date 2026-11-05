@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { writeTheme } from "@/lib/theme-client";
+import { applyGroupFlags, computeGroups, subscribeGroups, writeGroup, type GroupKey } from "@/lib/fx/groups";
 
 /**
  * "Admin preview" (owner-approved mockup): a dark pill bottom-left opening
@@ -19,14 +20,20 @@ type State = {
   headline: string;
   available: boolean;
   visitorThemes: boolean;
+  themes: Record<string, boolean>;
 };
 
+const THEME_KEYS = ["light", "dark", "cyber", "aurora", "warm", "ocean", "sunset", "forest", "contrast"];const THEME_LABELS: Record<string, string> = {
+  light: "Light", dark: "Dark", cyber: "Cyber", aurora: "Aurora", warm: "Warm Paper",
+  ocean: "Ocean", sunset: "Sunset", forest: "Forest", contrast: "High Contrast",
+};
 const DEFAULT_STATE: State = {
   // Keys match the data-sec attributes on the real home sections.
   secs: { expertise: true, certifications: true, projects: true, stats: true, reviews: true, faq: true, blog: true, contact: true },
   headline: "",
   available: true,
   visitorThemes: true,
+  themes: {},
 };
 
 const SECTION_ROWS: { key: keyof State["secs"]; label: string }[] = [
@@ -45,7 +52,7 @@ function readState(): State {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<State>;
-      return { ...DEFAULT_STATE, ...parsed, secs: { ...DEFAULT_STATE.secs, ...parsed.secs } };
+      return { ...DEFAULT_STATE, ...parsed, secs: { ...DEFAULT_STATE.secs, ...parsed.secs }, themes: { ...DEFAULT_STATE.themes, ...parsed.themes } };
     }
   } catch {}
   return { ...DEFAULT_STATE };
@@ -64,15 +71,42 @@ function applyState(s: State) {
   if (h1 && s.headline) h1.textContent = s.headline;
   const avail = document.getElementById("avail");
   if (avail) avail.classList.toggle("off", !s.available);
+  // Hide/show theme options in the header dropdown directly (React never
+  // re-renders the option list, so imperative attrs persist).
+  const sel = document.querySelector<HTMLSelectElement>(".theme-select select");
+  if (sel) {
+    for (const o of Array.from(sel.options)) {
+      const hide = s.themes[o.value] === false;
+      o.disabled = hide;
+      o.hidden = hide;
+    }
+    if (sel.selectedOptions[0]?.hidden) {
+      const first = Array.from(sel.options).find((o) => !o.hidden);
+      if (first) writeTheme(first.value);
+    }
+  }
   window.dispatchEvent(new Event("pf:visitor"));
 }
 
-export function AdminPreview() {
+let cachedGroups: { animation: boolean; cursor: boolean; magical: boolean; reduced: boolean; touch: boolean } | null = null;
+
+export function AdminPreview({ allowed }: { allowed: Record<GroupKey, boolean> }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<State>(() =>
     typeof window !== "undefined" ? readState() : DEFAULT_STATE,
   );
   const closeRef = useRef<HTMLButtonElement>(null);
+
+  // Mirrors the ✨ Effects button via the shared groups store.
+  const groups = useSyncExternalStore(
+    subscribeGroups,
+    () => {
+      const next = computeGroups(allowed);
+      if (!cachedGroups || next.animation !== cachedGroups.animation || next.cursor !== cachedGroups.cursor || next.magical !== cachedGroups.magical) cachedGroups = next;
+      return cachedGroups;
+    },
+    () => ({ animation: false, cursor: false, magical: false, reduced: false, touch: false }),
+  );
 
   useEffect(() => {
     applyState(state);
@@ -96,6 +130,26 @@ export function AdminPreview() {
 
   const toggleSec = (key: string) => {
     update({ secs: { ...state.secs, [key]: !state.secs[key] } });
+  };
+
+  const themeEnabled = (k: string) => state.themes[k] ?? true;
+  const enabledCount = THEME_KEYS.filter(themeEnabled).length;
+  const toggleTheme = (k: string) => {
+    const nextThemes = { ...state.themes, [k]: !themeEnabled(k) };
+    update({ themes: nextThemes });
+    // Never leave the active theme disabled: fall back to the first enabled.
+    if (!nextThemes[k]) {
+      const active = document.documentElement.getAttribute("data-theme");
+      if (active === k) {
+        const first = THEME_KEYS.find((x) => nextThemes[x] ?? true);
+        if (first) writeTheme(first);
+      }
+    }
+  };
+  const toggleGroup = (g: GroupKey) => {
+    const next = { ...groups, [g]: !groups[g] };
+    applyGroupFlags(next);
+    writeGroup(g, next[g]);
   };
 
   return (
@@ -174,6 +228,27 @@ export function AdminPreview() {
             </div>
 
             <div className="admin-preview-section">
+              <h4>Effects</h4>
+              {([
+                { g: "magical" as GroupKey, label: "Network background" },
+                { g: "cursor" as GroupKey, label: "Cursor sparkle trail" },
+                { g: "animation" as GroupKey, label: "3D tilt cards" },
+              ]).map((row) =>
+                allowed[row.g] ? (
+                  <label key={row.g} className="admin-preview-toggle">
+                    <span>{row.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={groups[row.g]}
+                      onChange={() => toggleGroup(row.g)}
+                    />
+                    <span className="track" aria-hidden="true" />
+                  </label>
+                ) : null,
+              )}
+            </div>
+
+            <div className="admin-preview-section">
               <h4>Visitor themes</h4>
               <label className="admin-preview-toggle">
                 <span>Visitor themes allowed</span>
@@ -191,6 +266,20 @@ export function AdminPreview() {
                   Reset to Light
                 </button>
               </p>
+              <div className="admin-preview-toggle" style={{ height: 8 }} aria-hidden="true" />
+              <h4>Allowed themes</h4>
+              {THEME_KEYS.map((k) => (
+                <label key={k} className="admin-preview-toggle">
+                  <span>{THEME_LABELS[k]}</span>
+                  <input
+                    type="checkbox"
+                    checked={themeEnabled(k)}
+                    disabled={themeEnabled(k) && enabledCount === 1}
+                    onChange={() => toggleTheme(k)}
+                  />
+                  <span className="track" aria-hidden="true" />
+                </label>
+              ))}
             </div>
           </div>
         </>

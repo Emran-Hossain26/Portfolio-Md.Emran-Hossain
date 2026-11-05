@@ -1,13 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import {
-  readActiveTheme,
-  subscribeTheme,
-  subscribeVisitorThemes,
-  readVisitorThemes,
-  writeTheme,
-} from "@/lib/theme-client";
+import { readActiveTheme, subscribeTheme, writeTheme } from "@/lib/theme-client";
 
 /**
  * Visitor theme picker in the header (right of the language switch) — a
@@ -23,7 +17,7 @@ type Props = {
   visitorSwitch: boolean;
 };
 
-export function ThemePicker({ presets, defaultPreset, visitorSwitch }: Props) {
+export function ThemePicker({ presets, defaultPreset }: Props) {
   const enabledKeys = presets.map((p) => p.key);
 
   const current = useSyncExternalStore(
@@ -32,14 +26,7 @@ export function ThemePicker({ presets, defaultPreset, visitorSwitch }: Props) {
     () => defaultPreset,
   );
 
-  // The preview panel can locally override the DB's visitor-switch setting.
-  const allowed = useSyncExternalStore(
-    subscribeVisitorThemes,
-    () => visitorSwitch && readVisitorThemes(),
-    () => true,
-  );
-
-  if (!allowed || presets.length === 0) return null;
+  if (presets.length === 0) return null;
 
   return (
     <span className="theme-select">

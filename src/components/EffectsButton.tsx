@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   applyGroupFlags,
-  storageKey,
+  computeGroups,
   subscribeGroups,
   writeGroup,
   type GroupKey,
@@ -37,18 +37,7 @@ const SERVER_SNAPSHOT: Snapshot = { animation: false, cursor: false, magical: fa
 let cached: Snapshot = SERVER_SNAPSHOT;
 
 function clientSnapshot(allowed: Record<GroupKey, boolean>): Snapshot {
-  const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const touch = window.matchMedia("(pointer: coarse)").matches;
-  const stored = (g: GroupKey): boolean => {
-    try { return localStorage.getItem(storageKey(g)) !== "off"; } catch { return true; }
-  };
-  const next: Snapshot = {
-    animation: allowed.animation && !rm && stored("animation"),
-    cursor: allowed.cursor && !rm && !touch && stored("cursor"),
-    magical: allowed.magical && !rm && stored("magical"),
-    reduced: rm,
-    touch,
-  };
+  const next: Snapshot = computeGroups(allowed);
   if (
     cached.animation !== next.animation || cached.cursor !== next.cursor ||
     cached.magical !== next.magical || cached.reduced !== next.reduced ||

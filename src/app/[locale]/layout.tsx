@@ -186,6 +186,7 @@ out[k]=v;
 document.documentElement.setAttribute("data-fx-"+k,v?"on":"off");
 });
 }catch(e){}
+try{var th=(JSON.parse(localStorage.getItem("pf")||"{}").themes)||{};document.querySelectorAll(".theme-select select option").forEach(function(o){if(th[o.value]===false){o.disabled=true;o.hidden=true;}});}catch(e){}
 try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttribute("data-nav","1");}else{sessionStorage.setItem("pf_nav","1");}setTimeout(function(){document.documentElement.setAttribute("data-nav","1");},400);}catch(e){}`;
 
   return (
@@ -222,7 +223,11 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
           {children}
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
-          <AdminPreview />
+          <AdminPreview allowed={{
+            animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
+            cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
+            magical: fxSettings.master && (fxSettings.aurora || fxSettings.network),
+          }} />
           <EffectsButton allowed={{
             animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
             cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),

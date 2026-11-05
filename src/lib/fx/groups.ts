@@ -48,3 +48,23 @@ export function applyGroupFlags(state: Record<GroupKey, boolean>) {
   document.documentElement.dataset.fxCursor = state.cursor ? "on" : "off";
   document.documentElement.dataset.fxMagical = state.magical ? "on" : "off";
 }
+
+/**
+ * Effective group state for a visitor: admin availability AND stored choice
+ * AND environment (reduced motion → all off, coarse pointer → no cursor).
+ * Shared by the ✨ Effects button and the Admin preview drawer so the two
+ * controls always agree.
+ */
+export function computeGroups(allowed: Record<GroupKey, boolean>): {
+  animation: boolean; cursor: boolean; magical: boolean; reduced: boolean; touch: boolean;
+} {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const touch = window.matchMedia("(pointer: coarse)").matches;
+  return {
+    animation: allowed.animation && !reduced && readGroup("animation"),
+    cursor: allowed.cursor && !reduced && !touch && readGroup("cursor"),
+    magical: allowed.magical && !reduced && readGroup("magical"),
+    reduced,
+    touch,
+  };
+}
