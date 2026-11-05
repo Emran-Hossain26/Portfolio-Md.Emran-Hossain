@@ -4,7 +4,12 @@ import { getCvPath, getHeroTexts } from "@/lib/cms";
 import { statusItems } from "@/data/expertise";
 import { pick, type Locale } from "@/data/types";
 
-export async function Hero() {
+export async function Hero({
+  chip,
+}: {
+  /** Optional availability chip, rendered above the headline (admin-controlled). */
+  chip?: React.ReactNode;
+}) {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("hero");
   const ts = await getTranslations("status");
@@ -15,7 +20,9 @@ export async function Hero() {
   return (
     <div className="hero">
       <div>
-        <h1>{texts ? pick(locale, texts.heading) : t("heading")}</h1>
+        {chip}
+        {/* id="h1" — targeted by the visitor preview panel's headline box */}
+        <h1 id="h1">{texts ? pick(locale, texts.heading) : t("heading")}</h1>
         <p>{texts ? pick(locale, texts.intro) : t("intro")}</p>
         <div className="cta">
           <a className="btn p" href="#contact">
@@ -54,7 +61,7 @@ export async function Hero() {
             <div key={row}>
               <span>{row}</span>
               <i aria-hidden="true">
-                ● {ts("online")}
+                {ts("online")}
               </i>
             </div>
           ))}

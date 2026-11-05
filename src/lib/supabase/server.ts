@@ -26,13 +26,5 @@ export async function createSupabaseServerClient() {
   );
 }
 
-/** Service-role client for server-side admin actions (NEVER expose to browser). */
-export function createSupabaseAdminClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: { getAll: () => [], setAll: () => {} },
-    },
-  );
-}
+// Service-role admin client now lives in ./admin (server-only).
+export { createSupabaseAdminClient } from "./admin";

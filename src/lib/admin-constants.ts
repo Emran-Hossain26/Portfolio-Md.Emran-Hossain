@@ -12,6 +12,7 @@ export const SEO_PATHS = [
 export const ADMIN_SECTIONS = [
   { href: "/admin/texts", label: "Hero texts" },
   { href: "/admin/theme", label: "Theme colours" },
+  { href: "/admin/themes", label: "Visitor themes" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/testimonials", label: "Testimonials" },
@@ -19,4 +20,6 @@ export const ADMIN_SECTIONS = [
   { href: "/admin/education", label: "Education" },
   { href: "/admin/cv", label: "CV upload" },
   { href: "/admin/seo", label: "SEO" },
+  { href: "/admin/redirects", label: "Redirects" },
+  { href: "/admin/seo-health", label: "SEO Health" },
 ] as const;

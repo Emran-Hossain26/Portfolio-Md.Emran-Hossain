@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ADMIN_SECTIONS } from "@/lib/admin-constants";
-import { adminConfigured } from "@/lib/supabase/service";
+import { adminConfigured } from "@/lib/supabase/admin";
 import { logoutAction } from "@/app/(admin)/actions";
 
 export function AdminShell({
@@ -40,7 +40,7 @@ export function AdminShell({
           SUPABASE_SERVICE_ROLE_KEY (+ ADMIN_EMAIL) to .env.local and run
           supabase/schema.sql. Forms below show seed data and cannot save yet.
           <br />
-          <Link href="/admin/login">Go to login →</Link>
+          <Link href="/login">Go to login →</Link>
         </p>
       ) : null}
       <h1 style={{ fontSize: 26, margin: "22px 0 10px" }}>{heading}</h1>

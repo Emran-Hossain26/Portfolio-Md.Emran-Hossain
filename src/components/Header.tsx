@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { LanguageButton } from "./LanguageButton";
-import { ThemeToggle } from "./ThemeToggle";
 import { MobileNav } from "./MobileNav";
+import { ThemePicker } from "./ThemePicker";
+import { getThemePresets, getThemeVisitorSwitch } from "@/lib/cms";
 
 const NAV_ITEMS = [
   { key: "expertise", href: "/#expertise" },
@@ -18,6 +19,11 @@ export async function Header() {
     href: item.href,
     label: t(item.key),
   }));
+
+  const presets = await getThemePresets();
+  const visitorSwitch = await getThemeVisitorSwitch();
+  const defaultPreset = presets.find((p) => p.isDefault)?.key ?? (presets.filter((p) => p.enabled)[0]?.key ?? "light");
+
   return (
     <header>
       <div className="wrap">
@@ -33,7 +39,12 @@ export async function Header() {
             ))}
           </span>
           <LanguageButton />
-          <ThemeToggle />
+          <ThemePicker
+            presets={presets.filter((p) => p.enabled).map((p) => ({ key: p.key, label: p.name }))}
+            defaultPreset={defaultPreset}
+            visitorSwitch={visitorSwitch}
+            compact
+          />
           <MobileNav links={links} />
         </nav>
       </div>

@@ -22,11 +22,13 @@ const TABLES: Record<string, TableSpec> = {
     desc_bn: "text",
     tags: "tags",
     href: "text",
+    og_image: "text",
     published: "bool",
     sort: "int",
   },
   posts: {
     slug: "text",
+    bn_slug: "text",
     title_en: "text",
     title_bn: "text",
     meta_en: "text",
@@ -34,6 +36,17 @@ const TABLES: Record<string, TableSpec> = {
     body_en: "text",
     body_bn: "text",
     published: "bool",
+    status: "text",
+    scheduled_at: "text",
+    categories: "tags",
+    tags: "tags",
+    seo_title_en: "text",
+    seo_title_bn: "text",
+    seo_desc_en: "text",
+    seo_desc_bn: "text",
+    og_image: "text",
+    canonical: "text",
+    noindex: "bool",
   },
   testimonials: {
     name: "text",
@@ -59,9 +72,83 @@ const TABLES: Record<string, TableSpec> = {
     period: "text",
     sort: "int",
   },
+  services: {
+    title_en: "text",
+    title_bn: "text",
+    desc_en: "text",
+    desc_bn: "text",
+    icon: "text",
+    published: "bool",
+    sort: "int",
+  },
+  skills: {
+    name: "text",
+    category: "text",
+    level: "int",
+    published: "bool",
+    sort: "int",
+  },
+  certifications: {
+    title_en: "text",
+    title_bn: "text",
+    issuer_en: "text",
+    issuer_bn: "text",
+    year: "text",
+    href: "text",
+    published: "bool",
+    sort: "int",
+  },
+  faqs: {
+    q_en: "text",
+    q_bn: "text",
+    a_en: "text",
+    a_bn: "text",
+    published: "bool",
+    sort: "int",
+  },
+  stats: {
+    value: "text",
+    label_en: "text",
+    label_bn: "text",
+    published: "bool",
+    sort: "int",
+  },
+  social_links: {
+    platform: "text",
+    url: "text",
+    label_en: "text",
+    label_bn: "text",
+    published: "bool",
+    sort: "int",
+  },
+  contact_info: {
+    email: "text",
+    phone: "text",
+    location_en: "text",
+    location_bn: "text",
+    availability_en: "text",
+    availability_bn: "text",
+  },
+  sections: {
+    key: "text",
+    sort_order: "int",
+    enabled: "bool",
+  },
+  messages: {
+    status: "text",
+  },
+  media_assets: {
+    alt_en: "text",
+    alt_bn: "text",
+  },
+  redirects: {
+    from_url: "text",
+    to_url: "text",
+    permanent: "bool",
+  },
 };
 
-const CONFIGURED_ERROR = "/admin/login?reason=notconfigured";
+const CONFIGURED_ERROR = "/login?reason=notconfigured";
 
 function parse(spec: TableSpec, formData: FormData) {
   const row: Record<string, string | boolean | number | string[]> = {};
@@ -110,10 +197,10 @@ export async function loginAction(formData: FormData) {
   });
 
   const allowed = (process.env.ADMIN_EMAIL ?? "").toLowerCase();
-  if (error || !data.user) redirect("/admin/login?error=auth");
+  if (error || !data.user) redirect("/login?error=auth");
   if (allowed && data.user.email?.toLowerCase() !== allowed) {
     await supabase.auth.signOut();
-    redirect("/admin/login?error=unauthorized");
+    redirect("/login?error=unauthorized");
   }
   redirect("/admin");
 }
@@ -122,7 +209,7 @@ export async function logoutAction() {
   if (!adminConfigured()) redirect("/");
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  redirect("/admin/login");
+  redirect("/login");
 }
 
 /* ------------------------------------------------------------------ */
@@ -135,6 +222,61 @@ export async function saveRowAction(table: string, id: string, formData: FormDat
 
   const spec = TABLES[table];
   if (!spec) throw new Error(`Unknown table: ${table}`);
+
+  // Redirect-specific validation.
+  if (table === "redirects") {
+    const fromRaw = String(formData.get("from_url") ?? "").trim();
+    const toRaw = String(formData.get("to_url") ?? "").trim();
+    const from = fromRaw.replace(/\/+$/, "") || "/";
+    const to = toRaw.replace(/\/+$/, "") || toRaw;
+    if (!from.startsWith("/")) {
+      redirect("/admin/redirects?error=from");
+    }
+    const isRelative = to.startsWith("/");
+    const isHttps = /^https:\/\//i.test(to);
+    if (!isRelative && !isHttps) {
+      redirect("/admin/redirects?error=to");
+    }
+    if (from === to) {
+      redirect("/admin/redirects?error=same");
+    }
+    if (to.startsWith("/admin") || to.startsWith("/api")) {
+      redirect("/admin/redirects?error=target");
+    }
+    // Chain/loop check: follow the chain from `to`.
+    const db = createServiceClient();
+    const { data: existing } = await db.from("redirects").select("from_url,to_url");
+    const map = new Map((existing ?? []).map((r) => [r.from_url as string, r.to_url as string]));
+    // Remove current row from map when editing (so self-update doesn't false-positive).
+    if (id !== "__new") {
+      const { data: self } = await db.from("redirects").select("from_url").eq("id", id).maybeSingle();
+      if (self?.from_url) map.delete(self.from_url as string);
+    }
+    // Follow chain.
+    let cur = to;
+    let hops = 0;
+    const seen = new Set<string>();
+    while (map.has(cur)) {
+      if (seen.has(cur)) {
+        // loop
+        redirect("/admin/redirects?error=loop");
+      }
+      seen.add(cur);
+      cur = map.get(cur)!;
+      hops += 1;
+      if (hops > 2) {
+        redirect("/admin/redirects?error=chain");
+      }
+    }
+    // Also reject if `to` equals an existing `from` that leads back to `from` (loop of 2).
+    if (cur === from) {
+      redirect("/admin/redirects?error=loop");
+    }
+    // Write normalised values back into formData so they're saved.
+    formData.set("from_url", from);
+    formData.set("to_url", to);
+  }
+
   const row = parse(spec, formData);
 
   const db = createServiceClient();
@@ -295,4 +437,127 @@ export async function saveSeoAction(formData: FormData) {
   }
   refresh();
   redirect("/admin/seo");
+}
+
+/* ------------------------------------------------------------------ */
+/* SEO settings (global defaults, verification codes)                  */
+/* ------------------------------------------------------------------ */
+
+export async function saveSeoSettingsAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const db = createServiceClient();
+  const value = {
+    title_template: String(formData.get("title_template") ?? "").trim(),
+    default_description_en: String(formData.get("default_description_en") ?? "").trim(),
+    default_description_bn: String(formData.get("default_description_bn") ?? "").trim(),
+    gsc_verification: String(formData.get("gsc_verification") ?? "").trim(),
+    bing_verification: String(formData.get("bing_verification") ?? "").trim(),
+    analytics_id: String(formData.get("analytics_id") ?? "").trim(),
+  };
+  await db.from("site_settings").upsert(
+    { key: "seo_settings", value },
+    { onConflict: "key" },
+  );
+  refresh();
+  redirect("/admin/seo?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage 1: section reorder, message status, media upload/delete        */
+/* ------------------------------------------------------------------ */
+
+export async function moveSectionAction(key: string, direction: "up" | "down") {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const db = createServiceClient();
+  const { data: rows } = await db
+    .from("sections")
+    .select("key,sort_order")
+    .order("sort_order");
+  if (!rows?.length) redirect("/admin/sections");
+  const idx = rows.findIndex((r) => r.key === key);
+  if (idx < 0) redirect("/admin/sections");
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= rows.length) redirect("/admin/sections");
+  const a = rows[idx], b = rows[swapIdx];
+  await db.from("sections").update({ sort_order: b.sort_order }).eq("key", a.key);
+  await db.from("sections").update({ sort_order: a.sort_order }).eq("key", b.key);
+  refresh();
+  redirect("/admin/sections");
+}
+
+export async function updateMessageStatusAction(id: string, status: string) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const allowed = ["new", "read", "replied", "spam"];
+  if (!allowed.includes(status)) redirect("/admin/messages");
+  await createServiceClient().from("messages").update({ status }).eq("id", id);
+  refresh();
+  redirect("/admin/messages");
+}
+
+export async function saveContactInfoAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const db = createServiceClient();
+  const payload = {
+    key: "main",
+    email: String(formData.get("email") ?? "").trim(),
+    phone: String(formData.get("phone") ?? "").trim(),
+    location_en: String(formData.get("location_en") ?? "").trim(),
+    location_bn: String(formData.get("location_bn") ?? "").trim(),
+    availability_en: String(formData.get("availability_en") ?? "").trim(),
+    availability_bn: String(formData.get("availability_bn") ?? "").trim(),
+  };
+  const { data: existing } = await db
+    .from("contact_info")
+    .select("id")
+    .eq("key", "main")
+    .maybeSingle();
+  if (existing) {
+    await db.from("contact_info").update(payload).eq("key", "main");
+  } else {
+    await db.from("contact_info").insert(payload);
+  }
+  refresh();
+  redirect("/admin/contact-info?saved=1");
+}
+
+export async function uploadMediaAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) redirect("/admin/media?error=empty");
+  if (file.size > 8 * 1024 * 1024) redirect("/admin/media?error=size");
+  const db = createServiceClient();
+  const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+  const path = `media/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error: upErr } = await db.storage
+    .from("media")
+    .upload(path, file, { upsert: false, contentType: file.type });
+  if (upErr) redirect("/admin/media?error=upload");
+  const { data } = db.storage.from("media").getPublicUrl(path);
+  await db.from("media_assets").insert({
+    bucket: "media",
+    path,
+    url: data.publicUrl,
+    alt_en: String(formData.get("alt_en") ?? "").trim(),
+    alt_bn: String(formData.get("alt_bn") ?? "").trim(),
+    mime_type: file.type,
+    size_bytes: file.size,
+  });
+  refresh();
+  redirect("/admin/media?saved=1");
+}
+
+export async function deleteMediaAction(id: string) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const db = createServiceClient();
+  const { data } = await db.from("media_assets").select("path").eq("id", id).maybeSingle();
+  if (data?.path) await db.storage.from("media").remove([data.path as string]);
+  await db.from("media_assets").delete().eq("id", id);
+  refresh();
+  redirect("/admin/media");
 }

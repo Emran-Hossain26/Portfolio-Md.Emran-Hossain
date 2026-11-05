@@ -9,7 +9,7 @@ export async function BlogPreview() {
   const posts = (await getPosts()).slice(0, 2);
 
   return (
-    <section id="blog">
+    <section id="blog" data-sec="blog">
       <h2>{t("blog")}</h2>
       <div className="grid">
         {posts.map((post) => (

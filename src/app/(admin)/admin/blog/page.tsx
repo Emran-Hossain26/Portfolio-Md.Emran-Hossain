@@ -1,20 +1,37 @@
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { RowForm, type AdminField } from "@/components/admin/RowForm";
+import { TabbedForm } from "@/components/admin/TabbedForm";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
 import { samplePosts as seedPosts } from "@/data/posts";
 
 type Row = Record<string, unknown> & { id: string };
 
-const SPEC: { name: string; label: string; type: AdminField["type"] }[] = [
-  { name: "slug", label: "Slug (URL part, e.g. harden-windows-server)", type: "text" },
-  { name: "title_en", label: "Title (EN)", type: "text" },
-  { name: "title_bn", label: "Title (BN)", type: "text" },
-  { name: "meta_en", label: "Meta line (EN, e.g. date · read time)", type: "text" },
-  { name: "meta_bn", label: "Meta line (BN)", type: "text" },
-  { name: "body_en", label: "Body (EN, Markdown)", type: "textarea" },
-  { name: "body_bn", label: "Body (BN, Markdown)", type: "textarea" },
-  { name: "published", label: "Published (appears on site when checked)", type: "check" },
+const CONTENT_FIELDS = [
+  { name: "slug", label: "Slug (URL part)", type: "text" as const },
+  { name: "title_en", label: "Title (EN)", type: "text" as const },
+  { name: "title_bn", label: "Title (BN)", type: "text" as const },
+  { name: "meta_en", label: "Meta line (EN)", type: "text" as const },
+  { name: "meta_bn", label: "Meta line (BN)", type: "text" as const },
+  { name: "body_en", label: "Body (EN, Markdown)", type: "textarea" as const },
+  { name: "body_bn", label: "Body (BN, Markdown)", type: "textarea" as const },
+];
+
+const SEO_FIELDS = [
+  { name: "seo_title_en", label: "SEO title (EN)", type: "text" as const },
+  { name: "seo_title_bn", label: "SEO title (BN)", type: "text" as const },
+  { name: "seo_desc_en", label: "SEO description (EN)", type: "textarea" as const },
+  { name: "seo_desc_bn", label: "SEO description (BN)", type: "textarea" as const },
+  { name: "og_image", label: "OG image URL", type: "text" as const },
+  { name: "canonical", label: "Canonical URL (optional)", type: "text" as const },
+  { name: "noindex", label: "Noindex (hide from search)", type: "check" as const },
+];
+
+const SETTINGS_FIELDS = [
+  { name: "status", label: "Status (draft/published/scheduled)", type: "text" as const },
+  { name: "scheduled_at", label: "Scheduled publish (ISO, optional)", type: "text" as const },
+  { name: "categories", label: "Categories (comma-separated)", type: "text" as const },
+  { name: "tags", label: "Tags (comma-separated)", type: "text" as const },
+  { name: "published", label: "Published", type: "check" as const },
 ];
 
 export default async function AdminBlogPage() {
@@ -24,7 +41,9 @@ export default async function AdminBlogPage() {
   if (adminConfigured()) {
     const { data } = await createServiceClient()
       .from("posts")
-      .select("id,slug,title_en,title_bn,meta_en,meta_bn,body_en,body_bn,published")
+      .select(
+        "id,slug,title_en,title_bn,meta_en,meta_bn,body_en,body_bn,published,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,canonical,noindex",
+      )
       .order("created_at", { ascending: false });
     rows = (data ?? []) as Row[];
   } else {
@@ -38,6 +57,17 @@ export default async function AdminBlogPage() {
       body_en: p.body.en,
       body_bn: p.body.bn,
       published: true,
+      status: "published",
+      scheduled_at: null,
+      categories: [],
+      tags: [],
+      seo_title_en: "",
+      seo_title_bn: "",
+      seo_desc_en: "",
+      seo_desc_bn: "",
+      og_image: "",
+      canonical: "",
+      noindex: false,
     }));
   }
 
@@ -50,31 +80,63 @@ export default async function AdminBlogPage() {
     body_en: "",
     body_bn: "",
     published: false,
+    status: "draft",
+    scheduled_at: "",
+    categories: "",
+    tags: "",
+    seo_title_en: "",
+    seo_title_bn: "",
+    seo_desc_en: "",
+    seo_desc_bn: "",
+    og_image: "",
+    canonical: "",
+    noindex: false,
   };
+
+  const normalize = (row: Row) => {
+    const r = { ...row };
+    if (Array.isArray(r.categories)) r.categories = (r.categories as string[]).join(", ");
+    if (Array.isArray(r.tags)) r.tags = (r.tags as string[]).join(", ");
+    return r;
+  };
+
+  const toFields = (spec: { name: string; label: string; type: "text" | "textarea" | "check" | "number" | "select" }[], row: Record<string, unknown>) =>
+    spec.map((f) => ({
+      ...f,
+      value: (row[f.name] ?? (f.type === "check" ? false : "")) as string | boolean,
+    }));
 
   return (
     <AdminShell current="/admin/blog" heading="Blog posts">
       <p className="admin-note">
-        Bodies are Markdown (paragraphs, **bold**, lists, links, code). Rendered
-        output is sanitised server-side. Posts stay on the site only while
-        “Published” is checked.
+        Bodies are Markdown (paragraphs, **bold**, lists, links, code blocks, tables).
+        Rendered output is sanitised server-side. Set Status to &quot;published&quot; to make a
+        post live; use &quot;scheduled&quot; with a future ISO date for scheduled publishing.
       </p>
-      {rows.map((row) => (
-        <RowForm
-          key={row.id}
-          table="posts"
-          id={row.id}
-          fields={SPEC.map((field) => ({
-            ...field,
-            value: (row[field.name] ?? (field.type === "check" ? false : "")) as string | boolean,
-          }))}
-        />
-      ))}
+      {rows.map((row) => {
+        const r = normalize(row);
+        return (
+          <TabbedForm
+            key={row.id}
+            table="posts"
+            id={row.id}
+            groups={[
+              { label: "Content", fields: toFields(CONTENT_FIELDS, r) },
+              { label: "SEO", fields: toFields(SEO_FIELDS, r) },
+              { label: "Settings", fields: toFields(SETTINGS_FIELDS, r) },
+            ]}
+          />
+        );
+      })}
       <h2 style={{ fontSize: 20, marginTop: 28 }}>Add post</h2>
-      <RowForm
+      <TabbedForm
         table="posts"
         id="__new"
-        fields={SPEC.map((f) => ({ ...f, value: blank[f.name] as string | boolean }))}
+        groups={[
+          { label: "Content", fields: toFields(CONTENT_FIELDS, blank) },
+          { label: "SEO", fields: toFields(SEO_FIELDS, blank) },
+          { label: "Settings", fields: toFields(SETTINGS_FIELDS, blank) },
+        ]}
       />
     </AdminShell>
   );

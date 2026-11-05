@@ -60,7 +60,10 @@
     "name": "Name",
     "email": "Email",
     "message": "Message",
-    "footer": "© {year} Md Emran Hossain"
+    "footer": "© {year} Md Emran Hossain",
+    "stats": "Proof in numbers",
+    "certifications": "Certifications & training",
+    "faq": "Common questions"
   },
   "pages": {
     "projects": {

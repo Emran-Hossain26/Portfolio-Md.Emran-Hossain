@@ -8,7 +8,7 @@ export async function Reviews() {
   const testimonials = await getTestimonials();
 
   return (
-    <section id="reviews">
+    <section id="reviews" data-sec="reviews">
       <h2>{t("reviews")}</h2>
       <div className="grid">
         {testimonials.map((item, index) => (

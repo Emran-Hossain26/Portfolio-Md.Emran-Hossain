@@ -7,6 +7,8 @@ export type Project = {
   tags: string[];
   /** Private repos get no source link; only live sites link out. */
   href?: string;
+  /** Optional OG/Twitter share image for the project page. */
+  og_image?: string;
 };
 
 export const projects: Project[] = [

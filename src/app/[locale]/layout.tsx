@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hind_Siliguri, Inter, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { site, siteUrl } from "@/data/site";
-import { getThemeOverrides } from "@/lib/cms";
+import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { AdminAccentDemo } from "@/components/AdminAccentDemo";
+import { Analytics } from "@/components/Analytics";
+import { AdminPreview } from "@/components/AdminPreview";
+import { ScrollProgress } from "@/components/ScrollProgress";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -31,7 +34,7 @@ const hind = Hind_Siliguri({
 });
 
 // Deviation #7: sets theme before first paint so dark mode never flashes.
-const themeScript = `try{var t=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}`;
+// The noFlashScript (below) replaces this — kept for reference only.
 
 /**
  * Admin theme colours (site_settings: theme_light / theme_dark) injected as
@@ -79,6 +82,7 @@ function personJsonLd() {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Person",
+    "@id": `${siteUrl}/#person`,
     name: site.name,
     jobTitle: "IT Infrastructure, Cybersecurity & Full Stack Engineer",
     url: `${siteUrl}/`,
@@ -97,6 +101,37 @@ function personJsonLd() {
   });
 }
 
+function professionalServiceJsonLd() {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: `${site.name} — IT Infrastructure & Cybersecurity`,
+    url: `${siteUrl}/`,
+    description:
+      "IT infrastructure, cybersecurity, networking and full-stack web development services for businesses in Dhaka, Bangladesh.",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Dhaka",
+      addressCountry: "BD",
+    },
+    areaServed: "BD",
+    priceRange: "$$",
+  });
+}
+
+function websiteJsonLd() {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: `${siteUrl}/`,
+    description:
+      "IT infrastructure, cybersecurity and full-stack development portfolio",
+    inLanguage: ["en", "bn"],
+    publisher: { "@type": "Person", name: site.name },
+  });
+}
+
 export default async function LocaleLayout({
   children,
   params,
@@ -111,6 +146,22 @@ export default async function LocaleLayout({
   setRequestLocale(resolved);
 
   const themeStyle = buildThemeStyle(await getThemeOverrides());
+  const seoSettings = await getSeoSettings();
+  const presets = await getThemePresets();
+  const visitorSwitch = await getThemeVisitorSwitch();
+
+  // Inject allowed preset keys + default into the no-flash script.
+  const allowedKeys = presets.filter((p) => p.enabled).map((p) => p.key);
+  const defaultKey = presets.find((p) => p.isDefault)?.key ?? (allowedKeys[0] ?? "light");
+  const noFlashScript = `try{
+var allowed=${JSON.stringify(allowedKeys)};
+var def="${defaultKey}";
+var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);
+var t=(c?decodeURIComponent(c[1]):null)||localStorage.getItem("theme")||def;
+if(allowed.indexOf(t)<0||!${visitorSwitch})t=def;
+if(allowed.indexOf(t)<0)t=allowed[0]||"light";
+document.documentElement.dataset.theme=t;
+}catch(e){document.documentElement.dataset.theme="light";}`;
 
   return (
     <html
@@ -119,9 +170,15 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: noFlashScript }} />
         {themeStyle ? (
           <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
+        ) : null}
+        {seoSettings.gsc_verification ? (
+          <meta name="google-site-verification" content={seoSettings.gsc_verification} />
+        ) : null}
+        {seoSettings.bing_verification ? (
+          <meta name="msvalidate.01" content={seoSettings.bing_verification} />
         ) : null}
       </head>
       <body>
@@ -133,13 +190,25 @@ export default async function LocaleLayout({
           >
             <SkipLabel />
           </a>
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
           {children}
           <Footer />
-          <AdminAccentDemo />
+          <Analytics id={seoSettings.analytics_id} />
+          <AdminPreview />
+          <ScrollProgress />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: personJsonLd() }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: professionalServiceJsonLd() }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: websiteJsonLd() }}
           />
         </NextIntlClientProvider>
       </body>

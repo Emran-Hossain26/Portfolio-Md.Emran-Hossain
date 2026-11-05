@@ -11,17 +11,18 @@ export async function requireAdmin() {
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY
   ) {
-    redirect("/admin/login?reason=notconfigured");
+    redirect("/login?reason=notconfigured");
   }
 
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   const user = data.user;
-  if (!user) redirect("/admin/login");
+  if (!user) redirect("/login");
 
   const allowed = (process.env.ADMIN_EMAIL ?? "").toLowerCase();
   if (allowed && user.email?.toLowerCase() !== allowed) {
-    redirect("/admin/login?reason=unauthorized");
+    await supabase.auth.signOut();
+    redirect("/login?reason=unauthorized");
   }
   return user;
 }

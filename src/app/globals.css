@@ -12,6 +12,7 @@
   --mute: #5B6678;
   --line: #DCE1E9;
   --ok: #1FA971;
+  --r: 14px;
 }
 [data-theme=dark] {
   --bg: #0C1524;
@@ -20,9 +21,64 @@
   --mute: #93A0B5;
   --line: #223552;
 }
+/* ---- Preset: Cyber (neon green terminal) ---- */
+[data-theme=cyber] {
+  --accent: #2CFF6B;
+  --bg: #050805;
+  --panel: #0B120B;
+  --ink: #CFFFD6;
+  --mute: #6FA77A;
+  --line: #16301A;
+}
+/* ---- Preset: Aurora (gradient glass) ---- */
+[data-theme=aurora] {
+  --accent: #9B7BFF;
+  --bg: #120E2B;
+  --panel: #1B1640;
+  --ink: #F1ECFF;
+  --mute: #B3A9DE;
+  --line: #34296B;
+}
+/* ---- Preset: Warm Paper (cream/orange) ---- */
+[data-theme=warm] {
+  --accent: #FFB020;
+  --bg: #F3EFE6;
+  --panel: #FFFFFF;
+  --ink: #2D4147;
+  --mute: #8FB3B8;
+  --line: #DCE1E9;
+}
+/* ---- Preset: Ocean (blue tones) ---- */
+[data-theme=ocean] {
+  --accent: #0EA5E9;
+  --bg: #0C1929;
+  --panel: #132337;
+  --ink: #E0F2FE;
+  --mute: #7DD3FC;
+  --line: #1E3A5F;
+}
+/* ---- Preset: High Contrast ---- */
+[data-theme=contrast] {
+  --accent: #000000;
+  --bg: #FFFFFF;
+  --panel: #FFFFFF;
+  --ink: #000000;
+  --mute: #333333;
+  --line: #000000;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme=contrast] {
+    --accent: #FFFFFF;
+    --bg: #000000;
+    --panel: #000000;
+    --ink: #FFFFFF;
+    --mute: #CCCCCC;
+    --line: #FFFFFF;
+  }
+}
 /* System default when the user hasn't chosen yet (no-flash dark mode). */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme=light]) {
+  :root:not([data-theme]) {
     --bg: #0C1524;
     --panel: #122035;
     --ink: #E8EDF5;
@@ -93,6 +149,25 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   border-bottom: 1px dashed var(--line); padding-bottom: 4px;
 }
 .status i { color: var(--ok); font-style: normal }
+.status i::before {
+  content: ""; display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; background: currentColor; margin-right: 6px;
+  vertical-align: 1px;
+}
+
+/* ---- Availability chip (hero; visitor preview can hide it via .off) ---- */
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--ink);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 14px; margin-bottom: 20px; background: var(--panel);
+}
+.chip i {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+  display: inline-block; animation: chip-pulse 2.4s ease-in-out infinite;
+}
+.chip.off { display: none }
+@keyframes chip-pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
 section { padding: 56px 0; border-top: 1px solid var(--line) }
 section h2 { font-size: 30px; margin-bottom: 26px }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px }
@@ -166,6 +241,301 @@ footer.site { padding: 32px 0; border-top: 1px solid var(--line); color: var(--m
 @media (min-width: 761px) {
   .mobile-menu { display: none }
 }
+/* ---- Effects switch (visitor preview panel sets html[data-effects]) ----
+   "off" mirrors prefers-reduced-motion so both paths share one behavior.
+   Theme transitions are intentionally unaffected: switching theme is not
+   an effect, it is the UI itself. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto }
+  .reveal { transition: none }
+  .reveal-hidden { opacity: 1; transform: none }
+  .chip i { animation: none }
+}
+html[data-effects="off"] {
+  scroll-behavior: auto;
+}
+html[data-effects="off"] .reveal { transition: none }
+html[data-effects="off"] .reveal-hidden { opacity: 1; transform: none }
+html[data-effects="off"] .chip i { animation: none }
+html[data-effects="off"] .scroll-progress { display: none }
+
+/* ---- Scroll reveal (below-the-fold home sections) ---- */
+.reveal { transition: opacity 0.7s ease, transform 0.7s ease }
+.reveal-hidden { opacity: 0; transform: translateY(24px) }
+
+/* ---- Reading progress bar (transform-based; GPU composited) ---- */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 50;
+  width: 100%; height: 2px; background: var(--accent);
+  transform-origin: 0 50%;
+  transition: transform 80ms linear;
+}
+
+/* ---- Visitor theme dock (Stage 4) ---- */
+.dock { position: fixed; right: 14px; bottom: 14px; z-index: 80; display: flex; flex-direction: column; align-items: flex-end; gap: 10px }
+.dock-fab {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel);
+  font-size: 19px; display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgba(15, 27, 45, 0.16);
+  cursor: pointer;
+}
+.dock-fab:hover { border-color: var(--accent) }
+.dock-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 14px; width: 216px;
+  box-shadow: 0 10px 30px rgba(15, 27, 45, 0.18);
+  display: grid; gap: 10px;
+}
+.dock-title { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mute) }
+.dock-swatches { display: flex; gap: 8px; flex-wrap: wrap }
+.dock-swatch {
+  width: 26px; height: 26px; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; padding: 0;
+}
+.dock-swatch.active { border-color: var(--ink) }
+.dock-row {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  text-align: left; font-size: 14px; padding: 8px 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); border-radius: var(--r);
+  color: var(--ink);
+}
+.dock-switch {
+  margin-left: auto; width: 34px; height: 19px; border-radius: 999px;
+  background: var(--line); position: relative; transition: background 0.2s;
+  display: inline-block; flex: none;
+}
+.dock-switch::after {
+  content: ""; position: absolute; top: 2.5px; left: 2.5px;
+  width: 14px; height: 14px; border-radius: 50%; background: #fff;
+  transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.dock-switch.on { background: var(--ok) }
+.dock-switch.on::after { left: 17.5px }
+
+@media (max-width: 760px) {
+  .dock { right: 10px; bottom: 10px }
+  .dock-fab { width: 42px; height: 42px; font-size: 17px }
+  .dock-panel { width: 200px }
+}
+
+/* ---- Visitor theme presets (Stage 4) ---- */
+[data-theme="cyber"] {
+  --bg: #050805;
+  --panel: #0B120B;
+  --ink: #CFFFD6;
+  --mute: #6FA77A;
+  --line: #16301A;
+  --accent: #2CFF6B;
+  --ok: #2CFF6B;
+  --r: 4px;
+  color-scheme: dark;
+}
+[data-theme="aurora"] {
+  --bg: #120E2B;
+  --panel: #1B1640;
+  --ink: #F1ECFF;
+  --mute: #B3A9DE;
+  --line: #34296B;
+  --accent: #9B7BFF;
+  --ok: #3DF0D0;
+  --r: 22px;
+  color-scheme: dark;
+}
+[data-theme="aurora"] body {
+  background: radial-gradient(900px 500px at 15% -5%, #3b2a8c66, transparent), radial-gradient(700px 500px at 100% 10%, #17b7a244, transparent), var(--bg);
+}
+[data-theme="warm"] {
+  --bg: #F3EFE6;
+  --panel: #FBF7EE;
+  --ink: #2D4147;
+  --mute: #6F8A90;
+  --line: #D4C9B0;
+  --accent: #EE7D30;
+  --ok: #7FA497;
+  --r: 14px;
+  color-scheme: light;
+}
+[data-theme="ocean"] {
+  --bg: #0A1929;
+  --panel: #0F2744;
+  --ink: #E0F0FF;
+  --mute: #7BA8D4;
+  --line: #1E3A5F;
+  --accent: #0E9AA7;
+  --ok: #3DF0D0;
+  --r: 12px;
+  color-scheme: dark;
+}
+[data-theme="contrast"] {
+  --bg: #000000;
+  --panel: #000000;
+  --ink: #FFFFFF;
+  --mute: #CCCCCC;
+  --line: #FFFFFF;
+  --accent: #FFFF00;
+  --ok: #00FF00;
+  --r: 0px;
+  color-scheme: dark;
+}
+
+/* ---- Theme picker dock (Stage 4) ---- */
+.theme-dock {
+  position: fixed; right: 14px; bottom: 14px; z-index: 80;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.theme-dock-fab {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel);
+  font-size: 19px; display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgba(15, 27, 45, 0.16);
+  cursor: pointer; color: var(--ink);
+}
+.theme-dock-fab:hover { border-color: var(--accent) }
+.theme-dock-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 14px; width: 230px;
+  box-shadow: 0 10px 30px rgba(15, 27, 45, 0.18);
+  display: grid; gap: 10px;
+}
+.theme-dock-title {
+  font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mute);
+}
+.theme-dock-swatches { display: flex; gap: 8px; flex-wrap: wrap }
+.theme-dock-swatch {
+  width: 26px; height: 26px; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; padding: 0; transition: transform 0.15s;
+}
+.theme-dock-swatch:hover { transform: scale(1.1) }
+.theme-dock-swatch.active { border-color: var(--ink) }
+.theme-dock-row {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  text-align: left; font-size: 14px; padding: 8px 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); border-radius: var(--r);
+  color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  .theme-dock { right: 10px; bottom: 10px }
+  .theme-dock-fab { width: 42px; height: 42px; font-size: 17px }
+  .theme-dock-panel { width: 200px }
+}
+
+/* ---- Stage 4.1: sunset + forest presets ---- */
+[data-theme="sunset"] {
+  --bg: #1C0F1F;
+  --panel: #2A1630;
+  --ink: #FFEBDD;
+  --mute: #D0A9B8;
+  --line: #4A2A55;
+  --accent: #FF7A59;
+  --ok: #FFC857;
+  --r: 18px;
+  color-scheme: dark;
+}
+[data-theme="sunset"] body {
+  background: radial-gradient(800px 480px at 90% -5%, #ff7a5933, transparent), radial-gradient(700px 500px at 0% 20%, #ffc85722, transparent), var(--bg);
+}
+[data-theme="forest"] {
+  --bg: #EEF3EC;
+  --panel: #FFFFFF;
+  --ink: #14261B;
+  --mute: #4F6657;
+  --line: #D3E0D3;
+  --accent: #1F7A4A;
+  --ok: #E0A526;
+  --r: 12px;
+  color-scheme: light;
+}
+
+/* ---- Admin preview panel (Stage 4.2) ---- */
+.admin-preview-dock {
+  position: fixed; left: 14px; bottom: 14px; z-index: 80;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+}
+.admin-preview-fab {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgba(15, 27, 45, 0.16);
+  cursor: pointer; color: var(--ink);
+}
+.admin-preview-fab:hover { border-color: var(--accent) }
+.admin-preview-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 18px; width: 280px; max-height: 70vh; overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(15, 27, 45, 0.18);
+  display: grid; gap: 14px;
+}
+.admin-preview-header { display: flex; justify-content: space-between; align-items: center }
+.admin-preview-header h3 { font-size: 16px; margin: 0 }
+.admin-preview-close {
+  background: none; border: none; cursor: pointer; font-size: 16px; color: var(--mute); padding: 4px;
+}
+.admin-preview-note { font-size: 12.5px; color: var(--mute); margin: 0 }
+.admin-preview-section h4 { font-size: 13px; color: var(--mute); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em }
+.admin-preview-swatches { display: flex; gap: 6px; flex-wrap: wrap }
+.admin-preview-swatch {
+  width: 22px; height: 22px; border-radius: 6px; cursor: pointer;
+  border: 2px solid transparent; padding: 0;
+}
+.admin-preview-swatch.active { border-color: var(--ink) }
+.admin-preview-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; margin: 4px 0 }
+.admin-preview-toggle input { width: 16px; height: 16px }
+.admin-preview-input {
+  width: 100%; padding: 8px 10px; font-size: 14px;
+  border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--bg); color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  .admin-preview-dock { left: 10px; bottom: 10px }
+  .admin-preview-fab { width: 42px; height: 42px }
+  .admin-preview-panel { width: 240px; max-height: 60vh }
+}
+
+/* ---- Admin preview panel (Stage 4.2) ---- */
+.admin-preview-dock {
+  position: fixed; left: 14px; bottom: 14px; z-index: 80;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+}
+.admin-preview-fab {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgba(15, 27, 45, 0.16);
+  cursor: pointer; color: var(--ink);
+}
+.admin-preview-fab:hover { border-color: var(--accent) }
+.admin-preview-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 18px; width: 280px; max-height: 70vh; overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(15, 27, 45, 0.18);
+  display: grid; gap: 14px;
+}
+.admin-preview-header { display: flex; justify-content: space-between; align-items: center }
+.admin-preview-header h3 { font-size: 16px; margin: 0 }
+.admin-preview-close {
+  background: none; border: none; cursor: pointer; font-size: 16px; color: var(--mute); padding: 4px;
+}
+.admin-preview-note { font-size: 12.5px; color: var(--mute); margin: 0 }
+.admin-preview-section h4 { font-size: 13px; color: var(--mute); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em }
+.admin-preview-swatches { display: flex; gap: 6px; flex-wrap: wrap }
+.admin-preview-swatch {
+  width: 22px; height: 22px; border-radius: 6px; cursor: pointer;
+  border: 2px solid transparent; padding: 0;
+}
+.admin-preview-swatch.active { border-color: var(--ink) }
+.admin-preview-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; margin: 4px 0 }
+.admin-preview-toggle input { width: 16px; height: 16px }
+.admin-preview-input {
+  width: 100%; padding: 8px 10px; font-size: 14px;
+  border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--bg); color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  .admin-preview-dock { left: 10px; bottom: 10px }
+  .admin-preview-fab { width: 42px; height: 42px }
+  .admin-preview-panel { width: 240px; max-height: 60vh }
 }

@@ -14,9 +14,15 @@ export default async function NotFound() {
       <section style={{ paddingTop: 32 }}>
         <h1 style={{ fontSize: 30, marginBottom: 26 }}>{t("heading")}</h1>
         <p className="mute">{t("text")}</p>
-        <p style={{ marginTop: 18 }}>
-          <Link className="btn" href="/">
+        <p style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link className="btn p" href="/">
             {t("back")}
+          </Link>
+          <Link className="btn" href="/projects">
+            Projects
+          </Link>
+          <Link className="btn" href="/contact">
+            Contact
           </Link>
         </p>
       </section>

@@ -8,7 +8,7 @@ export async function Projects() {
   const projects = await getProjects();
 
   return (
-    <section id="projects">
+    <section id="projects" data-sec="projects">
       <h2>{t("projects")}</h2>
       <div className="grid">
         {projects.map((project) => {

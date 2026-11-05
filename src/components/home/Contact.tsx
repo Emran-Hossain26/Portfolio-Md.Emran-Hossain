@@ -7,7 +7,7 @@ export async function Contact() {
   const t = await getTranslations("sections");
 
   return (
-    <section id="contact">
+    <section id="contact" data-sec="contact">
       <h2>{t("contact")}</h2>
       <form action="#">
         {/* Deviation #6: sr-only labels added for a11y; honeypot is invisible — visuals unchanged */}

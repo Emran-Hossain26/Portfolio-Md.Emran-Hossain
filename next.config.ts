@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   experimental: {
     globalNotFound: true,
   },
+  cacheLife: {
+    // Blog content: revalidate every 10 minutes so scheduled posts appear
+    // within ~10 min even if the daily cron is the only trigger.
+    blog: {
+      stale: 300, // 5 minutes (client)
+      revalidate: 600, // 10 minutes (server background refresh)
+      expire: 3600, // 1 hour (max stale)
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {
@@ -16,6 +25,15 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
   },
   async headers() {
     return [

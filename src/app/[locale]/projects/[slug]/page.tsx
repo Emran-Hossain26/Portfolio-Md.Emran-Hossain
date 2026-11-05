@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
+import { siteUrl } from "@/data/site";
 import { getProject, getProjects } from "@/lib/cms";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
@@ -72,6 +73,18 @@ export default async function ProjectPage({
           { name: pick(resolved, project.title), path: `/projects/${project.slug}` },
         ])}
       />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: pick(resolved, project.title),
+          description: pick(resolved, project.desc),
+          applicationCategory: "WebApplication",
+          operatingSystem: "Web",
+          author: { "@type": "Person", name: "Md Emran Hossain" },
+          url: project.href || `${siteUrl}/projects/${project.slug}`,
+        }}
+      />
     </main>
   );
 }
@@ -87,10 +100,15 @@ export async function generateMetadata({
     : routing.defaultLocale) as Locale;
   const project = await getProject(slug);
   if (!project) return {};
-  return pageMetadata(
+  const meta = pageMetadata(
     resolved,
     `/projects/${project.slug}`,
     `${pick(resolved, project.title)} | ${resolved === "en" ? "Md Emran Hossain" : "মোঃ ইমরান হোসেন"}`,
     pick(resolved, project.desc),
   );
+  if (project.og_image) {
+    meta.openGraph = { ...meta.openGraph, images: [project.og_image] };
+    meta.twitter = { ...meta.twitter, images: [project.og_image] };
+  }
+  return meta;
 }
