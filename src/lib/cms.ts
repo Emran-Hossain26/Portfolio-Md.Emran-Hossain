@@ -757,8 +757,12 @@ export type EffectsSettings = {
   parallax: boolean;
   scramble: boolean;
   counters: boolean;
-  /** Auto-disable effects on slow devices unless the visitor opts in. */
-  lite_mode: boolean;
+  /** First-visit default for new visitors: Full or Lite (lite = off on touch/slow). */
+  default_mode: 'full' | 'lite';
+  /** Disable heavy effects (cursor group) on touch/mobile. Default ON. */
+  touch_disable: boolean;
+  /** Scales particle counts and glow strength. */
+  intensity: 'low' | 'medium' | 'high';
 };
 
 export const FX_DEFAULTS: EffectsSettings = {
@@ -773,7 +777,9 @@ export const FX_DEFAULTS: EffectsSettings = {
   parallax: true,
   scramble: true,
   counters: true,
-  lite_mode: true,
+  default_mode: 'full',
+  touch_disable: true,
+  intensity: 'medium',
 };
 
 export async function getEffectsSettings(): Promise<EffectsSettings> {

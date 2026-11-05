@@ -11,7 +11,6 @@ import { Reviews } from "@/components/home/Reviews";
 import { BlogPreview } from "@/components/home/BlogPreview";
 import { Contact } from "@/components/home/Contact";
 import { Certifications, Faq, Stats } from "@/components/home/Extras";
-import { Reveal } from "@/components/Reveal";
 
 export async function generateMetadata({
   params,
@@ -51,19 +50,19 @@ export default async function HomePage({
 
   return (
     <main className="wrap" id="main">
-      {/* Hero stays un-revealed: it holds the LCP element. Every section
-          below the fold reveals on first scroll (skipped for reduced motion
-          or when the visitor turns effects off). data-sec keys match the
-          visitor preview panel's section toggles. */}
+      {/* Hero stays un-revealed: it holds the LCP element. Sections below
+          carry data-reveal — the lazy "Animation" module hides only what is
+          below the fold and reveals it on first scroll. data-sec keys match
+          the section toggles used by admin tooling. */}
       <Hero chip={availabilityChip} />
-      <Reveal><Expertise /></Reveal>
-      <Reveal><Stats /></Reveal>
-      <Reveal><Projects /></Reveal>
-      <Reveal><Certifications /></Reveal>
-      <Reveal><Reviews /></Reveal>
-      <Reveal><Faq /></Reveal>
-      <Reveal><BlogPreview /></Reveal>
-      <Reveal><Contact /></Reveal>
+      <div data-reveal><Expertise /></div>
+      <div data-reveal><Stats /></div>
+      <div data-reveal><Projects /></div>
+      <div data-reveal><Certifications /></div>
+      <div data-reveal><Reviews /></div>
+      <div data-reveal><Faq /></div>
+      <div data-reveal><BlogPreview /></div>
+      <div data-reveal><Contact /></div>
     </main>
   );
 }

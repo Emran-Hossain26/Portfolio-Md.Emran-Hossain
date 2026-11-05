@@ -1,7 +1,7 @@
 # Deferred QA — NOT DONE items
 
 Status wording: "Complete" is used only for items actually run and verified.
-Everything else is NOT DONE. Last updated: Stage 4.3 (2026-11-05).
+Everything else is NOT DONE. Last updated: Stage 5.1 (2026-11-05).
 
 ## 1. Database migrations — BLOCKING, run first
 
@@ -62,6 +62,25 @@ within the blog cacheLife window even with a daily cron.
 - Draft preview `/admin/preview/[slug]` tested with real posts
 
 ## Complete (previously deferred, verified done)
+
+### Stage 5.1 (verified with production build + curl + Lighthouse)
+- Single glass "✨ Effects" button (bottom-right, theme-tokens, aria-expanded/
+  controls, Enter/Esc keyboard-verified at 390px + light/cyber/high-contrast);
+  old Admin preview drawer + Accent demo removed from public site
+- Panel has exactly 3 persisted group switches (Animation / Magical cursor /
+  Magical animation); cursor row hidden on coarse pointers; reduced motion
+  starts all OFF with a note
+- Admin hard-off: group unavailable = not rendered + code never loaded
+  (verified via real admin save → updateTag → served HTML)
+- All effect code lazy (dynamic import after load+requestIdleCallback);
+  canvases pause on hidden tab / off-screen hero; intensity scales particles
+  + glow; lite/full default + touch_disable + intensity in Effects Manager
+- SEO: final h1 + final stat numbers in server HTML, data-countup aria-labels,
+  no first-load fade (page fade 180ms, client navigations only), CLS 0
+- Login guard: scripts/guard-effects.mjs passes; git diff shows 0 login files
+- Measured: home JS 664,940 → 648,457 bytes; Lighthouse mobile: defaults
+  P88/A96/S92/BP100, CLS 0, TBT 80ms; all-off P90, TBT 30ms
+
 
 - Title templates + global default descriptions — wired in `pageMetadata()` /
   `resolvePageMetadata()` (seo.ts), applied from `seo_settings`

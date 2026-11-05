@@ -9,14 +9,7 @@ import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwit
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
-import { AdminPreview } from "@/components/AdminPreview";
-import { ScrollProgress } from "@/components/ScrollProgress";
-import { CursorTrail } from "@/components/fx/CursorTrail";
-import { TiltCards } from "@/components/fx/TiltCards";
-import { Mascot } from "@/components/fx/Mascot";
-import { ClickRipple } from "@/components/fx/ClickRipple";
-import { MagneticButtons } from "@/components/fx/MagneticButtons";
-import { AuroraGlow } from "@/components/fx/AuroraGlow";
+import { EffectsButton } from "@/components/EffectsButton";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -170,22 +163,29 @@ if(allowed.indexOf(t)<0)t=allowed[0]||"light";
 document.documentElement.dataset.theme=t;
 }catch(e){document.documentElement.dataset.theme="light";}`;
 
-  // Effects defaults from the admin Effects Manager, applied pre-paint:
-  // admin-OFF effects are forced off; admin-ON is the default the visitor
-  // can override (overrides persist in localStorage per effect key). On
-  // slow devices with lite_mode enabled, effects start off until the
-  // visitor explicitly turns them on (the drawer marks "fx_chosen").
+  // Effects defaults from the admin Effects Manager, applied pre-paint.
+  // Three visitor groups; a group exists only if the admin left at least one
+  // of its effects on (master gates everything). Visitors can switch an
+  // available group off — never on a disabled one. First-visit default is
+  // Full or Lite (lite = off on touch/slow devices). Reduced motion starts
+  // every group off.
   const effectsScript = `try{
-var fxd=${JSON.stringify(fxSettings)};
+var s=${JSON.stringify(fxSettings)};
+var touch=matchMedia("(pointer: coarse)").matches;
 var slow=(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.connection&&navigator.connection.saveData);
-for(var k in fxd){
-if(k==="master"||k==="lite_mode")continue;
-if(fxd[k]===false){localStorage.setItem(k,"off");}
-else if(localStorage.getItem(k)===null){localStorage.setItem(k,"on");}
-}
-if(fxd.master===false){document.documentElement.dataset.effects="off";}
-else if(slow&&fxd.lite_mode&&!localStorage.getItem("fx_chosen")){document.documentElement.dataset.effects="off";}
-}catch(e){}`;
+var rm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function allow(names){if(!s.master)return false;for(var i=0;i<names.length;i++){if(s[names[i]]===true)return true;}return false;}
+var av={animation:allow(["tilt","parallax","scramble","counters"]),cursor:allow(["mascot","trail","ripple","magnetic"])&&!(touch&&s.touch_disable!==false),magical:allow(["aurora","network"])};
+var lite=s.default_mode==="lite"&&(touch||slow)&&!localStorage.getItem("fx_chosen");
+var out={};
+["animation","cursor","magical"].forEach(function(k){
+var v=false;
+if(av[k]&&!rm&&!lite){try{v=localStorage.getItem("fx_group_"+k)!=="off";}catch(e){v=true;}}
+out[k]=v;
+document.documentElement.setAttribute("data-fx-"+k,v?"on":"off");
+});
+}catch(e){}
+try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttribute("data-nav","1");}else{sessionStorage.setItem("pf_nav","1");}setTimeout(function(){document.documentElement.setAttribute("data-nav","1");},400);}catch(e){}`;
 
   return (
     <html
@@ -221,14 +221,11 @@ else if(slow&&fxd.lite_mode&&!localStorage.getItem("fx_chosen")){document.docume
           {children}
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
-          <AdminPreview />
-          <ScrollProgress />
-          <CursorTrail />
-          <TiltCards />
-          <Mascot />
-          <ClickRipple />
-          <MagneticButtons />
-          <AuroraGlow />
+          <EffectsButton allowed={{
+            animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
+            cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
+            magical: fxSettings.master && (fxSettings.aurora || fxSettings.network),
+          }} intensity={fxSettings.intensity} />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: personJsonLd() }}
