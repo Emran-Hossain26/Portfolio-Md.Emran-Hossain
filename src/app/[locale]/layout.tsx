@@ -11,6 +11,8 @@ import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
 import { AdminPreview } from "@/components/AdminPreview";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { CursorTrail } from "@/components/fx/CursorTrail";
+import { TiltCards } from "@/components/fx/TiltCards";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -198,6 +200,8 @@ document.documentElement.dataset.theme=t;
           <Analytics id={seoSettings.analytics_id} />
           <AdminPreview />
           <ScrollProgress />
+          <CursorTrail />
+          <TiltCards />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: personJsonLd() }}

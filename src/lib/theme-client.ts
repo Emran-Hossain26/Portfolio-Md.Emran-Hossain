@@ -49,3 +49,41 @@ export function writeTheme(id: string) {
   window.dispatchEvent(new Event("pf:theme"));
   notify();
 }
+
+/* ---- Visitor-themes override (preview panel demos the DB setting) ----
+   The server passes the DB value as a prop; the preview panel can locally
+   override it. Effective switch = prop AND override. */
+
+const VISITOR_EVENT = "pf:visitor";
+
+export function subscribeVisitorThemes(cb: Listener) {
+  listeners.add(cb);
+  window.addEventListener("storage", cb);
+  window.addEventListener(VISITOR_EVENT, cb);
+  return () => {
+    listeners.delete(cb);
+    window.removeEventListener("storage", cb);
+    window.removeEventListener(VISITOR_EVENT, cb);
+  };
+}
+
+export function readVisitorThemes(): boolean {
+  try {
+    const raw = localStorage.getItem("pf");
+    if (raw) {
+      const parsed = JSON.parse(raw) as { visitorThemes?: boolean };
+      if (typeof parsed.visitorThemes === "boolean") return parsed.visitorThemes;
+    }
+  } catch {}
+  return true;
+}
+
+export function writeVisitorThemes(on: boolean) {
+  try {
+    const raw = localStorage.getItem("pf");
+    const parsed = raw ? (JSON.parse(raw) as object) : {};
+    localStorage.setItem("pf", JSON.stringify({ ...parsed, visitorThemes: on }));
+  } catch {}
+  window.dispatchEvent(new Event(VISITOR_EVENT));
+  notify();
+}

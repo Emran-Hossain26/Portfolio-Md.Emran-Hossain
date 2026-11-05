@@ -43,7 +43,6 @@ export async function Header() {
             presets={presets.filter((p) => p.enabled).map((p) => ({ key: p.key, label: p.name }))}
             defaultPreset={defaultPreset}
             visitorSwitch={visitorSwitch}
-            compact
           />
           <MobileNav links={links} />
         </nav>
