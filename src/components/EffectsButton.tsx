@@ -189,7 +189,8 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
         aria-label={open ? "Close effects panel" : "Open effects panel"}
         onClick={() => setOpen((v) => !v)}
       >
-        <span aria-hidden="true">✨</span> Effects
+        ✨ Effects
+        <span className="fx-btn-seg" aria-hidden="true"><i /></span>
         {allOff ? <span className="fx-dot" aria-hidden="true" /> : null}
       </button>
     </div>

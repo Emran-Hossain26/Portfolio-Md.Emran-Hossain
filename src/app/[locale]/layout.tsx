@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
 import { EffectsButton } from "@/components/EffectsButton";
+import { AdminPreview } from "@/components/AdminPreview";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -221,6 +222,7 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
           {children}
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
+          <AdminPreview />
           <EffectsButton allowed={{
             animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
             cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
