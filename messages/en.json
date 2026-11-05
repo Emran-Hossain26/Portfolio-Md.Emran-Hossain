@@ -89,11 +89,11 @@
     },
     "about": {
       "heading": "About me",
-      "intro": "IT infrastructure and cybersecurity engineer; full stack developer with AI. Based in Dhaka, Bangladesh.",
+      "intro": "I am an IT systems engineer in Dhaka with a background in electrical engineering. Since 2013 I have worked across newspaper, power, retail and data teams, and that range shows in how I work: I plan carefully, test before I deploy, and keep systems running.\n\nToday I look after servers, Active Directory, networks and end-user support for a national daily newspaper, including its e-paper publishing workflow. Outside work I build web products with AI-assisted development, such as Likhon Tools, a bilingual Bangla/English tools platform.",
       "expTitle": "Experience",
-      "expNote": "The experience timeline will be added from the CV. No invented entries.",
+      "expNote": "From the CV — newest first. No invented entries.",
       "eduTitle": "Education",
-      "eduNote": "Education details will be added from the CV."
+      "eduNote": "B.Sc in Electrical & Electronic Engineering, 2014 — Atish Dipankar University of Science & Technology."
     },
     "notFound": {
       "heading": "Page not found",

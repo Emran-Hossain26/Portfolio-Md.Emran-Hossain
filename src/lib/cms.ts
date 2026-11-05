@@ -338,7 +338,14 @@ export async function getSkills(): Promise<Skill[]> {
 
 export async function getCertifications(): Promise<Certification[]> {
   "use cache"; cacheTag("content");
-  if (!configured()) return [];
+  // Trainings/learning from the owner CV (CONTENT.md).
+  const seed: Certification[] = [
+    { id: "c1", title: { en: "Programmable Logic Controller (PLC)", bn: "প্রোগ্রামেবল লজিক কন্ট্রোলার (PLC)" }, issuer: { en: "Engineering Staff College of Bangladesh", bn: "ইঞ্জিনিয়ারিং স্টাফ কলেজ অব বাংলাদেশ" }, year: "2015", href: "", sort: 1 },
+    { id: "c2", title: { en: "Substation Construction, Maintenance & Troubleshooting", bn: "সাবস্টেশন নির্মাণ, রক্ষণাবেক্ষণ ও ট্রাবলশুটিং" }, issuer: { en: "Biswas Builders", bn: "বিশ্বাস বিল্ডার্স" }, year: "2014", href: "", sort: 2 },
+    { id: "c3", title: { en: "Android App Development (seminar)", bn: "অ্যান্ড্রয়েড অ্যাপ ডেভেলপমেন্ট (সেমিনার)" }, issuer: { en: "Bangladesh Computer Council", bn: "বাংলাদেশ কম্পিউটার কাউন্সিল" }, year: "2018", href: "", sort: 3 },
+    { id: "c4", title: { en: "BUET international conferences — electrical, control & computer engineering", bn: "বুয়েট আন্তর্জাতিক কনফারেন্স — ইলেকট্রিক্যাল, কন্ট্রোল ও কম্পিউটার ইঞ্জিনিয়ারিং" }, issuer: { en: "BUET", bn: "বুয়েট" }, year: "2018", href: "", sort: 4 },
+  ];
+  if (!configured()) return seed;
   try {
     const { data, error } = await db().from("certifications").select("id,title_en,title_bn,issuer_en,issuer_bn,year,href,sort_order").eq("published", true).is("deleted_at", null).order("sort_order");
     if (error || !data?.length) return [];
@@ -364,11 +371,12 @@ export async function getFAQ(): Promise<Faq[]> {
 
 export async function getStats(): Promise<Stat[]> {
   "use cache"; cacheTag("content");
+  // Real figures from the owner CV (CONTENT.md) — no invented numbers.
   const seed: Stat[] = [
-    { id: "st1", value: "5+", label: { en: "Years with servers & networks", bn: "বছর সার্ভার ও নেটওয়ার্কে" }, sort: 1 },
-    { id: "st2", value: "20+", label: { en: "Systems administered", bn: "সিস্টেম অ্যাডমিনিস্টার করা" }, sort: 2 },
-    { id: "st3", value: "10+", label: { en: "Projects delivered", bn: "প্রজেক্ট সম্পন্ন" }, sort: 3 },
-    { id: "st4", value: "24/7", label: { en: "Monitoring mindset", bn: "মনিটরিং মাইন্ডসেট" }, sort: 4 },
+    { id: "st1", value: "13+", label: { en: "Years in engineering & IT (since 2013)", bn: "বছর প্রকৌশল ও আইটিতে (২০১৩ থেকে)" }, sort: 1 },
+    { id: "st2", value: "7+", label: { en: "Years in the IT sector", bn: "বছর আইটি সেক্টরে" }, sort: 2 },
+    { id: "st3", value: "5", label: { en: "Industries: media, power, retail, data, construction", bn: "খাত: মিডিয়া, পাওয়ার, রিটেইল, ডেটা, নির্মাণ" }, sort: 3 },
+    { id: "st4", value: "B.Sc", label: { en: "Electrical & Electronic Engineering, 2014", bn: "ইলেকট্রিক্যাল অ্যান্ড ইলেকট্রনিক ইঞ্জিনিয়ারিং, ২০১৪" }, sort: 4 },
   ];
   if (!configured()) return seed;
   try {

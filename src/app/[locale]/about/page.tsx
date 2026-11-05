@@ -31,7 +31,9 @@ export default async function AboutPage({
       <Breadcrumbs items={[{ label: t("heading") }]} />
       <section>
         <PageHeading>{t("heading")}</PageHeading>
-        <p>{t("intro")}</p>
+        {t("intro").split(String.fromCharCode(10,10)).map((para) => (
+          <p key={para.slice(0, 16)} style={{ marginBottom: 14 }}>{para}</p>
+        ))}
       </section>
       <Expertise />
       <section>
