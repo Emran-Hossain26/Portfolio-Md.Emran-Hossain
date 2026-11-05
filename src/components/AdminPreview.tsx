@@ -23,7 +23,11 @@ import { writeTheme } from "@/lib/theme-client";
 const STORAGE_KEY = "pf";
 
 type State = {
-  fx: { all: boolean; network: boolean; trail: boolean; tilt: boolean };
+  fx: {
+    all: boolean; network: boolean; trail: boolean; ripple: boolean;
+    magnetic: boolean; tilt: boolean; mascot: boolean; aurora: boolean;
+    parallax: boolean; scramble: boolean; counters: boolean;
+  };
   secs: Record<string, boolean>;
   headline: string;
   available: boolean;
@@ -31,12 +35,38 @@ type State = {
 };
 
 const DEFAULT_STATE: State = {
-  fx: { all: true, network: true, trail: true, tilt: true },
+  fx: { all: true, network: true, trail: true, ripple: true, magnetic: true, tilt: true, mascot: true, aurora: true, parallax: true, scramble: true, counters: true },
   // Keys match the data-sec attributes on the real home sections.
   secs: { expertise: true, certifications: true, projects: true, stats: true, reviews: true, faq: true, blog: true, contact: true },
   headline: "",
   available: true,
   visitorThemes: true,
+};
+
+const FX_ROWS: { key: keyof State["fx"]; label: string }[] = [
+  { key: "network", label: "Network background" },
+  { key: "trail", label: "Cursor sparkle trail" },
+  { key: "ripple", label: "Click ripple" },
+  { key: "magnetic", label: "Magnetic buttons" },
+  { key: "tilt", label: "3D tilt cards" },
+  { key: "mascot", label: "Mascot butterfly" },
+  { key: "aurora", label: "Aurora glow" },
+  { key: "parallax", label: "Hero parallax" },
+  { key: "scramble", label: "Text scramble" },
+  { key: "counters", label: "Animated counters" },
+];
+
+const FX_STORAGE_KEYS: Record<Exclude<keyof State["fx"], "all">, string> = {
+  network: "network_bg",
+  trail: "cursor_fx",
+  ripple: "click_ripple",
+  magnetic: "magnetic_fx",
+  tilt: "tilt_cards",
+  mascot: "mascot_fx",
+  aurora: "aurora_fx",
+  parallax: "parallax_fx",
+  scramble: "scramble_fx",
+  counters: "counters_fx",
 };
 
 const SECTION_ROWS: { key: keyof State["secs"]; label: string }[] = [
@@ -74,9 +104,9 @@ function writeState(s: State) {
 function applyState(s: State) {
   document.documentElement.dataset.effects = s.fx.all ? "on" : "off";
   try {
-    localStorage.setItem("network_bg", s.fx.network ? "on" : "off");
-    localStorage.setItem("cursor_fx", s.fx.trail ? "on" : "off");
-    localStorage.setItem("tilt_cards", s.fx.tilt ? "on" : "off");
+    for (const [k, storageKey] of Object.entries(FX_STORAGE_KEYS)) {
+      localStorage.setItem(storageKey, s.fx[k as keyof typeof FX_STORAGE_KEYS] ? "on" : "off");
+    }
   } catch {}
   for (const [k, v] of Object.entries(s.secs)) {
     const el = document.querySelector(`[data-sec="${k}"]`);
@@ -122,8 +152,13 @@ export function AdminPreview() {
     update({ secs: { ...state.secs, [key]: !state.secs[key] } });
   };
 
-  const toggleFx = (key: "all" | "network" | "trail" | "tilt") => {
-    update({ fx: { ...state.fx, [key]: !state.fx[key] } });
+  const toggleFx = (key: keyof State["fx"]) => {
+    const next = { ...state.fx, [key]: !state.fx[key] };
+    if (key === "all") {
+      // Visitor made an explicit choice — remember it over lite mode.
+      try { localStorage.setItem("fx_chosen", "1"); } catch {}
+    }
+    update({ fx: next });
   };
 
   return (
@@ -223,36 +258,18 @@ export function AdminPreview() {
                 />
                 <span className="track" aria-hidden="true" />
               </label>
-              <label className="admin-preview-toggle">
-                <span>Network background</span>
-                <input
-                  type="checkbox"
-                  checked={state.fx.network}
-                  disabled={!state.fx.all}
-                  onChange={() => toggleFx("network")}
-                />
-                <span className="track" aria-hidden="true" />
-              </label>
-              <label className="admin-preview-toggle">
-                <span>Cursor sparkle trail</span>
-                <input
-                  type="checkbox"
-                  checked={state.fx.trail}
-                  disabled={!state.fx.all}
-                  onChange={() => toggleFx("trail")}
-                />
-                <span className="track" aria-hidden="true" />
-              </label>
-              <label className="admin-preview-toggle">
-                <span>3D tilt cards</span>
-                <input
-                  type="checkbox"
-                  checked={state.fx.tilt}
-                  disabled={!state.fx.all}
-                  onChange={() => toggleFx("tilt")}
-                />
-                <span className="track" aria-hidden="true" />
-              </label>
+              {FX_ROWS.map((row) => (
+                <label key={row.key} className="admin-preview-toggle">
+                  <span>{row.label}</span>
+                  <input
+                    type="checkbox"
+                    checked={state.fx[row.key]}
+                    disabled={!state.fx.all}
+                    onChange={() => toggleFx(row.key)}
+                  />
+                  <span className="track" aria-hidden="true" />
+                </label>
+              ))}
             </div>
 
             <div className="admin-preview-section">

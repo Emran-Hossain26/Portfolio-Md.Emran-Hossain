@@ -506,3 +506,66 @@ html[data-effects="off"] .cursor-trail { display: none }
 @media (prefers-reduced-motion: no-preference) {
   .card { transition: transform 0.18s ease }
 }
+
+/* ---- Stage 5: page transition, aurora, mascot, ripple ---- */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-effects="on"] .page-fade { animation: page-in 0.35s ease }
+  @keyframes page-in { from { opacity: 0; transform: translateY(6px) } }
+}
+
+/* Aurora glow: two blurred accent blobs drifting behind everything */
+.fx-aurora {
+  position: fixed; inset: -20%; z-index: -1;
+  pointer-events: none; overflow: hidden;
+}
+.fx-aurora-blob {
+  position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%;
+  filter: blur(70px); opacity: 0.16;
+}
+.fx-aurora-a {
+  background: radial-gradient(circle, var(--accent), transparent 65%);
+  top: -12%; left: -8%; animation: aurora-a 26s ease-in-out infinite alternate;
+}
+.fx-aurora-b {
+  background: radial-gradient(circle, var(--ok, var(--accent)), transparent 65%);
+  bottom: -16%; right: -10%; animation: aurora-b 32s ease-in-out infinite alternate;
+}
+@keyframes aurora-a { to { transform: translate(14vw, 10vh) scale(1.15) } }
+@keyframes aurora-b { to { transform: translate(-12vw, -8vh) scale(0.9) } }
+@media (prefers-color-scheme: light) { .fx-aurora-blob { opacity: 0.1 } }
+html[data-effects="off"] .fx-aurora { display: none }
+@media (prefers-reduced-motion: reduce) {
+  .fx-aurora-blob { animation: none }
+}
+
+/* Mascot butterfly (miniature of the login scene) */
+.fx-mascot {
+  position: fixed; left: 0; top: 0; z-index: 95;
+  pointer-events: none; will-change: transform;
+  /* Invisible until the follow-loop places it (guards may keep it parked). */
+  transform: translate3d(-100px, -100px, 0);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
+}
+.fx-wing { transform-origin: 20px 20px; animation: wing-flap 0.32s ease-in-out infinite alternate }
+.fx-wing-l { transform-origin: 19px 21px }
+.fx-wing-r { transform-origin: 21px 21px }
+@keyframes wing-flap {
+  from { transform: scaleX(1) }
+  to { transform: scaleX(0.55) }
+}
+html[data-effects="off"] .fx-mascot { display: none }
+@media (prefers-reduced-motion: reduce) {
+  .fx-wing { animation: none }
+}
+
+/* Click ripple ring */
+.fx-ripple {
+  position: fixed; z-index: 96; pointer-events: none;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 50%; border: 2px solid var(--accent);
+  opacity: 0.6; transform: scale(0.4);
+  animation: fx-ripple 0.55s ease-out forwards;
+}
+@keyframes fx-ripple {
+  to { opacity: 0; transform: scale(3.2) }
+}

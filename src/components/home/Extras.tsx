@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { getCertifications, getFAQ, getStats } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
+import { CountUp } from "@/components/fx/CountUp";
 
 export async function Stats() {
   const locale = (await getLocale()) as Locale;
@@ -15,7 +16,7 @@ export async function Stats() {
           {rows.map((r) => (
             <div className="card" key={r.id}>
               <b style={{ display: "block", fontSize: 34, color: "var(--accent)", fontFamily: "var(--font-sora), sans-serif" }}>
-                {r.value}
+                <CountUp value={r.value} />
               </b>
               <span style={{ display: "block", marginTop: 6, color: "var(--mute)", fontSize: 14 }}>
                 {pick(locale, r.label)}

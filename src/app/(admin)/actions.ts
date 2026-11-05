@@ -561,3 +561,31 @@ export async function deleteMediaAction(id: string) {
   refresh();
   redirect("/admin/media");
 }
+
+/* ------------------------------------------------------------------ */
+/* Stage 5: Effects Manager (site_settings: effects_settings)          */
+/* ------------------------------------------------------------------ */
+
+export async function saveEffectsAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const on = (k: string) => formData.get(k) === "on";
+  const value = {
+    master: on("master"),
+    network: on("network"),
+    trail: on("trail"),
+    ripple: on("ripple"),
+    magnetic: on("magnetic"),
+    tilt: on("tilt"),
+    mascot: on("mascot"),
+    aurora: on("aurora"),
+    parallax: on("parallax"),
+    scramble: on("scramble"),
+    counters: on("counters"),
+    lite_mode: on("lite_mode"),
+  };
+  const db = createServiceClient();
+  await db.from("site_settings").upsert({ key: "effects_settings", value }, { onConflict: "key" });
+  refresh();
+  redirect("/admin/effects?saved=1");
+}

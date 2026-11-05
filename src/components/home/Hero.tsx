@@ -4,6 +4,8 @@ import { getCvPath, getHeroTexts } from "@/lib/cms";
 import { statusItems } from "@/data/expertise";
 import { pick, type Locale } from "@/data/types";
 import { NetworkBackground } from "@/components/fx/NetworkBackground";
+import { ScrambleHero } from "@/components/fx/ScrambleHero";
+import { HeroParallax } from "@/components/fx/HeroParallax";
 
 export async function Hero({
   chip,
@@ -22,6 +24,8 @@ export async function Hero({
     <div className="hero">
       {/* Constellation background (visitor-togglable, desktop + motion-safe only) */}
       <NetworkBackground />
+      <ScrambleHero />
+      <HeroParallax />
       <div>
         {chip}
         {/* id="h1" — targeted by the visitor preview panel's headline box */}

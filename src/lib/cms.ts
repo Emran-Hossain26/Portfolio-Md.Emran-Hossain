@@ -742,3 +742,51 @@ export async function getPageSeo(
     return null;
   }
 }
+
+// --- Stage 5: Effects Manager settings (site_settings: effects_settings) ---
+
+export type EffectsSettings = {
+  master: boolean;
+  network: boolean;
+  trail: boolean;
+  ripple: boolean;
+  magnetic: boolean;
+  tilt: boolean;
+  mascot: boolean;
+  aurora: boolean;
+  parallax: boolean;
+  scramble: boolean;
+  counters: boolean;
+  /** Auto-disable effects on slow devices unless the visitor opts in. */
+  lite_mode: boolean;
+};
+
+export const FX_DEFAULTS: EffectsSettings = {
+  master: true,
+  network: true,
+  trail: true,
+  ripple: true,
+  magnetic: true,
+  tilt: true,
+  mascot: true,
+  aurora: true,
+  parallax: true,
+  scramble: true,
+  counters: true,
+  lite_mode: true,
+};
+
+export async function getEffectsSettings(): Promise<EffectsSettings> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return FX_DEFAULTS;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "effects_settings")
+      .maybeSingle();
+    return { ...FX_DEFAULTS, ...((data?.value ?? {}) as Partial<EffectsSettings>) };
+  } catch {
+    return FX_DEFAULTS;
+  }
+}

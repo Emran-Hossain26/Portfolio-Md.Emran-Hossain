@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hind_Siliguri, Inter, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { site, siteUrl } from "@/data/site";
-import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch } from "@/lib/cms";
+import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
@@ -13,6 +13,10 @@ import { AdminPreview } from "@/components/AdminPreview";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { CursorTrail } from "@/components/fx/CursorTrail";
 import { TiltCards } from "@/components/fx/TiltCards";
+import { Mascot } from "@/components/fx/Mascot";
+import { ClickRipple } from "@/components/fx/ClickRipple";
+import { MagneticButtons } from "@/components/fx/MagneticButtons";
+import { AuroraGlow } from "@/components/fx/AuroraGlow";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -151,6 +155,7 @@ export default async function LocaleLayout({
   const seoSettings = await getSeoSettings();
   const presets = await getThemePresets();
   const visitorSwitch = await getThemeVisitorSwitch();
+  const fxSettings = await getEffectsSettings();
 
   // Inject allowed preset keys + default into the no-flash script.
   const allowedKeys = presets.filter((p) => p.enabled).map((p) => p.key);
@@ -165,6 +170,23 @@ if(allowed.indexOf(t)<0)t=allowed[0]||"light";
 document.documentElement.dataset.theme=t;
 }catch(e){document.documentElement.dataset.theme="light";}`;
 
+  // Effects defaults from the admin Effects Manager, applied pre-paint:
+  // admin-OFF effects are forced off; admin-ON is the default the visitor
+  // can override (overrides persist in localStorage per effect key). On
+  // slow devices with lite_mode enabled, effects start off until the
+  // visitor explicitly turns them on (the drawer marks "fx_chosen").
+  const effectsScript = `try{
+var fxd=${JSON.stringify(fxSettings)};
+var slow=(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.connection&&navigator.connection.saveData);
+for(var k in fxd){
+if(k==="master"||k==="lite_mode")continue;
+if(fxd[k]===false){localStorage.setItem(k,"off");}
+else if(localStorage.getItem(k)===null){localStorage.setItem(k,"on");}
+}
+if(fxd.master===false){document.documentElement.dataset.effects="off";}
+else if(slow&&fxd.lite_mode&&!localStorage.getItem("fx_chosen")){document.documentElement.dataset.effects="off";}
+}catch(e){}`;
+
   return (
     <html
       lang={resolved}
@@ -173,6 +195,7 @@ document.documentElement.dataset.theme=t;
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlashScript }} />
+        <script dangerouslySetInnerHTML={{ __html: effectsScript }} />
         {themeStyle ? (
           <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         ) : null}
@@ -202,6 +225,10 @@ document.documentElement.dataset.theme=t;
           <ScrollProgress />
           <CursorTrail />
           <TiltCards />
+          <Mascot />
+          <ClickRipple />
+          <MagneticButtons />
+          <AuroraGlow />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: personJsonLd() }}
