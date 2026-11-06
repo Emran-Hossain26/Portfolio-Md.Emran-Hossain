@@ -1002,3 +1002,110 @@ Error: Expression expected
   32 |   ];
 
 Parsing ecmascript source code failed 
+✓ Compiled in 126ms
+ GET /admin/login?reason=notconfigured 404 in 255ms (next.js: 207ms, application-code: 48ms)
+ GET /login 200 in 1362ms (next.js: 6ms, application-code: 1355ms)
+ GET /admin/texts 200 in 1227ms (next.js: 4ms, application-code: 1223ms)
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+ GET /admin 200 in 1802ms (next.js: 7ms, application-code: 1795ms)
+ GET / 200 in 1969ms (next.js: 9ms, proxy.ts: 1143ms, generate-params: 5ms, application-code: 811ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+ GET /login 200 in 2.3s (next.js: 4ms, application-code: 2.3s)
+ GET /admin/themes 200 in 736ms (next.js: 6ms, application-code: 730ms)
+Error: Route "/admin/themes": Next.js encountered uncached data during prerendering.
+
+`fetch(...)` or `connection()` accessed outside of `<Suspense>` prevents the route from being prerendered, blocking the page load and leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [cache] Cache the data access with `"use cache"` (does not apply to `connection()`)
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
+    at inboxCount (src\app\(admin)\layout.tsx:23:8)
+    at AdminLayout (src\app\(admin)\layout.tsx:35:24)
+  21 |       .from("contact_messages")
+  22 |       .select("id", { count: "exact", head: true })
+> 23 |       .eq("status", "new");
+     |        ^
+  24 |     return count ?? 0;
+  25 |   } catch {
+  26 |     return 0;
+ GET / 200 in 4.9s (next.js: 181ms, proxy.ts: 3.4s, generate-params: 7ms, application-code: 1244ms)
+ GET / 200 in 515ms (next.js: 25ms, proxy.ts: 274ms, generate-params: 7ms, application-code: 210ms)
+✓ Compiled in 51ms
+ GET /admin/texts 200 in 343ms (next.js: 4ms, application-code: 339ms)
+ GET /admin/login?reason=notconfigured 404 in 498ms (next.js: 260ms, application-code: 239ms)
+ GET /login 200 in 325ms (next.js: 31ms, application-code: 294ms)
+ GET /admin 200 in 542ms (next.js: 5ms, application-code: 537ms)
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+ GET /admin/login?reason=notconfigured 404 in 267ms (next.js: 236ms, application-code: 31ms)
+ GET /admin/themes 200 in 685ms (next.js: 22ms, application-code: 663ms)
+ GET /login 200 in 294ms (next.js: 29ms, application-code: 265ms)
+ GET / 200 in 1205ms (next.js: 139ms, proxy.ts: 177ms, generate-params: 6ms, application-code: 884ms)
+Error: Route "/admin/themes": Next.js encountered uncached data during prerendering.
+
+`fetch(...)` or `connection()` accessed outside of `<Suspense>` prevents the route from being prerendered, blocking the page load and leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [cache] Cache the data access with `"use cache"` (does not apply to `connection()`)
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
+    at inboxCount (src\app\(admin)\layout.tsx:23:8)
+    at AdminLayout (src\app\(admin)\layout.tsx:35:24)
+  21 |       .from("contact_messages")
+  22 |       .select("id", { count: "exact", head: true })
+> 23 |       .eq("status", "new");
+     |        ^
+  24 |     return count ?? 0;
+  25 |   } catch {
+  26 |     return 0;
+ GET / 200 in 1043ms (next.js: 62ms, proxy.ts: 405ms, generate-params: 6ms, application-code: 571ms)
+ GET / 200 in 429ms (next.js: 19ms, proxy.ts: 238ms, generate-params: 0.0ms, application-code: 171ms)

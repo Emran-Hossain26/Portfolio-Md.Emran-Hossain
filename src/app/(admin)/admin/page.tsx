@@ -16,7 +16,7 @@ export default async function AdminDashboard() {
   ]);
   const published = posts.filter((p) => p.status === "published").length;
   const newMsgs = msgs.filter((m) => m.status === "new").length;
-  const pendingReviews = reviews.filter((r) => r.status === "pending").length;
+  const liveReviews = reviews.length;
 
   const stats = [
     { label: "Projects", value: String(projects.length), icon: IconBriefcase, href: "/admin/projects" },
@@ -26,7 +26,7 @@ export default async function AdminDashboard() {
   ];
 
   const attention = [
-    { label: pendingReviews + " review" + (pendingReviews === 1 ? "" : "s") + " waiting", hint: "Approve or hide", href: "/admin/testimonials" },
+    { label: liveReviews + " testimonial" + (liveReviews === 1 ? "" : "s") + " live", hint: "Moderate", href: "/admin/testimonials" },
     { label: newMsgs + " new message" + (newMsgs === 1 ? "" : "s"), hint: "Inbox", href: "/admin/inbox" },
     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
   ];
