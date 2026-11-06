@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { RowForm, type AdminField } from "@/components/admin/RowForm";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
+import { setTestimonialStatusAction } from "@/app/(admin)/actions";
 import { placeholderTestimonials as seedTestimonials } from "@/data/testimonials";
 
 type Row = Record<string, unknown> & { id: string };
@@ -86,15 +87,31 @@ export default async function AdminTestimonialsPage() {
       </p>
       {rows.map((row) => (
         <div key={row.id}>
-          {row.status === "pending" ? (
-            <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
-              <span className="chip warn">pending approval</span>
-              {row.source === "public" ? <span className="chip">from website form</span> : null}
-              {typeof row.rating === "number" && row.rating > 0 ? (
-                <span className="chip acc">{row.rating} ★</span>
-              ) : null}
-            </div>
-          ) : null}
+          {/* Mockup slide "Reviews": quick moderation without opening the editor */}
+          <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
+            <span className={"chip " + (row.status === "approved" ? "ok" : row.status === "hidden" ? "bad" : "warn")}>
+              {String(row.status)}
+            </span>
+            {row.source === "public" ? <span className="chip">from website form</span> : null}
+            {typeof row.rating === "number" && row.rating > 0 ? (
+              <span className="chip acc">{row.rating} ★</span>
+            ) : null}
+            {row.status !== "approved" ? (
+              <form action={setTestimonialStatusAction.bind(null, String(row.id), "approved")}>
+                <button type="submit" className="btn s">Approve</button>
+              </form>
+            ) : null}
+            {row.status !== "hidden" ? (
+              <form action={setTestimonialStatusAction.bind(null, String(row.id), "hidden")}>
+                <button type="submit" className="btn s">Hide</button>
+              </form>
+            ) : null}
+            {row.status !== "pending" ? (
+              <form action={setTestimonialStatusAction.bind(null, String(row.id), "pending")}>
+                <button type="submit" className="btn s">Reset to pending</button>
+              </form>
+            ) : null}
+          </div>
           <RowForm
             table="testimonials"
             id={row.id}

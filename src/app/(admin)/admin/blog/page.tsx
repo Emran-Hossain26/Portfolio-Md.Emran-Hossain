@@ -41,7 +41,7 @@ export default async function AdminBlogPage() {
   let rows: Row[];
   if (adminConfigured()) {
     const db = createServiceClient();
-    const base = "id,slug,title_en,title_bn,meta_en,meta_bn,body_en,body_bn,published,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,cover_url,canonical,noindex";
+    const base = "id,slug,title_en,title_bn,meta_en,meta_bn,body_en,body_bn,published,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,cover_url,canonical,noindex,view_count";
     const { data } = await db.from("posts").select(base).order("created_at", { ascending: false });
     if (data) {
       rows = data as unknown as Row[];
@@ -117,6 +117,34 @@ export default async function AdminBlogPage() {
 
   return (
     <AdminShell current="/admin/blog" heading="Blog posts">
+      {/* Mockup slide \"Blog & projects\": overview table with status/views */}
+      {rows.length ? (
+        <div className="c" style={{ marginBottom: 18, overflowX: "auto" }}>
+          <table>
+            <thead>
+              <tr><th>Title</th><th>Status</th><th>Views</th><th></th></tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>{String(row.title_en || row.title_bn || row.slug || "(untitled)")}</td>
+                  <td>
+                    <span className={"chip " + (row.status === "published" ? "ok" : row.status === "scheduled" ? "warn" : "")}>
+                      {String(row.status ?? "draft")}
+                    </span>
+                  </td>
+                  <td>{typeof row.view_count === "number" ? row.view_count : 0}</td>
+                  <td>
+                    {row.slug ? (
+                      <a className="btn s" href={`/admin/preview/${String(row.slug)}`}>Preview</a>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
       <p className="admin-note">
         Bodies are Markdown (paragraphs, **bold**, lists, links, code blocks, tables).
         Rendered output is sanitised server-side. Set Status to &quot;published&quot; to make a

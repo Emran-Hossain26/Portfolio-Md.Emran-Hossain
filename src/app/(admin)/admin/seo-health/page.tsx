@@ -145,6 +145,10 @@ export default async function SeoHealthPage() {
   const errors = issues.filter((i) => !i.info);
   const notes = issues.filter((i) => i.info);
 
+  // Mockup slide "SEO health": a 0-100 score ring (errors weigh 8, notes 2).
+  const rawScore = 100 - errors.length * 8 - notes.length * 2;
+  const score = Math.max(0, Math.min(100, rawScore));
+
   return (
     <AdminShell current="/admin/seo-health" heading="SEO Health">
       <p className="admin-note">
@@ -152,6 +156,17 @@ export default async function SeoHealthPage() {
         og_image coverage, noindex and orphan posts, broken internal links and
         thin archives. Items marked as notes are recommendations, not errors.
       </p>
+      {/* Mockup slide "SEO health": score ring */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "14px 0" }}>
+        <div
+          className="ring"
+          style={{ margin: 0, "--p": score } as React.CSSProperties}
+          role="img"
+          aria-label={`SEO health score ${score} of 100`}
+        >
+          <span>{score}</span>
+        </div>
+      </div>
       {errors.length === 0 ? (
         <p className="admin-check pass">No issues found.</p>
       ) : (

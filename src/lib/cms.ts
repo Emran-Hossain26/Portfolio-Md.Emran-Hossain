@@ -223,6 +223,8 @@ export async function getEducation(): Promise<TimelineItem[]> {
 export async function getHeroTexts(): Promise<{
   heading: Localized;
   intro: Localized;
+  cta: Localized;
+  avail: boolean;
 } | null> {
   "use cache";
   cacheTag("content");
@@ -237,10 +239,14 @@ export async function getHeroTexts(): Promise<{
     const v = data.value as {
       en: { heading: string; intro: string };
       bn: { heading: string; intro: string };
+      cta?: { en: string; bn: string };
+      avail?: boolean;
     };
     return {
       heading: L(v.en?.heading, v.bn?.heading),
       intro: L(v.en?.intro, v.bn?.intro),
+      cta: L(v.cta?.en, v.cta?.bn),
+      avail: v.avail !== false,
     };
   } catch {
     return null;

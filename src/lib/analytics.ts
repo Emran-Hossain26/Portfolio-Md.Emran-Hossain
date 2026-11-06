@@ -120,3 +120,45 @@ export async function getDevices(): Promise<CountRow[]> {
     return [];
   }
 }
+
+/** Mockup slide "Overview" → "Visitor choices": effects/theme/locale/device mix. */
+export type VisitorChoices = {
+  effectsOn: number; // % of views with effects on
+  darkThemes: number; // % of views on non-light themes
+  bangla: number; // % of views on /bn paths
+  mobile: number; // % of views on mobile/tablet
+  total: number;
+};
+
+const DARK_THEMES = new Set(["dark", "cyber", "aurora", "ocean", "sunset", "forest", "contrast"]);
+
+export async function getVisitorChoices(): Promise<VisitorChoices> {
+  const empty = { effectsOn: 0, darkThemes: 0, bangla: 0, mobile: 0, total: 0 };
+  try {
+    const { data, error } = await createServiceClient()
+      .from("visitor_events")
+      .select("theme,effects_on,device_type,page_path")
+      .gte("created_at", new Date(Date.now() - 30 * 864e5).toISOString())
+      .limit(5000);
+    if (error || !data?.length) return empty;
+    let effects = 0, dark = 0, bn = 0, mobile = 0;
+    for (const e of data as { theme: string | null; effects_on: boolean | null; device_type: string | null; page_path: string }[]) {
+      if (e.effects_on === true) effects++;
+      const th = (e.theme ?? "").toLowerCase();
+      if (th && DARK_THEMES.has(th)) dark++;
+      if ((e.page_path ?? "").startsWith("/bn")) bn++;
+      if (e.device_type === "mobile" || e.device_type === "tablet") mobile++;
+    }
+    const total = data.length;
+    const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
+    return {
+      effectsOn: pct(effects),
+      darkThemes: pct(dark),
+      bangla: pct(bn),
+      mobile: pct(mobile),
+      total,
+    };
+  } catch {
+    return empty;
+  }
+}

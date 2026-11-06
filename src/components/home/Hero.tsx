@@ -20,13 +20,14 @@ export async function Hero({
   return (
     <div className="hero">
       <div>
-        {chip}
+        {/* Availability chip is admin-controlled (hero_texts.avail; default on) */}
+        {texts?.avail === false ? null : chip}
         {/* id="h1" — targeted by the visitor preview panel's headline box */}
         <h1 id="h1">{texts ? pick(locale, texts.heading) : t("heading")}</h1>
         <p>{texts ? pick(locale, texts.intro) : t("intro")}</p>
         <div className="cta">
           <a className="btn p" href="#contact">
-            {t("hire")}
+            {texts ? pick(locale, texts.cta) || t("hire") : t("hire")}
           </a>
           {/* CV enabled once the admin uploads one (storage bucket "cv"); the
               counting route increments the download counter, then redirects.

@@ -399,6 +399,12 @@ export async function saveTextsAction(formData: FormData) {
       heading: String(formData.get("hero_heading_bn") ?? ""),
       intro: String(formData.get("hero_intro_bn") ?? ""),
     },
+    // Stage 6 mockup parity: button label + availability chip toggle
+    cta: {
+      en: String(formData.get("cta_en") ?? "").trim(),
+      bn: String(formData.get("cta_bn") ?? "").trim(),
+    },
+    avail: formData.get("avail") === "on",
   };
   await createServiceClient()
     .from("site_settings")
@@ -700,6 +706,12 @@ export async function saveHeroTextsAction(formData: FormData) {
       en: String(formData.get("intro_en") ?? "").trim(),
       bn: String(formData.get("intro_bn") ?? "").trim(),
     },
+    // Stage 6 mockup parity: button label + availability chip toggle
+    cta: {
+      en: String(formData.get("cta_en") ?? "").trim(),
+      bn: String(formData.get("cta_bn") ?? "").trim(),
+    },
+    avail: formData.get("avail") === "on",
   };
   await createServiceClient()
     .from("site_settings")
@@ -1115,4 +1127,19 @@ export async function saveModuleSettingsAction(formData: FormData) {
   });
   refresh();
   redirect("/admin/extras?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage 6 mockup parity: quick review moderation + inbox CSV           */
+/* ------------------------------------------------------------------ */
+
+export async function setTestimonialStatusAction(id: string, status: string) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const allowed = ["pending", "approved", "hidden"];
+  if (!allowed.includes(status)) redirect("/admin/testimonials");
+  await createServiceClient().from("testimonials").update({ status }).eq("id", id);
+  await logAdminAction(user, "update", "testimonials", id, null, { status });
+  refresh();
+  redirect("/admin/testimonials");
 }

@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import {
   getDaily,
+  getVisitorChoices,
   getSummary,
   getTopPages,
   getCountries,
@@ -84,7 +85,7 @@ async function AnalyticsInner({
     ? (Number(sp.range) as (typeof RANGES)[number])
     : 30;
 
-  const [daily, summary, topPages, countries, devices, referrers, cvDownloads] =
+  const [daily, summary, topPages, countries, devices, referrers, cvDownloads, choices] =
     await Promise.all([
       getDaily(range),
       getSummary(range),
@@ -93,6 +94,7 @@ async function AnalyticsInner({
       getDevices(),
       getReferrers(),
       getCvDownloads(),
+      getVisitorChoices(),
     ]);
 
   const empty = !daily.some((d) => d.views > 0 || d.visitors > 0) && topPages.length === 0;
@@ -227,6 +229,29 @@ async function AnalyticsInner({
             </div>
           ) : (
             <p className="note">No device data yet.</p>
+          )}
+        </div>
+        <div className="c">
+          <h3>Visitor choices <span className="chip">30d</span></h3>
+          {choices.total === 0 ? (
+            <p className="note">No visitor data yet.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 4 }}>
+              {([
+                ["Effects left on", choices.effectsOn],
+                ["Dark-type themes", choices.darkThemes],
+                ["Bangla language", choices.bangla],
+                ["Mobile devices", choices.mobile],
+              ] as [string, number][]).map(([label, pct]) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
+                  <div style={{ flex: 1, fontSize: 14 }}>{label}</div>
+                  <div style={{ height: 6, borderRadius: 9, background: "var(--line)", width: 120, overflow: "hidden" }}>
+                    <i style={{ display: "block", height: "100%", width: pct + "%", background: "var(--acc, #4f63ff)" }} />
+                  </div>
+                  <b style={{ width: 44, textAlign: "right", fontSize: 13 }}>{pct}%</b>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
