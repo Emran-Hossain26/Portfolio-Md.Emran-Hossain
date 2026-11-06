@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ["latin"] });
  * tokens + a small copy of the theme script are imported directly.
  */
 export const metadata: Metadata = {
-  title: "Page not found | মোঃ ইমরান হোসেন",
+  title: "Page not found | Md Emran Hossain",
   robots: { index: false },
 };
 

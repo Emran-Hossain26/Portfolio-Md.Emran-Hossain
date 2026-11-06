@@ -96,7 +96,7 @@ export function start({ intensity }: { intensity: string }) {
     for (const s of sparks) {
       s.life += dt * 16.7;
       s.x += s.vx * dt; s.y += s.vy * dt;
-      const t = 1 - s.life / s.max;
+      const t = Math.max(0, 1 - s.life / s.max);
       ctx.globalAlpha = 0.5 * t;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r * t, 0, Math.PI * 2);

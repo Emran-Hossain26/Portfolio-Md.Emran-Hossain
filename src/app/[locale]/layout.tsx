@@ -207,6 +207,8 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
         {seoSettings.bing_verification ? (
           <meta name="msvalidate.01" content={seoSettings.bing_verification} />
         ) : null}
+        {/* FontAwesome for Icons */}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </head>
       <body>
         <NextIntlClientProvider>

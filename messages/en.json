@@ -47,6 +47,13 @@
   "sections": {
     "expertise": "What I do",
     "projects": "Selected projects",
+    "problem": "Problem",
+    "solution": "Solution",
+    "liveDemo": "Live demo",
+    "screenshot": "Screenshot:",
+    "slideOf": "Module",
+    "slideJoin": "of",
+    "promoVideo": "Promo video (YouTube/MP4 embed, lazy loaded)",
     "reviews": "What clients say",
     "reviewsPlaceholder": "Placeholder review text. Replace with a real client quote.",
     "reviewsName": "Client name, company",

@@ -47,6 +47,13 @@
   "sections": {
     "expertise": "আমি যা করি",
     "projects": "নির্বাচিত প্রজেক্ট",
+    "problem": "সমস্যা",
+    "solution": "সমাধান",
+    "liveDemo": "লাইভ ডেমো",
+    "screenshot": "স্ক্রিনশট:",
+    "slideOf": "মডিউল",
+    "slideJoin": "/",
+    "promoVideo": "প্রোমো ভিডিও (YouTube/MP4 এমবেড, লেজি লোড)",
     "reviews": "ক্লায়েন্টদের মতামত",
     "reviewsPlaceholder": "প্লেসহোল্ডার রিভিউ টেক্সট। আসল ক্লায়েন্টের উক্তি দিয়ে বসবে।",
     "reviewsName": "ক্লায়েন্টের নাম, প্রতিষ্ঠান",

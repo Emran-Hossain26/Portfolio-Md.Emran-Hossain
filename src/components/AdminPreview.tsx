@@ -90,6 +90,10 @@ function applyState(s: State) {
 
 let cachedGroups: { animation: boolean; cursor: boolean; magical: boolean; reduced: boolean; touch: boolean } | null = null;
 
+/** Module-level so the getServerSnapshot reference is stable across renders
+ *  (React warns "should be cached to avoid an infinite loop" otherwise). */
+const SERVER_GROUPS: { animation: boolean; cursor: boolean; magical: boolean; reduced: boolean; touch: boolean } = { animation: false, cursor: false, magical: false, reduced: false, touch: false };
+
 export function AdminPreview({ allowed }: { allowed: Record<GroupKey, boolean> }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<State>(() =>
@@ -102,10 +106,11 @@ export function AdminPreview({ allowed }: { allowed: Record<GroupKey, boolean> }
     subscribeGroups,
     () => {
       const next = computeGroups(allowed);
+      if (typeof window === "undefined") return SERVER_GROUPS;
       if (!cachedGroups || next.animation !== cachedGroups.animation || next.cursor !== cachedGroups.cursor || next.magical !== cachedGroups.magical) cachedGroups = next;
       return cachedGroups;
     },
-    () => ({ animation: false, cursor: false, magical: false, reduced: false, touch: false }),
+    () => SERVER_GROUPS,
   );
 
   useEffect(() => {

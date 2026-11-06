@@ -24,7 +24,9 @@ export async function generateMetadata({
   const resolved = (hasLocale(routing.locales, locale)
     ? locale
     : routing.defaultLocale) as Locale;
-  const t = await getTranslations({ locale: resolved, namespace: "meta" });
+  // Homepage keeps the site-wide meta.* strings; subpages read their own
+  // meta.pages.<name>.* entries.
+  const t = await getTranslations({ locale: resolved, namespace: "meta.pages.blog" });
   const base = await resolvePageMetadata(resolved, "/blog", t("title"), t("description"));
 
   const q = sp.q?.trim();
@@ -170,7 +172,7 @@ export default async function BlogPage({
     : routing.defaultLocale;
   setRequestLocale(resolved);
 
-  const t = await getTranslations({ locale: resolved, namespace: "meta" });
+  const t = await getTranslations({ locale: resolved, namespace: "meta.pages.blog" });
 
   return (
     <main className="wrap" id="main">
@@ -187,9 +189,7 @@ export default async function BlogPage({
       />
       <h1 style={{ fontSize: 30, marginBottom: 8 }}>{t("title")}</h1>
       <p className="mute" style={{ marginBottom: 24 }}>
-        {resolved === "bn"
-          ? "আইটি ইনফ্রাস্ট্রাকচার, সাইবারসিকিউরিটি ও ফুল-স্ট্যাক ডেভেলপমেন্ট নিয়ে লেখা।"
-          : "Notes on IT infrastructure, cybersecurity and full-stack development."}
+        {t("description")}
       </p>
 
       <Suspense fallback={<p className="mute">Loading…</p>}>

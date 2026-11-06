@@ -23,9 +23,17 @@ export function pageMetadata(
 
   // Apply title template (e.g. "%s | Md Emran Hossain").
   const template = settings?.title_template?.trim();
-  const templatedTitle = template && template.includes("%s")
-    ? template.replace("%s", title)
-    : title;
+  const suffix = template?.includes("%s")
+    ? template.split("%s")[1]?.trim().replace(/^[\s|]+/, "") ?? ""
+    : "";
+  let templatedTitle = template && template.includes("%s") ? template.replace("%s", title) : title;
+  // Guard: per-page strings that already carry the person brand would get it
+  // appended twice. The suffix may be the EN name while a BN page title ends
+  // with the BN name ("প্রজেক্ট | মোঃ ইমরান হোসেন | Md Emran Hossain"), so
+  // both spellings count as "brand already present".
+  const knownBrands = [site.name, site.nameBn].map((b) => b.trim()).filter(Boolean);
+  const suffixIsBrand = knownBrands.some((b) => b === suffix);
+  if (suffixIsBrand && knownBrands.some((b) => title.endsWith(b))) templatedTitle = title;
 
   // Default description fallback when none provided.
   const defaultDesc =

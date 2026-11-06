@@ -123,12 +123,17 @@ export interface Project {
   slug: string;
   title_en: string;
   title_bn: string;
-  desc_en: string;
-  desc_bn: string;
-  tags: string[];
-  href: string | null;
-  published: boolean;
-  sort_order: number;
+  problem_en?: string | null;
+  problem_bn?: string | null;
+  solution_en?: string | null;
+  solution_bn?: string | null;
+  tech?: string[] | null;
+  media?: string | null;
+  video?: string | null;
+  demo_url?: string | null;
+  slides?: { src: string; caption_en: string; caption_bn: string }[] | null;
+  published?: boolean | null;
+  sort_order?: number | null;
   created_at: string;
   updated_at: string;
 }

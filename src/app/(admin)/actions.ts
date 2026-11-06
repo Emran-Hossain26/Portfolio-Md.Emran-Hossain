@@ -10,7 +10,7 @@ import { requireAdmin } from "@/lib/supabase/admin-auth";
 /* Whitelisted admin-writable tables + columns                          */
 /* ------------------------------------------------------------------ */
 
-type FieldType = "text" | "bool" | "int" | "tags";
+type FieldType = "text" | "bool" | "int" | "tags" | "jsonb";
 type TableSpec = Record<string, FieldType>;
 
 const TABLES: Record<string, TableSpec> = {
@@ -18,13 +18,17 @@ const TABLES: Record<string, TableSpec> = {
     slug: "text",
     title_en: "text",
     title_bn: "text",
-    desc_en: "text",
-    desc_bn: "text",
-    tags: "tags",
-    href: "text",
-    og_image: "text",
+    problem_en: "text",
+    problem_bn: "text",
+    solution_en: "text",
+    solution_bn: "text",
+    tech: "tags",
+    media: "text",
+    video: "text",
+    demo_url: "text",
+    slides: "jsonb",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   posts: {
     slug: "text",
@@ -151,7 +155,7 @@ const TABLES: Record<string, TableSpec> = {
 const CONFIGURED_ERROR = "/login?reason=notconfigured";
 
 function parse(spec: TableSpec, formData: FormData) {
-  const row: Record<string, string | boolean | number | string[]> = {};
+  const row: Record<string, unknown> = {};
   for (const [col, type] of Object.entries(spec)) {
     switch (type) {
       case "bool":
@@ -168,6 +172,26 @@ function parse(spec: TableSpec, formData: FormData) {
           .map((s) => s.trim())
           .filter(Boolean);
         break;
+      case "jsonb": {
+        // Slides list: {src, caption_en, caption_bn} — an empty/missing src is
+        // KEPT as a caption-only slide (rendered as the mockup placeholder);
+        // only non-object junk is dropped (4c: never a broken image).
+        let parsed: unknown = [];
+        try {
+          parsed = JSON.parse(String(formData.get(col) ?? "") || "[]");
+        } catch {}
+        row[col] = Array.isArray(parsed)
+          ? (parsed as unknown[])
+              .filter((s) => typeof s === "object" && s !== null)
+              .map((s) => s as { src?: unknown; caption_en?: unknown; caption_bn?: unknown })
+              .map((s) => ({
+                src: typeof s.src === "string" ? s.src.trim().slice(0, 1024) : "",
+                caption_en: String(s.caption_en ?? "").slice(0, 300),
+                caption_bn: String(s.caption_bn ?? "").slice(0, 300),
+              }))
+          : [];
+        break;
+      }
       default:
         row[col] = String(formData.get(col) ?? "").slice(0, 50000);
     }
@@ -199,6 +223,12 @@ export async function loginAction(formData: FormData) {
   const allowed = (process.env.ADMIN_EMAIL ?? "").toLowerCase();
   if (error || !data.user) redirect("/login?error=auth");
   if (allowed && data.user.email?.toLowerCase() !== allowed) {
+    await supabase.auth.signOut();
+    redirect("/login?error=unauthorized");
+  }
+  // Only admins-table members (is_admin() = true) may enter the panel.
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin !== true) {
     await supabase.auth.signOut();
     redirect("/login?error=unauthorized");
   }

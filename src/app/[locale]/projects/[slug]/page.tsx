@@ -8,6 +8,8 @@ import { getProject, getProjects } from "@/lib/cms";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { pick, type Locale } from "@/data/types";
+import { ProjectMedia, type MediaLabels } from "@/components/ProjectMedia";
+import { text } from "@/components/ProjectCard";
 
 export async function generateStaticParams() {
   // CMS-backed project slugs at build time.
@@ -32,7 +34,15 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const t = await getTranslations("pages.projects");
+  const s = await getTranslations("sections");
   const crumbs = await getTranslations("pages.crumbs");
+
+  const mediaLabels: MediaLabels = {
+    slideOf: s("slideOf"),
+    slideJoin: s("slideJoin"),
+    screenshot: s("screenshot"),
+    promoVideo: s("promoVideo"),
+  };
 
   return (
     <main className="wrap" id="main">
@@ -42,28 +52,50 @@ export default async function ProjectPage({
           { label: pick(resolved, project.title) },
         ]}
       />
-      <section>
+      <section style={{ paddingTop: 0 }}>
         <PageHeading>{pick(resolved, project.title)}</PageHeading>
-        <p>{pick(resolved, project.desc)}</p>
-        {project.href ? (
-          <p style={{ marginTop: 18 }}>
-            <a
-              className="btn"
-              href={project.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("live")}
-            </a>
-          </p>
-        ) : null}
-        <div className="tags" style={{ marginTop: 18 }}>
-          {project.tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
+
+        {/* Case-study layout in the approved showcase style: media area +
+            Problem → Solution side by side, stacked on mobile. */}
+        <div className="pj-detail">
+          <div>
+            <ProjectMedia project={project} locale={resolved} labels={mediaLabels} />
+          </div>
+          <div>
+            {project.problem ? (
+              <>
+                <h4>{s("problem")}</h4>
+                <p>{text(resolved, project.problem)}</p>
+              </>
+            ) : null}
+            {project.solution ? (
+              <>
+                <h4>{s("solution")}</h4>
+                <p>{text(resolved, project.solution)}</p>
+              </>
+            ) : null}
+            <div className="tags">
+              {project.tech.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
+            </div>
+            {project.demo_url ? (
+              <div className="row">
+                <a
+                  className="btn p"
+                  href={project.demo_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("live")}
+                </a>
+              </div>
+            ) : null}
+          </div>
         </div>
+
         <p className="mute" style={{ marginTop: 18 }}>
-          {t("privateNote")}
+          {t("stackNote")}
         </p>
       </section>
       <JsonLd
@@ -78,11 +110,11 @@ export default async function ProjectPage({
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
           name: pick(resolved, project.title),
-          description: pick(resolved, project.desc),
+          description: text(resolved, project.solution ?? project.problem),
           applicationCategory: "WebApplication",
           operatingSystem: "Web",
           author: { "@type": "Person", name: "Md Emran Hossain" },
-          url: project.href || `${siteUrl}/projects/${project.slug}`,
+          url: project.demo_url || `${siteUrl}/projects/${project.slug}`,
         }}
       />
     </main>
@@ -104,7 +136,7 @@ export async function generateMetadata({
     resolved,
     `/projects/${project.slug}`,
     `${pick(resolved, project.title)} | ${resolved === "en" ? "Md Emran Hossain" : "মোঃ ইমরান হোসেন"}`,
-    pick(resolved, project.desc),
+    text(resolved, project.solution ?? project.problem),
   );
   if (project.og_image) {
     meta.openGraph = { ...meta.openGraph, images: [project.og_image] };

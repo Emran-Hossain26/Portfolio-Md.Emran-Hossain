@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheTag, cacheLife } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
-import type { Project } from "@/data/projects";
+import type { Project, ProjectSlide } from "@/data/projects";
 import type { Post } from "@/data/posts";
 import type { Localized } from "@/data/types";
 import type { Locale } from "@/data/types";
@@ -32,29 +32,53 @@ const L = (en: unknown, bn: unknown): Localized => ({
 
 // --- Projects ---------------------------------------------------------------
 
+/** Validates the jsonb slides list; keeps entries even without an image
+ *  (caption-only slides stay slides — 4c placeholder is rendered for them). */
+function parseSlides(raw: unknown): ProjectSlide[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const list = raw
+    .filter((s): s is Record<string, unknown> => typeof s === "object" && s !== null)
+    .map((s) => ({
+      src: typeof s.src === "string" ? s.src.trim() : "",
+      caption_en: typeof s.caption_en === "string" ? s.caption_en : "",
+      caption_bn: typeof s.caption_bn === "string" ? s.caption_bn : "",
+    }));
+  return list.length ? list : undefined;
+}
+
 export async function getProjects(): Promise<Project[]> {
   "use cache";
   cacheTag("content");
-  if (!configured()) return (await import("@/data/projects")).projects;
+  if (!configured()) return (await import("@/data/projects")).seedProjects;
   try {
     const { data, error } = await db()
       .from("projects")
-      .select("slug,title_en,title_bn,desc_en,desc_bn,tags,href,og_image")
+      .select(
+        "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,tech,media,video,demo_url,slides,sort_order",
+      )
       .eq("published", true)
-      .order("sort");
+      .order("sort_order");
     if (error || !data?.length) {
-      return (await import("@/data/projects")).projects;
+      return (await import("@/data/projects")).seedProjects;
     }
-    return data.map((row) => ({
-      slug: row.slug as string,
-      title: L(row.title_en, row.title_bn),
-      desc: L(row.desc_en, row.desc_bn),
-      tags: (row.tags as string[]) ?? [],
-      href: (row.href as string) || undefined,
-      og_image: (row.og_image as string) || undefined,
-    }));
+    return data.map((row) => {
+      const problem = L(row.problem_en, row.problem_bn);
+      const solution = L(row.solution_en, row.solution_bn);
+      const media = row.media as Project["media"];
+      return {
+        slug: row.slug as string,
+        title: L(row.title_en, row.title_bn),
+        problem: problem.en || problem.bn ? problem : undefined,
+        solution: solution.en || solution.bn ? solution : undefined,
+        tech: (row.tech as string[]) ?? [],
+        media: media === "video" || media === "none" ? media : media === "slides" ? "slides" : undefined,
+        video: (row.video as string) || undefined,
+        slides: parseSlides(row.slides),
+        demo_url: (row.demo_url as string) || undefined,
+      };
+    });
   } catch {
-    return (await import("@/data/projects")).projects;
+    return (await import("@/data/projects")).seedProjects;
   }
 }
 

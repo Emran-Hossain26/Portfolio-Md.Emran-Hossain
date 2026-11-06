@@ -1,11 +1,12 @@
 import { saveRowAction, deleteRowAction } from "@/app/(admin)/actions";
+import type { ReactNode } from "react";
 
 export type AdminField = {
   name: string;
   label: string;
-  type: "text" | "textarea" | "check" | "number" | "select";
+  type: "text" | "textarea" | "check" | "number" | "select" | "radio";
   value: string | number | boolean;
-  /** Only for type "select". */
+  /** Only for type "select" and "radio". */
   options?: { value: string; label: string }[];
 };
 
@@ -17,10 +18,16 @@ export function RowForm({
   table,
   id,
   fields,
+  /**
+   * Extra fields rendered inside the same form (e.g. the per-project slides
+   * editor, which submits its own hidden JSON input along with the row).
+   */
+  children,
 }: {
   table: string;
   id: string;
   fields: AdminField[];
+  children?: ReactNode;
 }) {
   const action = saveRowAction.bind(null, table, id);
   return (
@@ -61,6 +68,24 @@ export function RowForm({
                   </select>
                 </label>
               );
+            case "radio":
+              return (
+                <div className="admin-row" key={field.name}>
+                  <span className="admin-note">{field.label}</span>
+                  {(field.options ?? []).map((option) => (
+                    <label key={option.value} style={{ marginRight: 12 }}>
+                      <input
+                        type="radio"
+                        name={field.name}
+                        value={option.value}
+                        defaultChecked={String(field.value) === option.value}
+                        style={{ marginRight: 6 }}
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
+              );
             case "number":
               return (
                 <div className="admin-row" key={field.name}>
@@ -83,6 +108,7 @@ export function RowForm({
               );
           }
         })}
+        {children}
         <div className="admin-actions">
           <button type="submit" className="btn p">
             Save
