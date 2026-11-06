@@ -34,7 +34,7 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
         />
       ) : null}
         <AdminSidebar open={open} />
-      <main className="admin-main flex-1 flex flex-col h-screen overflow-y-auto relative">
+      <main className="admin-main flex-1 flex flex-col relative">
         {/* Mobile top bar */}
         <div className="md:hidden sticky top-0 z-20 flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3">
           <button
