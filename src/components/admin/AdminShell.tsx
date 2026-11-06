@@ -10,11 +10,12 @@ export function AdminShell({
   heading,
   children,
 }: {
-  /** Kept for call-site compatibility; navigation chrome moved to the layout. */
+  /** Legacy call-sites still pass current; chrome lives in the layout now. */
   current?: string;
   heading: string;
   children: React.ReactNode;
 }) {
+  void current;
   return (
     <div className="admin-content p-8 max-w-6xl mx-auto w-full">
       {!adminConfigured() ? (
