@@ -4,144 +4,107 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/(admin)/actions";
-import { cn } from "@/lib/utils";
-import {
-  IconZap, IconHome, IconEye, IconStar, IconHeading, IconPalette,
-  IconFeather, IconLogout, IconSearch, IconShuffle,
-} from "@/components/admin/icons";
 
 /**
- * Admin v2 chrome (advanced mockup): grouped sidebar, topbar with page
- * title + admin dark/light toggle + "View site", avatar. Login/logout
- * pages render bare. Icons are the shared Lucide-style SVG set.
+ * Admin v2 chrome — markup mirrors portfolio-admin-advanced-mockup.html
+ * exactly (aside > .brand + nav > .nv, main > .top + .pg). All styling
+ * comes from the verbatim mockup CSS in admin.css — zero Tailwind here.
+ * Login/logout pages render bare.
  */
 
-export const V2_NAV = [
-  {
-    title: "Overview",
-    items: [{ href: "/admin", label: "Overview", icon: IconHome, key: "/admin" }],
-  },
-  {
-    title: "Inbox & people",
-    items: [
-      { href: "/admin/inbox", label: "Inbox", icon: IconEye, key: "/admin/inbox", badge: true },
-      { href: "/admin/testimonials", label: "Reviews", icon: IconStar, key: "/admin/testimonials" },
-    ],
-  },
-  {
-    title: "Content",
-    items: [
-      { href: "/admin/sections", label: "Sections", icon: IconPalette, key: "/admin/sections" },
-      { href: "/admin/blog", label: "Blog & projects", icon: IconFeather, key: "/admin/blog" },
-      { href: "/admin/hero", label: "Hero editor", icon: IconHeading, key: "/admin/hero" },
-    ],
-  },
-  {
-    title: "Appearance",
-    items: [
-      { href: "/admin/themes", label: "Visitor themes", icon: IconPalette, key: "/admin/themes" },
-      { href: "/admin/effects", label: "Effects", icon: IconZap, key: "/admin/effects" },
-    ],
-  },
-  {
-    title: "Growth & system",
-    items: [
-      { href: "/admin/seo-health", label: "SEO health", icon: IconSearch, key: "/admin/seo-health" },
-      { href: "/admin/cv", label: "System & CV", icon: IconShuffle, key: "/admin/cv" },
-    ],
-  },
-] as const;
-
-const TITLES: Record<string, string> = Object.fromEntries(
-  V2_NAV.flatMap((g) => g.items.map((i) => [i.key, i.label])),
-);
+const NAV: [string, [string, string, string][]][] = [
+  ["Overview", [["/admin", "Overview", "◧"]]],
+  ["Inbox & people", [
+    ["/admin/inbox", "Inbox", "✉"],
+    ["/admin/testimonials", "Reviews", "★"],
+  ]],
+  ["Content", [
+    ["/admin/sections", "Sections", "☰"],
+    ["/admin/blog", "Blog & projects", "✎"],
+    ["/admin/hero", "Hero editor", "Aa"],
+  ]],
+  ["Appearance", [
+    ["/admin/themes", "Visitor themes", "◐"],
+    ["/admin/effects", "Effects", "✨"],
+  ]],
+  ["Growth & system", [
+    ["/admin/seo-health", "SEO health", "⌕"],
+    ["/admin/system", "System", "⚙"],
+  ]],
+];
 
 export function AdminV2Chrome({
   children,
-  badge,
+  inboxCount = 0,
 }: {
   children: React.ReactNode;
-  badge?: React.ReactNode;
+  inboxCount?: number;
 }) {
   const pathname = usePathname();
   const bare =
     pathname?.startsWith("/login") || pathname?.startsWith("/admin/logout");
-  const [dark, setDark] = useState(() => {
-    try { return localStorage.getItem("admdark") === "1"; } catch { return false; }
-  });
-  const toggleDark = () => {
-    const next = !dark;
-    setDark(next);
-    try { localStorage.setItem("admdark", next ? "1" : "0"); } catch {}
-  };
+  const [dark, setDark] = useState(false);
 
   if (bare) return <>{children}</>;
 
-  const title = TITLES[pathname ?? "/admin"] ?? "Portfolio Admin";
+  const active = (href: string) =>
+    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+  let title = "Overview";
+  for (const [, items] of NAV) {
+    for (const [href, label] of items) {
+      if (active(href)) title = label;
+    }
+  }
 
   return (
-    <div className="av2" data-admdark={dark ? "1" : undefined}>
-      <aside className="av2-aside" aria-label="Admin navigation">
-        <div className="av2-brand">
-          <i><IconZap size={15} /></i>
-          Portfolio Admin
-        </div>
-        <nav aria-label="Admin">
-          {V2_NAV.map((group) => (
-            <div key={group.title}>
-              <p className="av2-grp">{group.title}</p>
-              {group.items.map((item) => {
-                const active =
-                  item.key === "/admin"
-                    ? pathname === "/admin"
-                    : pathname.startsWith(item.key);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn("av2-nv", active && "on")}
-                  >
-                    <item.icon size={16} />
-                    {item.label}
-                    {((item as { badge?: boolean }).badge) && badge ? (item.key === "/admin/inbox" ? badge : <b>•</b>) : null}
-                  </Link>
-                );
-              })}
+    <div className="av2" data-t={dark ? "dark" : "light"}>
+      <aside aria-label="Admin navigation">
+        <div className="brand"><i>E</i>Portfolio Admin</div>
+        <div>
+          {NAV.map(([group, items]) => (
+            <div key={group}>
+              <p className="grp">{group}</p>
+              {items.map(([href, label, glyph]) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={"nv" + (active(href) ? " on" : "")}
+                  aria-current={active(href) ? "page" : undefined}
+                >
+                  <span aria-hidden="true">{glyph}</span>
+                  {label}
+                  {href === "/admin/inbox" && inboxCount > 0 ? (
+                    <b>{inboxCount}</b>
+                  ) : null}
+                </Link>
+              ))}
             </div>
           ))}
-        </nav>
-        <div className="av2-side-f">
+        </div>
+        <div className="side-f">
           <form action={logoutAction}>
-            <button
-              type="submit"
-              className="av2-nv"
-              style={{ color: "var(--bad2)" }}
-            >
-              <IconLogout size={16} /> Log out
+            <button type="submit" className="nv" style={{ color: "var(--bad)" }}>
+              <span aria-hidden="true">⇥</span> Log out
             </button>
           </form>
           Signed in as Administrator
         </div>
       </aside>
 
-      <main style={{ flex: 1, minWidth: 0 }}>
-        <div className="av2-top">
+      <main>
+        <div className="top">
           <h1>{title}</h1>
           <button
-            type="button"
-            className="av2-btn"
+            className="btn"
             aria-label="Toggle admin theme"
-            onClick={toggleDark}
+            onClick={() => setDark((v) => !v)}
           >
             ◐
           </button>
-          <Link className="av2-btn" href="/" target="_blank">
-            View site ↗
-          </Link>
-          <div className="av2-av" title="Administrator">A</div>
+          <Link className="btn p" href="/" target="_blank">View site ↗</Link>
+          <div className="av" title="Administrator">A</div>
         </div>
-        <div className="av2-pg" tabIndex={-1}>
+        <div className="pg" tabIndex={-1}>
           <Suspense fallback={null}>{children}</Suspense>
         </div>
       </main>

@@ -33,18 +33,22 @@ async function InboxBadge() {
   return <b className="av2-badge">{n}</b>;
 }
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const unread = await inboxCount();
   return (
-    <html lang="en" className={inter.className}>
+      <html lang="en" className={inter.className}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet" />
+      </head>
       <body>
         <Suspense fallback={null}>
-          <AdminV2Chrome badge={<Suspense fallback={null}><InboxBadge /></Suspense>}>
-            {children}
-          </AdminV2Chrome>
+          <AdminV2Chrome inboxCount={unread}>{children}</AdminV2Chrome>
         </Suspense>
       </body>
     </html>
