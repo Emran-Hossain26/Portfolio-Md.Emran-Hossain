@@ -3,6 +3,15 @@
 Status wording: "Complete" is used only for items actually run and verified.
 Everything else is NOT DONE. Last updated: Session 2 wrap-up (2026-11-07).
 
+## 0c. Stage 6 (verified in Chromium, prod build)
+
+- contact submit → inbox (badge updates instantly via updateTag), quote → inbox,
+  palette (Ctrl+K open/search/navigate), terminal whoami, skills wall, sections
+  render — all green; booking/now/metrics DB pieces activate after the final
+  RUN_ALL (booking_slots/now_items tables are in 20261113, not yet applied)
+- Fixed: admin sort saves on services/skills/certifications/faqs/stats/
+  social_links targeted a non-existent `sort` column — now sort_order
+
 ## 0b. RESOLVED in Session 2 (verified)
 
 - Migrations: RUN_ALL ran to completion in Supabase SQL Editor (user-executed).
