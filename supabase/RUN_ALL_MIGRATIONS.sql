@@ -1,12 +1,9 @@
 -- ============================================================
 -- RUN_ALL_MIGRATIONS — paste this whole file into Supabase
 -- SQL Editor and Run. Safe to re-run (every part idempotent).
--- Recreates any Stage 0/1 tables your live DB is missing
--- (theme_presets, sections, messages, redirects, feature_flags, ...).
--- The SQL Editor runs the file as ONE transaction: an earlier error
--- (missing theme_presets) rolled everything back — fixed now.
+-- Recreates any Stage 0/1 tables your live DB is missing.
 -- Bundles: 20250105, 20261105, 20261106, 20261107, 20261108,
---          20261109, 20261110, 20261111 (Stage 0 backfill).
+--          20261109 (shape-aware seed), 20261110, 20261111.
 -- ============================================================
 
 -- ============================================================
@@ -484,11 +481,32 @@ grant execute on function public.is_admin() to authenticated;
 
 -- Seed the owner account by email (public contact address). No-op when the
 -- auth user has not been created yet — re-run after creating it.
-insert into public.admins (id, email)
-select u.id, u.email
-from auth.users u
-where u.email = 'engremran.it@gmail.com'
-on conflict (id) do nothing;
+-- Shape-aware: legacy `admins (user_id ...)` tables keep their NOT NULL
+-- user_id filled (and the pre-existing row is UPDATED, not re-inserted —
+-- user_id is usually that table's primary key, so a plain INSERT would
+-- violate it).
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'admins' and column_name = 'user_id'
+  ) then
+    insert into public.admins (id, email, user_id)
+    select u.id, u.email, u.id
+    from auth.users u
+    where u.email = 'engremran.it@gmail.com'
+    on conflict (id) do update
+      set email = excluded.email,
+          user_id = coalesce(public.admins.user_id, excluded.user_id);
+    update public.admins set user_id = id where user_id is null;
+  else
+    insert into public.admins (id, email)
+    select u.id, u.email
+    from auth.users u
+    where u.email = 'engremran.it@gmail.com'
+    on conflict (id) do nothing;
+  end if;
+end $$;
 
 -- ============================================================
 -- 20261110_session2_admin_features.sql
