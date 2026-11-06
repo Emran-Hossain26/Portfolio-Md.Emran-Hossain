@@ -23,11 +23,6 @@ function embedUrl(url: string): string {
   return url;
 }
 
-/** Renders "1 of 4" (word joiners keep spaces) or "1/4" (symbol joiners trap). */
-function slideNumOf(join: string, i: number, n: number): string {
-  const j = join.trim();
-  return j.length <= 1 ? `${i}${j}${n}` : `${i} ${j} ${n}`;
-}
 
 const isVideoFile = (url: string) => /\.(mp4|webm)(\?|$)/i.test(url);
 
