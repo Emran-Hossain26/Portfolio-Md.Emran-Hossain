@@ -40,7 +40,7 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <div className="av2-hd">
+      <div className="hd">
         <div>
           <h2>Good day, Admin</h2>
           <p>
@@ -50,12 +50,12 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="av2-g av2-g4">
+      <div className="g g4">
         {stats.map((s) => (
           <Link
             key={s.label}
             href={s.href}
-            className="av2-c av2-k"
+            className="c k"
             style={{ textDecoration: "none" }}
           >
             <small>{s.label}</small>
@@ -67,25 +67,25 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      <div className="av2-g av2-g2" style={{ marginTop: 14 }}>
-        <div className="av2-c">
+      <div className="g g2" style={{ marginTop: 14 }}>
+        <div className="c">
           <h3>Needs attention</h3>
           {attention.map((a) => (
-            <div className="av2-row" key={a.href + a.label}>
+            <div className="row" key={a.href + a.label}>
               <div className="gr">
                 {a.label}
                 <small>{a.hint}</small>
               </div>
-              <Link className="av2-btn s" href={a.href}>Open</Link>
+              <Link className="btn s" href={a.href}>Open</Link>
             </div>
           ))}
         </div>
-        <div className="av2-c">
+        <div className="c">
           <h3>Quick actions</h3>
           {actions.map((a) => (
-            <div className="av2-row" key={a.href}>
+            <div className="row" key={a.href}>
               <div className="gr">{a.label}</div>
-              <Link className="av2-btn s" href={a.href}>
+              <Link className="btn s" href={a.href}>
                 <a.icon size={14} /> Go
               </Link>
             </div>
@@ -93,7 +93,7 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="av2-note">
+      <div className="note">
         Visitor analytics (chart, top pages) connect after the Vercel deploy
         with Google Analytics. Everything else on this page is live data.
       </div>

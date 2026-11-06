@@ -13,14 +13,14 @@ export default async function InboxPage() {
         Messages from the contact form. Mark status as you handle them.
       </p>
       {rows.length === 0 ? (
-        <div className="av2-c">No messages yet.</div>
+        <div className="c">No messages yet.</div>
       ) : (
-        <div className="av2-g" style={{ maxWidth: 760 }}>
+        <div className="g" style={{ maxWidth: 760 }}>
           {rows.map((m) => (
-            <div className="av2-c" key={m.id}>
+            <div className="c" key={m.id}>
               <h3>
                 {m.name}
-                <span className={"av2-chip " + (tone[m.status] ?? "")}>{m.status}</span>
+                <span className={"chip " + (tone[m.status] ?? "")}>{m.status}</span>
               </h3>
               <p style={{ color: "var(--mut2)", fontSize: 13 }}>{m.email}</p>
               <p style={{ marginTop: 8, whiteSpace: "pre-wrap" }}>{m.message}</p>
@@ -29,7 +29,7 @@ export default async function InboxPage() {
                   <form key={s} action={updateMessageStatusAction.bind(null, m.id, s)}>
                     <button
                       type="submit"
-                      className={"av2-btn s" + (m.status === s ? " p" : "")}
+                      className={"btn s" + (m.status === s ? " p" : "")}
                     >
                       {s}
                     </button>

@@ -33,12 +33,12 @@ async function SystemInner({
       <p style={{ color: "var(--mut2)", fontSize: 14, marginBottom: 14 }}>
         Safety, backups and site-wide controls.
       </p>
-      {saved ? <p className="av2-chip ok" style={{ marginBottom: 12 }}>Saved.</p> : null}
-      <div className="av2-g av2-e2">
-        <div className="av2-c">
+      {saved ? <p className="chip ok" style={{ marginBottom: 12 }}>Saved.</p> : null}
+      <div className="g e2">
+        <div className="c">
           <h3>Controls</h3>
           <form action={saveMaintenanceAction}>
-            <div className="av2-row">
+            <div className="row">
               <div className="gr">
                 Maintenance mode
                 <small>Shows a friendly back-soon page to visitors</small>
@@ -49,41 +49,41 @@ async function SystemInner({
               </label>
             </div>
             <div style={{ marginTop: 12 }}>
-              <button type="submit" className="av2-btn p">Save</button>
+              <button type="submit" className="btn p">Save</button>
             </div>
           </form>
-          <div className="av2-row" style={{ marginTop: 8 }}>
+          <div className="row" style={{ marginTop: 8 }}>
             <div className="gr">
               Backup
               <small>Content as JSON plus media list (after migrations)</small>
             </div>
-            <span className="av2-chip">planned</span>
+            <span className="chip">planned</span>
           </div>
-          <div className="av2-row">
+          <div className="row">
             <div className="gr">
               Two-factor login
               <small>Authenticator app</small>
             </div>
-            <span className="av2-chip warn">not set up</span>
+            <span className="chip warn">not set up</span>
           </div>
-          <div className="av2-row">
+          <div className="row">
             <div className="gr">
               Email notifications
               <small>New message alerts (Resend)</small>
             </div>
-            <span className="av2-chip">needs API key</span>
+            <span className="chip">needs API key</span>
           </div>
         </div>
-        <div className="av2-c">
+        <div className="c">
           <h3>Roles</h3>
-          <div className="av2-row">
+          <div className="row">
             <div className="gr">
               Administrator
               <small>Full access (admins table, is_admin enforced)</small>
             </div>
-            <span className="av2-chip acc">you</span>
+            <span className="chip acc">you</span>
           </div>
-          <div className="av2-note">
+          <div className="note">
             Audit log arrives with the audit-log migration (Stage 5.2 follow-up).
           </div>
         </div>

@@ -20,15 +20,15 @@ async function HeroEditorInner({
 
   return (
     <>
-      <div className="av2-hd">
+      <div className="hd">
         <div>
           <h2>Hero editor</h2>
           <p>Edit the first screen in both languages. Saving refreshes the public site in seconds.</p>
         </div>
       </div>
-      {saved ? <p className="av2-chip ok" style={{ marginBottom: 12 }}>Saved.</p> : null}
-      <div className="av2-g av2-e2">
-        <form action={saveHeroTextsAction} className="av2-c">
+      {saved ? <p className="chip ok" style={{ marginBottom: 12 }}>Saved.</p> : null}
+      <div className="g e2">
+        <form action={saveHeroTextsAction} className="c">
           <label className="f" htmlFor="h-en">Headline (English)</label>
           <input id="h-en" type="text" name="heading_en" defaultValue={headingEn} />
           <label className="f" htmlFor="h-bn">Headline (বাংলা)</label>
@@ -38,21 +38,21 @@ async function HeroEditorInner({
           <label className="f" htmlFor="i-bn">Subtext (বাংলা)</label>
           <textarea id="i-bn" name="intro_bn" rows={3} defaultValue={introBn} />
           <div style={{ marginTop: 14 }}>
-            <button type="submit" className="av2-btn p">Save changes</button>
+            <button type="submit" className="btn p">Save changes</button>
           </div>
         </form>
-        <div className="av2-c">
+        <div className="c">
           <h3>Preview (English)</h3>
-          <div className="av2-pv">
+          <div className="pv">
             <h4>{headingEn || "Your headline appears here"}</h4>
             <p style={{ color: "var(--mut2)" }}>{introEn}</p>
           </div>
           <h3 style={{ marginTop: 14 }}>Preview (বাংলা)</h3>
-          <div className="av2-pv">
+          <div className="pv">
             <h4>{headingBn || "আপনার হেডলাইন এখানে দেখা যাবে"}</h4>
             <p style={{ color: "var(--mut2)" }}>{introBn}</p>
           </div>
-          <div className="av2-note">
+          <div className="note">
             {pick(previewLocale, { en: "Edits publish immediately after saving.", bn: "সেভ করার সাথে সাথেই পরিবর্তন প্রকাশিত হয়।" })}
           </div>
         </div>
