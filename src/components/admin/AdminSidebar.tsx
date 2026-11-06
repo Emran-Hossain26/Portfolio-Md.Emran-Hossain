@@ -56,7 +56,20 @@ export function AdminSidebar({ open }: { open?: boolean }) {
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   return (
-    <aside className={"admin-sidebar" + (open ? " active" : "")}>      <div className="overflow-y-auto p-5">
+    <aside
+      style={{
+        width: 236,
+        minWidth: 236,
+        flex: "0 0 236px",
+        background: "var(--card2, #fff)",
+        borderRight: "1px solid var(--line2, #E0E6F0)",
+        position: "sticky",
+        top: 0,
+        height: "100vh",
+        overflowY: "auto",
+      }}
+      className={"admin-sidebar" + (open ? " active" : "")}
+    >      <div className="overflow-y-auto p-5">
         <h1 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-8">
           <span className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center">
             <IconZap size={16} />
@@ -77,9 +90,10 @@ export function AdminSidebar({ open }: { open?: boolean }) {
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200 text-sm font-medium",
-                      isActive(item.href) && "bg-blue-50 text-blue-700",
-                    )}
+        "flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap",
+        isActive(item.href) && "bg-blue-50 text-blue-700",
+      )}
+                    style={{ color: undefined }}
                   >
                     <item.icon className="w-5 h-5 shrink-0" />
                     {item.label}
