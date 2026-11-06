@@ -11,7 +11,7 @@ export async function Projects() {
     problem: t("problem"),
     solution: t("solution"),
     live: t("liveDemo"),
-    caseStudy: "",
+    caseStudy: t("caseStudy"),
     slideOf: t("slideOf"),
     slideJoin: t("slideJoin"),
     screenshot: t("screenshot"),

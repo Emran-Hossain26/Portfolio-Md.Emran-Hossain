@@ -14,6 +14,7 @@ import { EffectsButton } from "@/components/EffectsButton";
 import { BackSoon } from "@/components/BackSoon";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { CommandPalette } from "@/components/CommandPalette";
+import { PreviewDock } from "@/components/PreviewDock";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
@@ -262,6 +263,26 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
           <VisitorTracker />
+          <PreviewDock
+            allowed={{
+              animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
+              cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
+              magical: fxSettings.master && (fxSettings.aurora || fxSettings.network),
+            }}
+            sections={[
+              { key: "expertise", label: resolved === "bn" ? "আমি যা করি" : "What I do" },
+              { key: "skills", label: resolved === "bn" ? "টেক স্ট্যাক" : "Tech stack" },
+              { key: "stats", label: resolved === "bn" ? "সংখ্যায়" : "Stats" },
+              { key: "projects", label: resolved === "bn" ? "প্রজেক্ট" : "Projects" },
+              { key: "certifications", label: resolved === "bn" ? "সার্টিফিকেট" : "Certifications" },
+              { key: "reviews", label: resolved === "bn" ? "রিভিউ" : "Reviews" },
+              { key: "faq", label: "FAQ" },
+              { key: "now", label: resolved === "bn" ? "এখন" : "Now" },
+              { key: "blog", label: resolved === "bn" ? "ব্লগ" : "Blog" },
+              { key: "contact", label: resolved === "bn" ? "যোগাযোগ" : "Contact" },
+            ]}
+            themes={presets.filter((th) => th.enabled).map((th) => ({ key: th.key, label: th.name }))}
+          />
           {modules.speedInsights ? <SpeedInsights /> : null}
           {modules.palette ? (
             <CommandPalette

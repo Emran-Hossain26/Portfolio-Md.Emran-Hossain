@@ -76,7 +76,8 @@
     "certifications": "Certifications & training",
     "faq": "Common questions",
     "skillsTitle": "Tech stack & tools",
-    "result": "Result"
+    "result": "Result",
+    "caseStudy": "Case study →"
   },
   "pages": {
     "projects": {
@@ -209,5 +210,14 @@
   "terminal": {
     "title": "Terminal",
     "hint": "type help + Enter"
+  },
+  "visitorPreview": {
+    "button": "Visitor preview",
+    "title": "Preview & customize",
+    "sections": "Sections",
+    "theme": "Theme",
+    "reset": "Reset to defaults",
+    "sessionNote": "Just for you — reload returns the site to its defaults.",
+    "close": "Close"
   }
 }

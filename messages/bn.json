@@ -76,7 +76,8 @@
     "certifications": "সার্টিফিকেট ও ট্রেনিং",
     "faq": "সাধারণ প্রশ্ন",
     "skillsTitle": "টেক স্ট্যাক ও টুলস",
-    "result": "ফলাফল"
+    "result": "ফলাফল",
+    "caseStudy": "কেস স্টাডি →"
   },
   "pages": {
     "projects": {
@@ -209,5 +210,14 @@
   "terminal": {
     "title": "টার্মিনাল",
     "hint": "help লিখে Enter দিন"
+  },
+  "visitorPreview": {
+    "button": "ভিজিটর প্রিভিউ",
+    "title": "প্রিভিউ ও কাস্টমাইজ",
+    "sections": "সেকশন",
+    "theme": "থিম",
+    "reset": "ডিফল্টে ফিরুন",
+    "sessionNote": "শুধু আপনার জন্য — reload দিলে সাইট আবার ডিফল্টে ফিরে যাবে।",
+    "close": "বন্ধ"
   }
 }
