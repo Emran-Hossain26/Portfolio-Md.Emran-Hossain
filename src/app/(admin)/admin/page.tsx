@@ -1,28 +1,36 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import {
-  getProjects, getBlogPosts, getCvPath, getMessagesInbox, getTestimonials,
+  getBlogPosts, getCvPath, getMessagesInbox, getTestimonials,
+  getCvDownloads, getModuleSettings,
 } from "@/lib/cms";
+import { getSummary } from "@/lib/analytics";
 import {
   IconBriefcase, IconFeather, IconAlert, IconHeading,
   IconPlus, IconStar, IconEye,
 } from "@/components/admin/icons";
 
-/** Overview (advanced mockup): stats, needs-attention, quick actions. */
+/** Overview (advanced mockup + Stage 7): live KPIs, needs-attention, quick actions. */
 export default async function AdminDashboard() {
   const user = await requireAdmin();
-  const [projects, posts, cv, msgs, reviews] = await Promise.all([
-    getProjects(), getBlogPosts(), getCvPath(), getMessagesInbox(), getTestimonials(),
-  ]);
+  const [posts, cv, msgs, reviews, cvDownloads, visitors, modules] =
+    await Promise.all([
+      getBlogPosts(), getCvPath(), getMessagesInbox(), getTestimonials(),
+      getCvDownloads(), getSummary(30), getModuleSettings(),
+    ]);
   const published = posts.filter((p) => p.status === "published").length;
+  const drafts = posts.filter((p) => p.status === "draft").length;
   const newMsgs = msgs.filter((m) => m.status === "new").length;
   const liveReviews = reviews.length;
+  const conversion = visitors.visitors > 0
+    ? ((newMsgs / visitors.visitors) * 100).toFixed(1) + "%"
+    : "—";
 
   const stats = [
-    { label: "Projects", value: String(projects.length), icon: IconBriefcase, href: "/admin/projects" },
-    { label: "Published blogs", value: String(published), icon: IconFeather, href: "/admin/blog" },
-    { label: "New messages", value: String(newMsgs), icon: IconEye, href: "/admin/inbox" },
-    { label: "CV file", value: cv ? "Uploaded" : "Not uploaded", icon: IconAlert, href: "/admin/cv", warn: !cv, hint: cv ? "Live on the hero." : "The hero's CV button stays disabled." },
+    { label: "Visitors · 30d", value: String(visitors.visitors), icon: IconEye, href: "/admin/analytics", hint: visitors.views + " page views" },
+    { label: "New messages", value: String(newMsgs), icon: IconAlert, href: "/admin/inbox", hint: "Conversion " + conversion },
+    { label: "CV downloads", value: String(cvDownloads), icon: IconBriefcase, href: "/admin/cv", hint: cv ? "Live on the hero." : "Upload a CV to enable." },
+    { label: "Draft posts", value: String(drafts), icon: IconFeather, href: "/admin/blog", hint: published + " published" },
   ];
 
   const attention = [
@@ -48,6 +56,7 @@ export default async function AdminDashboard() {
             the site immediately.
           </p>
         </div>
+        <Link className="btn" href="/admin/analytics">Full analytics →</Link>
       </div>
 
       <div className="g g4">
@@ -59,9 +68,7 @@ export default async function AdminDashboard() {
             style={{ textDecoration: "none" }}
           >
             <small>{s.label}</small>
-            <div className="n" style={{ color: s.warn ? "var(--bad2)" : undefined }}>
-              {s.value}
-            </div>
+            <div className="n">{s.value}</div>
             {s.hint ? <small>{s.hint}</small> : null}
           </Link>
         ))}
@@ -94,8 +101,9 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="note">
-        Visitor analytics (chart, top pages) connect after the Vercel deploy
-        with Google Analytics. Everything else on this page is live data.
+        KPIs are live from first-party analytics (no cookies, DNT respected).
+        Conversion = new messages ÷ visitors over 30 days.
+        {modules.palette ? "" : " Command palette is off in Extras."}
       </div>
     </>
   );

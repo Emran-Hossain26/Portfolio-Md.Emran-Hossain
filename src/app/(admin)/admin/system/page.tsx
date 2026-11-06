@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
 import { saveMaintenanceAction, sendTestEmailAction } from "@/app/(admin)/actions";
+import { RestoreForm } from "@/components/admin/RestoreForm";
 import { emailConfigured } from "@/lib/email";
 
 
@@ -126,6 +127,7 @@ async function SystemInner({
             </div>
             <Link className="btn s" href="/admin/audit">Open</Link>
           </div>
+          <RestoreForm />
         </div>
       </div>
     </AdminShell>

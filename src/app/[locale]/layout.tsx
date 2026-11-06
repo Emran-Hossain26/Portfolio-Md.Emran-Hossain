@@ -14,6 +14,7 @@ import { EffectsButton } from "@/components/EffectsButton";
 import { BackSoon } from "@/components/BackSoon";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { CommandPalette } from "@/components/CommandPalette";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -261,6 +262,7 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
           <VisitorTracker />
+          {modules.speedInsights ? <SpeedInsights /> : null}
           {modules.palette ? (
             <CommandPalette
               items={paletteItems}

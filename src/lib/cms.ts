@@ -1014,6 +1014,7 @@ export type ModuleSettings = {
   github: boolean;
   githubUsername: string;
   countryBadge: boolean;
+  speedInsights: boolean;
 };
 
 export const MODULE_DEFAULTS: ModuleSettings = {
@@ -1027,6 +1028,7 @@ export const MODULE_DEFAULTS: ModuleSettings = {
   github: false,
   githubUsername: "",
   countryBadge: false,
+  speedInsights: false,
 };
 
 export async function getModuleSettings(): Promise<ModuleSettings> {
@@ -1036,7 +1038,7 @@ export async function getModuleSettings(): Promise<ModuleSettings> {
     const { data } = await db()
       .from("site_settings")
       .select("key,value")
-      .in("key", ["skills_settings", "now_settings", "terminal_settings", "palette_settings", "services_settings", "booking_settings", "github_widget", "country_badge"]);
+      .in("key", ["skills_settings", "now_settings", "terminal_settings", "palette_settings", "services_settings", "booking_settings", "github_widget", "country_badge", "speed_insights"]);
     const map = new Map((data ?? []).map((r) => [r.key as string, r.value as Record<string, unknown>]));
     const flag = (k: string, dflt: boolean) => Boolean(map.get(k)?.enabled ?? dflt);
     return {
@@ -1050,6 +1052,7 @@ export async function getModuleSettings(): Promise<ModuleSettings> {
       github: flag("github_widget", false),
       githubUsername: String(map.get("github_widget")?.username ?? "").trim(),
       countryBadge: flag("country_badge", false),
+      speedInsights: flag("speed_insights", false),
     };
   } catch {
     return MODULE_DEFAULTS;

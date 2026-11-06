@@ -81,3 +81,8 @@ values
   ('github_widget', '{"enabled": false, "username": ""}'::jsonb),
   ('country_badge', '{"enabled": false}'::jsonb)
 on conflict (key) do nothing;
+
+-- 7) Stage 7: Vercel Speed Insights toggle (off by default)
+insert into public.site_settings (key, value)
+values ('speed_insights', '{"enabled": false}'::jsonb)
+on conflict (key) do nothing;

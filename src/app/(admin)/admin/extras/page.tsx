@@ -102,6 +102,16 @@ async function ExtrasInner({
                 {m.countryBadge ? "on" : "off"}
               </label>
             </div>
+            <div className="row">
+              <div className="gr">
+                Vercel Speed Insights
+                <small>Real-user performance metrics (only meaningful on the deploy)</small>
+              </div>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, color: "var(--mut2)" }}>
+                <input type="checkbox" name="speed_insights" defaultChecked={m.speedInsights} />
+                {m.speedInsights ? "on" : "off"}
+              </label>
+            </div>
           </div>
         </div>
         <div style={{ marginTop: 14 }}>

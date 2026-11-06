@@ -30,6 +30,8 @@ export async function GET(req: NextRequest) {
   }
 
   let published = 0;
+  let purgedEvents = 0;
+  let purgedSpam = 0;
   try {
     const db = createServiceClient();
     const { data } = await db
@@ -46,12 +48,25 @@ export async function GET(req: NextRequest) {
         .eq("status", "scheduled");
       published = slugs.length;
     }
-    // Revalidate content tag (blog list, post pages, sitemap, RSS all tagged "content").
+    // Stage 7 cleanup job: purge visitor events older than 90 days and
+    // spam messages older than 30 days (keeps the analytics tables small).
+    try {
+      const cutoff = new Date(Date.now() - 90 * 864e5).toISOString();
+      const del1 = await db.from("visitor_events").delete().lt("created_at", cutoff);
+      purgedEvents = del1.count ?? 0;
+      const spamCutoff = new Date(Date.now() - 30 * 864e5).toISOString();
+      const del2 = await db.from("messages").delete().eq("status", "spam").lt("created_at", spamCutoff);
+      purgedSpam = del2.count ?? 0;
+    } catch {
+      // tables may not exist yet (pre-migration) — ignore
+    }
+
+        // Revalidate content tag (blog list, post pages, sitemap, RSS all tagged "content").
     // Next.js 16 requires the cacheLife profile as the second argument.
     revalidateTag("content", "max");
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, published });
+  return NextResponse.json({ ok: true, published, purgedEvents, purgedSpam });
 }

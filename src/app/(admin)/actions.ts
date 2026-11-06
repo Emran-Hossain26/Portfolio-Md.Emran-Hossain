@@ -1109,6 +1109,7 @@ export async function saveModuleSettingsAction(formData: FormData) {
     services_settings: { enabled: on("services"), quote_enabled: on("quote") },
     booking_settings: { enabled: on("booking") },
     country_badge: { enabled: on("country_badge") },
+    speed_insights: { enabled: on("speed_insights") },
   };
   const db = createServiceClient();
   for (const [key, value] of Object.entries(updates)) {
