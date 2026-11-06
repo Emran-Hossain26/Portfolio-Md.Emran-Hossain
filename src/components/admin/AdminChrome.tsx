@@ -33,14 +33,7 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
           aria-hidden="true"
         />
       ) : null}
-      <div
-        className={
-          "fixed inset-y-0 left-0 z-40 transition-transform duration-200 md:static md:translate-x-0" +
-          (open ? " translate-x-0" : " -translate-x-full")
-        }
-      >
-        <AdminSidebar />
-      </div>
+        <AdminSidebar open={open} />
       <main className="admin-main flex-1 flex flex-col h-screen overflow-y-auto relative">
         {/* Mobile top bar */}
         <div className="md:hidden sticky top-0 z-20 flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3">
