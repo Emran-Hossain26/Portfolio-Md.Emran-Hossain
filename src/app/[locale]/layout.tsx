@@ -11,7 +11,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
 import { EffectsButton } from "@/components/EffectsButton";
-import { AdminPreview } from "@/components/AdminPreview";
 import { BackSoon } from "@/components/BackSoon";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -268,11 +267,6 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
               themes={presets.filter((th) => th.enabled).map((th) => ({ key: th.key, label: th.name }))}
             />
           ) : null}
-          <AdminPreview allowed={{
-            animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
-            cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
-            magical: fxSettings.master && (fxSettings.aurora || fxSettings.network),
-          }} />
           <EffectsButton allowed={{
             animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
             cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),

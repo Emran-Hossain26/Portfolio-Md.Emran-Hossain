@@ -1143,3 +1143,100 @@ export async function setTestimonialStatusAction(id: string, status: string) {
   refresh();
   redirect("/admin/testimonials");
 }
+
+/* ------------------------------------------------------------------ */
+/* Stage 6 mockup parity: visitor themes manager (enable/default/switch)*/
+/* ------------------------------------------------------------------ */
+
+export async function saveThemeVisitorSwitchAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const on = formData.get("visitor_switch") === "on";
+  await createServiceClient()
+    .from("site_settings")
+    .upsert({ key: "theme_visitor_switch", value: { enabled: on } }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "theme_visitor_switch", null, { enabled: on });
+  refresh();
+  redirect("/admin/themes?saved=1");
+}
+
+/**
+ * Toggle one preset's enabled flag or make it the default. Upserts the full
+ * token set for seed-only presets so a DB row never blanks their colors.
+ * Rules from the mockup: the default cannot be disabled, the last enabled
+ * theme cannot be disabled.
+ */
+export async function setThemePresetAction(presetKey: string, field: string) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const db = createServiceClient();
+  const { getThemePresets } = await import("@/lib/cms");
+  const presets = await getThemePresets();
+  const target = presets.find((p) => p.key === presetKey);
+  if (!target) redirect("/admin/themes?error=unknown");
+
+  if (field === "default") {
+    for (const p of presets) {
+      await db.from("theme_presets").upsert(
+        {
+          name_en: p.name,
+          name_bn: p.nameBn,
+          is_default: p.key === presetKey,
+          is_enabled: true,
+          colors: p.tokens,
+          sort_order: p.sort,
+        },
+        { onConflict: "name_en" },
+      );
+    }
+    await logAdminAction(user, "update", "theme_presets", presetKey, null, { is_default: true });
+    refresh();
+    redirect("/admin/themes?saved=1");
+  }
+
+  // field === "enabled"
+  if (target.isDefault) redirect("/admin/themes?error=default");
+  const enabledCount = presets.filter((p) => p.enabled).length;
+  if (target.enabled && enabledCount <= 1) redirect("/admin/themes?error=last");
+  await db.from("theme_presets").upsert(
+    {
+      name_en: target.name,
+      name_bn: target.nameBn,
+      is_default: false,
+      is_enabled: !target.enabled,
+      colors: target.tokens,
+      sort_order: target.sort,
+    },
+    { onConflict: "name_en" },
+  );
+  await logAdminAction(user, "update", "theme_presets", presetKey, null, { enabled: !target.enabled });
+  refresh();
+  redirect("/admin/themes?saved=1");
+}
+
+export async function resetThemesAction() {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const db = createServiceClient();
+  const { getThemePresets } = await import("@/lib/cms");
+  const presets = await getThemePresets();
+  for (const p of presets) {
+    await db.from("theme_presets").upsert(
+      {
+        name_en: p.name,
+        name_bn: p.nameBn,
+        is_default: p.key === "light",
+        is_enabled: true,
+        colors: p.tokens,
+        sort_order: p.sort,
+      },
+      { onConflict: "name_en" },
+    );
+  }
+  await db
+    .from("site_settings")
+    .upsert({ key: "theme_visitor_switch", value: { enabled: true } }, { onConflict: "key" });
+  await logAdminAction(user, "update", "theme_presets", "reset", null, { defaults: true });
+  refresh();
+  redirect("/admin/themes?saved=1");
+}

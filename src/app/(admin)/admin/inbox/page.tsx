@@ -37,10 +37,7 @@ async function InboxInner({
   return (
     <AdminShell heading="Inbox">
       <div className="hd">
-        <div>
-          <h2>Inbox</h2>
-          <p>Messages from the contact and quote forms. Mark status as you handle them — or reply directly by email.</p>
-        </div>
+        <p>Messages from the contact and quote forms. Mark status as you handle them — or reply directly by email.</p>
         <Link className="btn" href="/api/admin/messages-csv">Export CSV</Link>
       </div>
       {sp.sent ? <p className="chip ok" style={{ marginBottom: 12 }}>Reply sent.</p> : null}
