@@ -602,3 +602,403 @@ Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
  GET / 200 in 3.4s (next.js: 9ms, proxy.ts: 1784ms, generate-params: 5ms, application-code: 1573ms)
  GET / 200 in 1664ms (next.js: 207ms, proxy.ts: 183ms, generate-params: 0.1ms, application-code: 1274ms)
  GET / 200 in 1119ms (next.js: 163ms, proxy.ts: 251ms, generate-params: 7ms, application-code: 698ms)
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 72ms
+ GET /login 200 in 374ms (next.js: 9ms, application-code: 365ms)
+ GET /admin/themes 200 in 458ms (next.js: 4ms, application-code: 455ms)
+ GET /login 200 in 274ms (next.js: 1.7ms, application-code: 272ms)
+Error: Route "/admin/themes": Next.js encountered uncached data during prerendering.
+
+`fetch(...)` or `connection()` accessed outside of `<Suspense>` prevents the route from being prerendered, blocking the page load and leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [cache] Cache the data access with `"use cache"` (does not apply to `connection()`)
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
+    at inboxCount (src\app\(admin)\layout.tsx:23:8)
+    at AdminLayout (src\app\(admin)\layout.tsx:35:24)
+  21 |       .from("contact_messages")
+  22 |       .select("id", { count: "exact", head: true })
+> 23 |       .eq("status", "new");
+     |        ^
+  24 |     return count ?? 0;
+  25 |   } catch {
+  26 |     return 0;
+ GET /admin 200 in 691ms (next.js: 1.8ms, application-code: 689ms)
+ GET /admin/texts 200 in 889ms (next.js: 3ms, application-code: 887ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+ GET /admin/login 500 in 409ms (next.js: 271ms, application-code: 138ms)
+ GET / 500 in 502ms (next.js: 42ms, proxy.ts: 452ms, application-code: 9ms)
+[browser] Uncaught Error: ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed
+
+
+[browser] Uncaught Error: ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed
+
+
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+ GET /login 500 in 37ms (next.js: 11ms, application-code: 27ms)
+ GET /admin/login?reason=notconfigured 500 in 50ms (next.js: 42ms, application-code: 8ms)
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] Uncaught Error: ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed
+
+
+[browser] Uncaught Error: ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed
+
+
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
+[browser] ./src/app/(admin)/admin/page.tsx:29:14
+Error: Expression expected
+  27 |
+  28 |   const attention = [
+> 29 |     { label: , hint: "Approve or hide", href: "/admin/testimonials" },
+     |              ^
+  30 |     { label: , hint: "Inbox", href: "/admin/inbox" },
+  31 |     { label: "SEO audit", hint: "Run the full check", href: "/admin/seo-health" },
+  32 |   ];
+
+Parsing ecmascript source code failed 
