@@ -56,14 +56,7 @@ export function AdminSidebar({ open }: { open?: boolean }) {
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   return (
-    <aside
-      className={cn(
-        "shrink-0 fixed inset-y-0 left-0 z-40 w-64 h-full bg-white border-r border-slate-200 flex flex-col justify-between shadow-sm transition-transform duration-200",
-        "md:static md:z-10 md:translate-x-0",
-        open ? "translate-x-0" : "-translate-x-full",
-      )}
-    >
-      <div className="overflow-y-auto p-5">
+    <aside className={"admin-sidebar" + (open ? " active" : "")}>      <div className="overflow-y-auto p-5">
         <h1 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-8">
           <span className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center">
             <IconZap size={16} />
