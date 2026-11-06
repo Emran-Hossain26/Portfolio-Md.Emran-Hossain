@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/(admin)/actions";
 import { cn } from "@/lib/utils";
 import {
   IconZap, IconHome, IconEye, IconStar, IconHeading, IconPalette,
-  IconBriefcase, IconFeather, IconPulse, IconLogout, IconSearch, IconShuffle,
+  IconFeather, IconLogout, IconSearch, IconShuffle,
 } from "@/components/admin/icons";
 
 /**
@@ -66,11 +66,9 @@ export function AdminV2Chrome({
   const pathname = usePathname();
   const bare =
     pathname?.startsWith("/login") || pathname?.startsWith("/admin/logout");
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    try { setDark(localStorage.getItem("admdark") === "1"); } catch {}
-  }, []);
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem("admdark") === "1"; } catch { return false; }
+  });
   const toggleDark = () => {
     const next = !dark;
     setDark(next);
