@@ -621,3 +621,41 @@ export async function saveEffectsAction(formData: FormData) {
   refresh();
   redirect("/admin/effects?saved=1");
 }
+
+/* ------------------------------------------------------------------ */
+/* Stage 5.2: hero editor + maintenance mode                           */
+/* ------------------------------------------------------------------ */
+
+export async function saveHeroTextsAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const value = {
+    heading: {
+      en: String(formData.get("heading_en") ?? "").trim(),
+      bn: String(formData.get("heading_bn") ?? "").trim(),
+    },
+    intro: {
+      en: String(formData.get("intro_en") ?? "").trim(),
+      bn: String(formData.get("intro_bn") ?? "").trim(),
+    },
+  };
+  await createServiceClient()
+    .from("site_settings")
+    .upsert({ key: "hero_texts", value }, { onConflict: "key" });
+  refresh();
+  redirect("/admin/hero?saved=1");
+}
+
+export async function saveMaintenanceAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  await requireAdmin();
+  const on = formData.get("maintenance") === "on";
+  await createServiceClient()
+    .from("site_settings")
+    .upsert(
+      { key: "maintenance_mode", value: { enabled: on } },
+      { onConflict: "key" },
+    );
+  refresh();
+  redirect("/admin/system?saved=1");
+}

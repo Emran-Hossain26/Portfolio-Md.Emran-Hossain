@@ -1169,3 +1169,209 @@ Learn more: https://nextjs.org/docs/messages/instant-shell-url-data
  GET / 200 in 1170ms (next.js: 71ms, proxy.ts: 190ms, generate-params: 5ms, application-code: 905ms)
  GET / 200 in 1156ms (next.js: 107ms, proxy.ts: 307ms, generate-params: 0.1ms, application-code: 741ms)
  GET / 200 in 827ms (next.js: 45ms, proxy.ts: 316ms, generate-params: 6ms, application-code: 460ms)
+ GET /admin 200 in 409ms (next.js: 1.2ms, application-code: 408ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+ GET /admin 200 in 385ms (next.js: 1.8ms, application-code: 383ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+ GET /admin 200 in 421ms (next.js: 2ms, application-code: 419ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+ GET /admin/login 404 in 47ms (next.js: 19ms, application-code: 28ms)
+ GET / 200 in 3.9s (next.js: 24ms, proxy.ts: 3.7s, generate-params: 4ms, application-code: 141ms)
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 617ms
+ GET /admin/login 404 in 85ms (next.js: 61ms, application-code: 24ms)
+ GET /admin/login 404 in 62ms (next.js: 17ms, application-code: 45ms)
+ GET /admin/themes 200 in 1826ms (next.js: 3ms, application-code: 1823ms)
+ GET /login 200 in 1612ms (next.js: 5ms, application-code: 1607ms)
+ GET /admin/texts 200 in 1907ms (next.js: 4ms, application-code: 1903ms)
+ GET /admin 200 in 2.0s (next.js: 3ms, application-code: 2.0s)
+ GET / 200 in 915ms (next.js: 30ms, proxy.ts: 171ms, generate-params: 0.0ms, application-code: 714ms)
+ GET / 200 in 1768ms (next.js: 11ms, proxy.ts: 791ms, generate-params: 4ms, application-code: 962ms)
+Error: Route "/admin/themes": Next.js encountered URL data during prerendering or a navigation.
+
+`params` or `searchParams` accessed outside of `<Suspense>` may prevent the navigation from being instant, leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/instant-shell-url-data
+    at ThemesPage (src\app\(admin)\admin\themes\page.tsx:11:21)
+   9 |   searchParams: Promise<{ saved?: string }>;
+  10 | }) {
+> 11 |   const { saved } = await searchParams;
+     |                     ^
+  12 |   const presets = await getThemePresets();
+  13 |
+  14 |   // Seed presets if DB is empty / not configured.
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 104ms
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /login 200 in 156ms (next.js: 56ms, application-code: 99ms)
+ GET /admin 200 in 166ms (next.js: 110ms, application-code: 56ms)
+ GET /login 200 in 696ms (next.js: 2ms, application-code: 693ms)
+ GET /admin/login 404 in 66ms (next.js: 27ms, application-code: 39ms)
+ GET /admin/login 404 in 69ms (next.js: 25ms, application-code: 44ms)
+ GET /admin/themes 200 in 2.0s (next.js: 5ms, application-code: 2.0s)
+ GET /admin 200 in 2.2s (next.js: 3ms, application-code: 2.2s)
+ GET /admin/texts 200 in 2.1s (next.js: 6ms, application-code: 2.1s)
+ GET / 200 in 2.3s (next.js: 11ms, proxy.ts: 1472ms, generate-params: 3ms, application-code: 773ms)
+ GET / 200 in 948ms (next.js: 169ms, proxy.ts: 371ms, generate-params: 4ms, application-code: 404ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+Error: Route "/admin/themes": Next.js encountered URL data during prerendering or a navigation.
+
+`params` or `searchParams` accessed outside of `<Suspense>` may prevent the navigation from being instant, leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/instant-shell-url-data
+    at ThemesPage (src\app\(admin)\admin\themes\page.tsx:11:21)
+   9 |   searchParams: Promise<{ saved?: string }>;
+  10 | }) {
+> 11 |   const { saved } = await searchParams;
+     |                     ^
+  12 |   const presets = await getThemePresets();
+  13 |
+  14 |   // Seed presets if DB is empty / not configured.
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 424ms
+ GET /admin 200 in 73ms (next.js: 54ms, application-code: 19ms)
+ GET /login 200 in 216ms (next.js: 59ms, application-code: 157ms)
+ GET /login 200 in 549ms (next.js: 1.8ms, application-code: 547ms)
+ GET /admin/login 404 in 384ms (next.js: 341ms, application-code: 43ms)
+ GET /admin 200 in 1252ms (next.js: 5ms, application-code: 1246ms)
+ GET /admin/themes 200 in 957ms (next.js: 13ms, application-code: 944ms)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+ GET /admin/texts 200 in 1199ms (next.js: 2ms, application-code: 1197ms)
+ GET / 200 in 2.1s (next.js: 310ms, proxy.ts: 232ms, generate-params: 11ms, application-code: 1564ms)
+ GET / 200 in 695ms (next.js: 27ms, proxy.ts: 242ms, generate-params: 9ms, application-code: 417ms)
+ GET / 200 in 2.3s (next.js: 430ms, proxy.ts: 265ms, generate-params: 0.0ms, application-code: 1649ms)
+Error: Route "/admin/themes": Next.js encountered URL data during prerendering or a navigation.
+
+`params` or `searchParams` accessed outside of `<Suspense>` may prevent the navigation from being instant, leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/instant-shell-url-data
+    at ThemesPage (src\app\(admin)\admin\themes\page.tsx:11:21)
+   9 |   searchParams: Promise<{ saved?: string }>;
+  10 | }) {
+> 11 |   const { saved } = await searchParams;
+     |                     ^
+  12 |   const presets = await getThemePresets();
+  13 |
+  14 |   // Seed presets if DB is empty / not configured.
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+ GET / 200 in 781ms (next.js: 51ms, proxy.ts: 399ms, generate-params: 10ms, application-code: 320ms)
