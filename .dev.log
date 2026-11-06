@@ -1109,3 +1109,63 @@ Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
   26 |     return 0;
  GET / 200 in 1043ms (next.js: 62ms, proxy.ts: 405ms, generate-params: 6ms, application-code: 571ms)
  GET / 200 in 429ms (next.js: 19ms, proxy.ts: 238ms, generate-params: 0.0ms, application-code: 171ms)
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/components/admin/AdminV2Chrome.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 177ms
+ GET /login 200 in 30ms (next.js: 11ms, application-code: 19ms)
+ GET /admin 200 in 150ms (next.js: 13ms, application-code: 137ms)
+ GET /login 200 in 651ms (next.js: 6ms, application-code: 645ms)
+ GET /admin/themes 200 in 813ms (next.js: 5ms, application-code: 808ms)
+ GET /login 200 in 227ms (next.js: 1.3ms, application-code: 225ms)
+ GET /admin/login?reason=notconfigured 404 in 85ms (next.js: 21ms, application-code: 64ms)
+ GET /admin/texts 200 in 983ms (next.js: 8ms, application-code: 975ms)
+ GET /admin 200 in 1110ms (next.js: 5ms, application-code: 1105ms)
+ GET /admin/login?reason=notconfigured 404 in 512ms (next.js: 233ms, application-code: 280ms)
+Error: Route "/admin/texts": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at TextsPage (<anonymous>)
+Error: Route "/admin": Next.js encountered the unstable value `Date.now()` while prerendering.
+
+This value can change between renders, so it must be either prerendered or computed later.
+
+Ways to fix this:
+  - [dynamic] Render at request time by adding a dynamic data access (e.g. `await connection()`) before this call
+  - [cache] Prerender and cache the value with `"use cache"`
+  - [client] Render the value on the client with `"use client"`
+  - [measure] If the value is for telemetry, use a timing API such as `performance.now()`
+
+Learn more: https://nextjs.org/docs/messages/blocking-prerender-current-time
+    at AdminDashboard (<anonymous>)
+Error: Route "/admin/themes": Next.js encountered URL data during prerendering or a navigation.
+
+`params` or `searchParams` accessed outside of `<Suspense>` may prevent the navigation from being instant, leading to a slower user experience.
+
+Ways to fix this:
+  - [stream] Provide a placeholder with `<Suspense fallback={...}>` around the data access
+  - [block] Set `export const instant = false` to allow a blocking route
+
+Learn more: https://nextjs.org/docs/messages/instant-shell-url-data
+    at ThemesPage (src\app\(admin)\admin\themes\page.tsx:11:21)
+   9 |   searchParams: Promise<{ saved?: string }>;
+  10 | }) {
+> 11 |   const { saved } = await searchParams;
+     |                     ^
+  12 |   const presets = await getThemePresets();
+  13 |
+  14 |   // Seed presets if DB is empty / not configured.
+ GET / 200 in 1170ms (next.js: 71ms, proxy.ts: 190ms, generate-params: 5ms, application-code: 905ms)
+ GET / 200 in 1156ms (next.js: 107ms, proxy.ts: 307ms, generate-params: 0.1ms, application-code: 741ms)
+ GET / 200 in 827ms (next.js: 45ms, proxy.ts: 316ms, generate-params: 6ms, application-code: 460ms)

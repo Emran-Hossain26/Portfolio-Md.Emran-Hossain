@@ -58,10 +58,10 @@ const TITLES: Record<string, string> = Object.fromEntries(
 
 export function AdminV2Chrome({
   children,
-  inboxCount = 0,
+  badge,
 }: {
   children: React.ReactNode;
-  inboxCount?: number;
+  badge?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const bare =
@@ -104,9 +104,7 @@ export function AdminV2Chrome({
                   >
                     <item.icon size={16} />
                     {item.label}
-                    {((item as { badge?: boolean }).badge) && inboxCount > 0 ? (
-                      <b>{inboxCount}</b>
-                    ) : null}
+                    {((item as { badge?: boolean }).badge) && badge ? (item.key === "/admin/inbox" ? badge : <b>•</b>) : null}
                   </Link>
                 );
               })}

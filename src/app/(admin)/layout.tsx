@@ -27,17 +27,24 @@ async function inboxCount(): Promise<number> {
   }
 }
 
-export default async function AdminLayout({
+async function InboxBadge() {
+  const n = await inboxCount();
+  if (!n) return null;
+  return <b className="av2-badge">{n}</b>;
+}
+
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const unread = await inboxCount();
   return (
     <html lang="en" className={inter.className}>
       <body>
         <Suspense fallback={null}>
-          <AdminV2Chrome inboxCount={unread}>{children}</AdminV2Chrome>
+          <AdminV2Chrome badge={<Suspense fallback={null}><InboxBadge /></Suspense>}>
+            {children}
+          </AdminV2Chrome>
         </Suspense>
       </body>
     </html>
