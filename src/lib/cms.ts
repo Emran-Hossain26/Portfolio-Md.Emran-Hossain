@@ -54,7 +54,7 @@ export async function getProjects(): Promise<Project[]> {
     const { data, error } = await db()
       .from("projects")
       .select(
-        "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,tech,media,video,demo_url,slides,sort_order",
+        "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,result_en,result_bn,metrics,tech,media,video,demo_url,slides,sort_order",
       )
       .eq("published", true)
       .order("sort_order");
@@ -64,12 +64,21 @@ export async function getProjects(): Promise<Project[]> {
     return data.map((row) => {
       const problem = L(row.problem_en, row.problem_bn);
       const solution = L(row.solution_en, row.solution_bn);
+      const result = L(row.result_en, row.result_bn);
       const media = row.media as Project["media"];
+      const metrics = Array.isArray(row.metrics)
+        ? (row.metrics as unknown[])
+            .filter((m): m is Record<string, unknown> => typeof m === "object" && m !== null)
+            .map((m) => ({ label: String(m.label ?? ""), value: String(m.value ?? "") }))
+            .filter((m) => m.label && m.value)
+        : [];
       return {
         slug: row.slug as string,
         title: L(row.title_en, row.title_bn),
         problem: problem.en || problem.bn ? problem : undefined,
         solution: solution.en || solution.bn ? solution : undefined,
+        result: result.en || result.bn ? result : undefined,
+        metrics: metrics.length ? metrics : undefined,
         tech: (row.tech as string[]) ?? [],
         media: media === "video" || media === "none" ? media : media === "slides" ? "slides" : undefined,
         video: (row.video as string) || undefined,
@@ -304,7 +313,7 @@ export async function getThemeOverrides(): Promise<{
 
 // --- Stage 1: Dynamic Content getters (services, skills, certs, faq, stats, social, contact, sections, flags, presets, messages) ---
 
-export type Service = { id: string; title: Localized; desc: Localized; icon: string; sort: number };
+export type Service = { id: string; title: Localized; desc: Localized; icon: string; price: string; sort: number };
 export type Skill = { id: string; name: string; category: string; level: number; sort: number };
 export type Certification = { id: string; title: Localized; issuer: Localized; year: string; href: string; sort: number };
 export type Faq = { id: string; q: Localized; a: Localized; sort: number };
@@ -318,25 +327,26 @@ export async function getServices(): Promise<Service[]> {
   if (!configured()) {
     const { expertiseItems } = await import("@/data/expertise");
     return expertiseItems.map((e, i) => ({
-      id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", sort: i + 1,
+      id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", price: "", sort: i + 1,
     }));
   }
   try {
-    const { data, error } = await db().from("services").select("id,title_en,title_bn,desc_en,desc_bn,icon,sort_order").eq("published", true).is("deleted_at", null).order("sort_order");
+    const { data, error } = await db().from("services").select("id,title_en,title_bn,desc_en,desc_bn,icon,price,sort_order").eq("published", true).is("deleted_at", null).order("sort_order");
     if (error || !data?.length) {
       const { expertiseItems } = await import("@/data/expertise");
-      return expertiseItems.map((e, i) => ({ id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", sort: i + 1 }));
+      return expertiseItems.map((e, i) => ({ id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", price: "", sort: i + 1 }));
     }
     return data.map((r) => ({
       id: r.id as string,
       title: L(r.title_en, r.title_bn),
       desc: L(r.desc_en, r.desc_bn),
       icon: (r.icon as string) ?? "",
+      price: (r.price as string) ?? "",
       sort: (r.sort_order as number) ?? 0,
     }));
   } catch {
     const { expertiseItems } = await import("@/data/expertise");
-    return expertiseItems.map((e, i) => ({ id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", sort: i + 1 }));
+    return expertiseItems.map((e, i) => ({ id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", price: "", sort: i + 1 }));
   }
 }
 
@@ -965,5 +975,121 @@ export async function getNewsletterSettings(): Promise<{ enabled: boolean }> {
     return { enabled: Boolean((data?.value as { enabled?: boolean } | null)?.enabled) };
   } catch {
     return { enabled: false };
+  }
+}
+
+// --- Stage 6: enrichment modules -------------------------------------------
+// One cached read for every module toggle (site_settings keys seeded by
+// migration 20261113); list getters follow the usual seed-fallback shape.
+
+export type NowItem = {
+  id: string;
+  kind: "working" | "learning" | "reading";
+  text: Localized;
+};
+
+export type BookingSlot = {
+  id: string;
+  slot_date: string;
+  slot_time: string;
+  capacity: number;
+  booked: number;
+  note: string;
+};
+
+export type ModuleSettings = {
+  skills: boolean;
+  now: boolean;
+  terminal: boolean;
+  palette: boolean;
+  services: boolean;
+  quote: boolean;
+  booking: boolean;
+  github: boolean;
+  githubUsername: string;
+  countryBadge: boolean;
+};
+
+export const MODULE_DEFAULTS: ModuleSettings = {
+  skills: true,
+  now: true,
+  terminal: true,
+  palette: true,
+  services: true,
+  quote: true,
+  booking: false,
+  github: false,
+  githubUsername: "",
+  countryBadge: false,
+};
+
+export async function getModuleSettings(): Promise<ModuleSettings> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return MODULE_DEFAULTS;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("key,value")
+      .in("key", ["skills_settings", "now_settings", "terminal_settings", "palette_settings", "services_settings", "booking_settings", "github_widget", "country_badge"]);
+    const map = new Map((data ?? []).map((r) => [r.key as string, r.value as Record<string, unknown>]));
+    const flag = (k: string, dflt: boolean) => Boolean(map.get(k)?.enabled ?? dflt);
+    return {
+      skills: flag("skills_settings", true),
+      now: flag("now_settings", true),
+      terminal: flag("terminal_settings", true),
+      palette: flag("palette_settings", true),
+      services: flag("services_settings", true),
+      quote: Boolean(map.get("services_settings")?.quote_enabled ?? true),
+      booking: flag("booking_settings", false),
+      github: flag("github_widget", false),
+      githubUsername: String(map.get("github_widget")?.username ?? "").trim(),
+      countryBadge: flag("country_badge", false),
+    };
+  } catch {
+    return MODULE_DEFAULTS;
+  }
+}
+
+export async function getNowItems(): Promise<NowItem[]> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return [];
+  try {
+    const { data, error } = await db()
+      .from("now_items")
+      .select("id,kind,text_en,text_bn")
+      .eq("published", true)
+      .order("sort");
+    if (error || !data?.length) return [];
+    return data.map((r) => ({
+      id: r.id as string,
+      kind: ((r.kind as string) || "working") as NowItem["kind"],
+      text: L(r.text_en, r.text_bn),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getBookingSlots(): Promise<BookingSlot[]> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return [];
+  try {
+    const { data, error } = await db()
+      .from("booking_slots")
+      .select("id,slot_date,slot_time,capacity,booked,note")
+      .eq("published", true)
+      .order("slot_date")
+      .order("slot_time");
+    if (error || !data) return [];
+    return data.map((r) => ({
+      id: r.id as string,
+      slot_date: r.slot_date as string,
+      slot_time: (r.slot_time as string) ?? "",
+      capacity: (r.capacity as number) ?? 1,
+      booked: (r.booked as number) ?? 0,
+      note: (r.note as string) ?? "",
+    }));
+  } catch {
+    return [];
   }
 }

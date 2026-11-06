@@ -13,8 +13,15 @@ const SPEC: Omit<AdminField, "value">[] = [
   { name: "title_bn", label: "Title (BN)", type: "text" },
   { name: "problem_en", label: "Problem (EN)", type: "textarea" },
   { name: "problem_bn", label: "Problem (BN)", type: "textarea" },
-  { name: "solution_en", label: "Solution (EN)", type: "textarea" },
-  { name: "solution_bn", label: "Solution (BN)", type: "textarea" },
+  { name: "solution_en", label: "Solution / approach (EN)", type: "textarea" },
+  { name: "solution_bn", label: "Solution / approach (BN)", type: "textarea" },
+  { name: "result_en", label: "Result (EN) — case-study outcome", type: "textarea" },
+  { name: "result_bn", label: "Result (BN)", type: "textarea" },
+  {
+    name: "metrics",
+    label: "Metrics (JSON, optional) — e.g. [{\"label\":\"Downtime\",\"value\":\"-90%\"}]",
+    type: "textarea",
+  },
   {
     name: "media",
     label: "Media area",
@@ -37,7 +44,7 @@ const ARRAY_FIELDS = new Set(["tech"]);
 
 /** [cols...] beyond the baseline (absent until the upgrade SQL, kept for safety). */
 const EXTRA_COLS =
-  "problem_en,problem_bn,solution_en,solution_bn,tech,media,video,demo_url,slides";
+  "problem_en,problem_bn,solution_en,solution_bn,result_en,result_bn,metrics,tech,media,video,demo_url,slides";
 const BASE_COLS = "id,slug,title_en,title_bn,published,sort_order";
 
 export default async function AdminProjectsPage() {
@@ -67,6 +74,9 @@ export default async function AdminProjectsPage() {
       problem_bn: p.problem?.bn ?? "",
       solution_en: p.solution?.en ?? "",
       solution_bn: p.solution?.bn ?? "",
+      result_en: p.result?.en ?? "",
+      result_bn: p.result?.bn ?? "",
+      metrics: p.metrics ?? [],
       tech: p.tech,
       media: p.media ?? "slides",
       video: p.video ?? "",
@@ -86,6 +96,9 @@ export default async function AdminProjectsPage() {
     problem_bn: "",
     solution_en: "",
     solution_bn: "",
+    result_en: "",
+    result_bn: "",
+    metrics: [],
     media: "slides",
     video: "",
     demo_url: "",

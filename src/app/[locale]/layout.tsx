@@ -5,7 +5,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hind_Siliguri, Inter, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { site, siteUrl } from "@/data/site";
-import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings, getMaintenanceMode } from "@/lib/cms";
+import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings, getMaintenanceMode, getModuleSettings, getBlogPosts, getProjects } from "@/lib/cms";
+import { blogPostHref } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
@@ -13,6 +14,7 @@ import { EffectsButton } from "@/components/EffectsButton";
 import { AdminPreview } from "@/components/AdminPreview";
 import { BackSoon } from "@/components/BackSoon";
 import { VisitorTracker } from "@/components/VisitorTracker";
+import { CommandPalette } from "@/components/CommandPalette";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -153,6 +155,32 @@ export default async function LocaleLayout({
   const visitorSwitch = await getThemeVisitorSwitch();
   const fxSettings = await getEffectsSettings();
   const maintenance = await getMaintenanceMode();
+  const modules = await getModuleSettings();
+  const [palettePosts, paletteProjects] = modules.palette
+    ? await Promise.all([getBlogPosts(), getProjects()])
+    : [[], []];
+
+  // Command palette index: static pages + posts + projects (locale-aware).
+  const p = resolved === "bn" ? "/bn" : "";
+  const paletteItems = [
+    { label: resolved === "bn" ? "হোম" : "Home", href: `${p}/`, kind: "page" as const },
+    { label: resolved === "bn" ? "প্রজেক্ট" : "Projects", href: `${p}/projects`, kind: "page" as const },
+    { label: resolved === "bn" ? "সার্ভিস" : "Services", href: `${p}/services`, kind: "page" as const },
+    { label: resolved === "bn" ? "ব্লগ" : "Blog", href: `${p}/blog`, kind: "page" as const },
+    { label: resolved === "bn" ? "রিভিউ" : "Reviews", href: `${p}/testimonials`, kind: "page" as const },
+    { label: resolved === "bn" ? "আমার সম্পর্কে" : "About", href: `${p}/about`, kind: "page" as const },
+    { label: resolved === "bn" ? "যোগাযোগ" : "Contact", href: `${p}/contact`, kind: "page" as const },
+    ...palettePosts.slice(0, 20).map((post) => ({
+      label: post.title.en || post.title.bn,
+      href: `${p}${blogPostHref(resolved as never, post)}`,
+      kind: "post" as const,
+    })),
+    ...paletteProjects.map((proj) => ({
+      label: proj.title.en || proj.title.bn,
+      href: `${p}/projects/${proj.slug}`,
+      kind: "project" as const,
+    })),
+  ];
 
   // Inject allowed preset keys + default into the no-flash script.
   const allowedKeys = presets.filter((p) => p.enabled).map((p) => p.key);
@@ -234,6 +262,12 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
           <VisitorTracker />
+          {modules.palette ? (
+            <CommandPalette
+              items={paletteItems}
+              themes={presets.filter((th) => th.enabled).map((th) => ({ key: th.key, label: th.name }))}
+            />
+          ) : null}
           <AdminPreview allowed={{
             animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
             cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),

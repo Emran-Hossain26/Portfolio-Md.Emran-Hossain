@@ -8,8 +8,9 @@ const SPEC = [
   { name: "desc_en", label: "Description (EN)", type: "textarea" as const },
   { name: "desc_bn", label: "Description (BN)", type: "textarea" as const },
   { name: "icon", label: "Icon (name or url)", type: "text" as const },
+  { name: "price", label: "Price (free-form, e.g. From ৳15,000 / project)", type: "text" as const },
   { name: "published", label: "Published", type: "check" as const },
-  { name: "sort", label: "Sort order", type: "number" as const },
+  { name: "sort_order", label: "Sort order", type: "number" as const },
 ];
 
 export default async function ServicesPage() {
@@ -31,8 +32,9 @@ export default async function ServicesPage() {
             desc_en: r.desc.en,
             desc_bn: r.desc.bn,
             icon: r.icon,
+            price: r.price,
             published: true,
-            sort: r.sort,
+            sort_order: r.sort,
           })}
         />
       ))}
@@ -50,8 +52,9 @@ export default async function ServicesPage() {
             desc_en: "",
             desc_bn: "",
             icon: "",
+            price: "",
             published: true,
-            sort: rows.length + 1,
+            sort_order: rows.length + 1,
           })}
         />
       </div>

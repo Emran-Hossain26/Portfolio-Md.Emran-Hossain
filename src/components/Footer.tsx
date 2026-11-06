@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { getFooterText, getNewsletterSettings } from "@/lib/cms";
+import { getFooterText, getNewsletterSettings, getModuleSettings } from "@/lib/cms";
 import { NewsletterForm } from "./NewsletterForm";
+import { CountryBadge } from "./CountryBadge";
 import type { Locale } from "@/data/types";
 
 // cacheComponents forbids current-time values in prerender; caching the
@@ -21,13 +22,19 @@ export async function Footer() {
   const raw = custom ? (locale === "bn" ? custom.bn || custom.en : custom.en || custom.bn) : null;
   const line = raw ? raw.replaceAll("{year}", String(year)) : t("footer", { year });
 
-  const newsletter = await getNewsletterSettings();
+  const [newsletter, modules] = await Promise.all([
+    getNewsletterSettings(),
+    getModuleSettings(),
+  ]);
 
   return (
     <footer className="site">
       <div className="wrap" style={{ display: "grid", gap: 14 }}>
         {newsletter.enabled ? <NewsletterForm /> : null}
-        <div>{line}</div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span>{line}</span>
+          {modules.countryBadge ? <CountryBadge /> : null}
+        </div>
       </div>
     </footer>
   );

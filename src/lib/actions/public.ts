@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { updateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { sendEmail, emailHtml, escapeHtml } from "@/lib/email";
 
@@ -14,7 +15,7 @@ import { sendEmail, emailHtml, escapeHtml } from "@/lib/email";
 
 export type PublicActionResult = {
   ok: boolean;
-  error?: "rate_limited" | "validation" | "unavailable" | "server";
+  error?: "rate_limited" | "validation" | "unavailable" | "server" | "taken";
 };
 
 const rateMap = new Map<string, { count: number; reset: number }>();
@@ -128,6 +129,7 @@ export async function submitTestimonialAction(
       }));
     }
     if (error) return { ok: false, error: "unavailable" };
+    updateTag("content");
 
     // Best-effort admin alert — silently skipped without RESEND_API_KEY.
     const to = process.env.ADMIN_EMAIL;
@@ -141,6 +143,206 @@ export async function submitTestimonialAction(
             company ? ` — ${escapeHtml(company)}` : ""
           } rated ${rating}/5:</p><blockquote>${escapeHtml(quote)}</blockquote>
            <p>Approve or hide it in the admin panel → <b>Reviews</b>.</p>`,
+        ),
+      });
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "server" };
+  }
+}
+
+/**
+ * Stage 6 #10 — the real contact form. Writes to the same `messages` table
+ * the admin inbox reads; honeypot field is "company" (the form shipped with
+ * it). Rate limited per IP; admins get an email alert when Resend is set.
+ */
+export async function submitContactAction(
+  _prev: PublicActionResult,
+  formData: FormData,
+): Promise<PublicActionResult> {
+  if (
+    String(formData.get("website") ?? "") !== "" ||
+    String(formData.get("company") ?? "") !== ""
+  ) {
+    return { ok: true };
+  }
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+
+  if (!name || name.length > 120) return { ok: false, error: "validation" };
+  if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, error: "validation" };
+  if (message.length < 10 || message.length > 5000) return { ok: false, error: "validation" };
+  if (rateLimited("ct:" + (await clientIp()), 5, 60 * 60 * 1000)) {
+    return { ok: false, error: "rate_limited" };
+  }
+
+  try {
+    const db = createServiceClient();
+    const { error } = await db.from("messages").insert({
+      name,
+      email,
+      subject: "",
+      message,
+      status: "new",
+    });
+    if (error) return { ok: false, error: "unavailable" };
+    updateTag("content");
+
+    const to = process.env.ADMIN_EMAIL;
+    if (to) {
+      await sendEmail({
+        to,
+        subject: `New contact message from ${name}`,
+        replyTo: email,
+        html: emailHtml(
+          "New contact message",
+          `<p><b>${escapeHtml(name)}</b> (${escapeHtml(email)}) wrote:</p>
+           <p>${escapeHtml(message).replaceAll("\n", "<br/>")}</p>
+           <p>Reply from the admin inbox → <b>Inbox</b>.</p>`,
+        ),
+      });
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "server" };
+  }
+}
+
+/**
+ * Stage 6 #8 — "Request a quote" from the /services page. Lands in the
+ * admin inbox as a message with a "Quote request" subject so it shares the
+ * existing status/quick-reply flow.
+ */
+export async function submitQuoteAction(
+  _prev: PublicActionResult,
+  formData: FormData,
+): Promise<PublicActionResult> {
+  if (String(formData.get("website") ?? "") !== "") return { ok: true };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const budget = String(formData.get("budget") ?? "").trim().slice(0, 80);
+  const details = String(formData.get("details") ?? "").trim();
+
+  if (!name || name.length > 120) return { ok: false, error: "validation" };
+  if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, error: "validation" };
+  if (details.length < 10 || details.length > 5000) return { ok: false, error: "validation" };
+  if (rateLimited("qt:" + (await clientIp()), 5, 60 * 60 * 1000)) {
+    return { ok: false, error: "rate_limited" };
+  }
+
+  try {
+    const db = createServiceClient();
+    const subject = `Quote request${budget ? ` — budget: ${budget}` : ""}`;
+    const { error } = await db.from("messages").insert({
+      name,
+      email,
+      subject,
+      message: details,
+      status: "new",
+    });
+    if (error) return { ok: false, error: "unavailable" };
+    updateTag("content");
+
+    const to = process.env.ADMIN_EMAIL;
+    if (to) {
+      await sendEmail({
+        to,
+        replyTo: email,
+        subject,
+        html: emailHtml(
+          "New quote request",
+          `<p><b>${escapeHtml(name)}</b> (${escapeHtml(email)})${budget ? ` — budget: ${escapeHtml(budget)}` : ""}:</p>
+           <p>${escapeHtml(details).replaceAll("\n", "<br/>")}</p>`,
+        ),
+      });
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "server" };
+  }
+}
+
+/**
+ * Stage 6 #9 — consultation booking against a published slot with spare
+ * capacity. The booked counter is incremented conditionally (only when
+ * booked < capacity) so parallel requests cannot overbook.
+ */
+export async function submitBookingAction(
+  _prev: PublicActionResult,
+  formData: FormData,
+): Promise<PublicActionResult> {
+  if (String(formData.get("website") ?? "") !== "") return { ok: true };
+
+  const slotId = String(formData.get("slot_id") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const topic = String(formData.get("topic") ?? "").trim();
+
+  if (!slotId || !name || name.length > 120) return { ok: false, error: "validation" };
+  if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, error: "validation" };
+  if (topic.length < 5 || topic.length > 1000) return { ok: false, error: "validation" };
+  if (rateLimited("bk:" + (await clientIp()), 5, 60 * 60 * 1000)) {
+    return { ok: false, error: "rate_limited" };
+  }
+
+  try {
+    const db = createServiceClient();
+    const { data: slot } = await db
+      .from("booking_slots")
+      .select("id,slot_date,slot_time,capacity,booked,published")
+      .eq("id", slotId)
+      .maybeSingle();
+    const s = slot as
+      | { id: string; slot_date: string; slot_time: string; capacity: number; booked: number; published: boolean }
+      | null;
+    if (!s || !s.published) return { ok: false, error: "validation" };
+    if (s.booked >= s.capacity) return { ok: false, error: "taken" };
+
+    // Conditional increment: only books when the slot still has room.
+    const { data: claimed, error: claimErr } = await db
+      .from("booking_slots")
+      .update({ booked: s.booked + 1 })
+      .eq("id", s.id)
+      .eq("booked", s.booked)
+      .select("id");
+    if (claimErr || !claimed?.length) return { ok: false, error: "taken" };
+
+    const subject = `Booking: ${s.slot_date} ${s.slot_time}`.trim();
+    const { error } = await db.from("messages").insert({
+      name,
+      email,
+      subject,
+      message: topic,
+      status: "new",
+    });
+    if (error) return { ok: false, error: "unavailable" };
+    updateTag("content");
+
+    // Confirmation to the visitor + alert to the admin (no-op without key).
+    const from = process.env.ADMIN_EMAIL;
+    const when = `${s.slot_date} ${s.slot_time}`.trim();
+    await sendEmail({
+      to: email,
+      subject: `Consultation booked — ${when}`,
+      html: emailHtml(
+        "Your consultation is booked",
+        `<p>Hi ${escapeHtml(name)},</p><p>Your session is scheduled for <b>${escapeHtml(when)}</b>.</p>
+         <p>Topic: ${escapeHtml(topic)}</p>`,
+      ),
+    });
+    if (from) {
+      await sendEmail({
+        to: from,
+        replyTo: email,
+        subject,
+        html: emailHtml(
+          "New booking",
+          `<p><b>${escapeHtml(name)}</b> (${escapeHtml(email)}) booked <b>${escapeHtml(when)}</b>.</p>
+           <p>Topic: ${escapeHtml(topic)}</p>`,
         ),
       });
     }

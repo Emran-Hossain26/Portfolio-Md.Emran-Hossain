@@ -27,6 +27,7 @@ const NAV: [string, [string, string, string][]][] = [
     ["/admin/blog", "Blog & projects", "✎"],
     ["/admin/hero", "Hero editor", "Aa"],
     ["/admin/branding", "Branding", "◆"],
+    ["/admin/now", "Now items", "◉"],
   ]],
   ["Appearance", [
     ["/admin/themes", "Visitor themes", "◐"],
@@ -34,6 +35,8 @@ const NAV: [string, [string, string, string][]][] = [
   ]],
   ["Growth & system", [
     ["/admin/seo-health", "SEO health", "⌕"],
+    ["/admin/booking", "Booking", "▦"],
+    ["/admin/extras", "Extras", "✦"],
     ["/admin/system", "System", "⚙"],
     ["/admin/audit", "Audit log", "≣"],
     ["/admin/profile", "Profile & security", "●"],

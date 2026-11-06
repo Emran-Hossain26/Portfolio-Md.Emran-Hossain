@@ -41,19 +41,41 @@ export async function Certifications() {
     <section id="certifications" data-sec="certifications">
       <div className="wrap">
         <h2>{t("certifications")}</h2>
-        <div className="grid">
+        {/* Wall layout (Stage 6 #3): badge chip + prominent verify link */}
+        <div
+          style={{
+            display: "grid",
+            gap: 14,
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+          }}
+        >
           {rows.map((r) => (
-            <div className="card" key={r.id}>
-              <h3>{pick(locale, r.title)}</h3>
-              <p>
+            <div
+              className="card"
+              key={r.id}
+              style={{ display: "flex", flexDirection: "column", gap: 8 }}
+            >
+              <span
+                className="chip on"
+                style={{ alignSelf: "flex-start", fontSize: 12 }}
+                aria-hidden="true"
+              >
+                ✓
+              </span>
+              <h3 style={{ margin: 0 }}>{pick(locale, r.title)}</h3>
+              <p className="mute" style={{ margin: 0, fontSize: 14 }}>
                 {[pick(locale, r.issuer), r.year].filter(Boolean).join(" · ")}
               </p>
               {r.href ? (
-                <p>
-                  <a href={r.href} target="_blank" rel="noopener noreferrer">
-                    {locale === "bn" ? "ভেরিফাই করুন →" : "Verify →"}
-                  </a>
-                </p>
+                <a
+                  className="btn"
+                  style={{ alignSelf: "flex-start", marginTop: "auto" }}
+                  href={r.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {locale === "bn" ? "ভেরিফাই করুন →" : "Verify →"}
+                </a>
               ) : null}
             </div>
           ))}

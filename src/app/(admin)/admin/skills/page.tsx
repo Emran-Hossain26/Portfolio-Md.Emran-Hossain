@@ -7,7 +7,7 @@ const SPEC = [
   { name: "category", label: "Category (infrastructure/development/security/devops)", type: "text" as const },
   { name: "level", label: "Level (0–100)", type: "number" as const },
   { name: "published", label: "Published", type: "check" as const },
-  { name: "sort", label: "Sort order", type: "number" as const },
+  { name: "sort_order", label: "Sort order", type: "number" as const },
 ];
 
 export default async function SkillsPage() {
@@ -25,7 +25,7 @@ export default async function SkillsPage() {
             category: r.category,
             level: r.level,
             published: true,
-            sort: r.sort,
+            sort_order: r.sort,
           })}
         />
       ))}
@@ -39,7 +39,7 @@ export default async function SkillsPage() {
             category: "general",
             level: 50,
             published: true,
-            sort: rows.length + 1,
+            sort_order: rows.length + 1,
           })}
         />
       </div>

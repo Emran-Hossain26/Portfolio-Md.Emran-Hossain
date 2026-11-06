@@ -8,7 +8,7 @@ const SPEC = [
   { name: "a_en", label: "Answer (EN)", type: "textarea" as const },
   { name: "a_bn", label: "Answer (BN)", type: "textarea" as const },
   { name: "published", label: "Published", type: "check" as const },
-  { name: "sort", label: "Sort order", type: "number" as const },
+  { name: "sort_order", label: "Sort order", type: "number" as const },
 ];
 
 export default async function FaqPage() {
@@ -27,7 +27,7 @@ export default async function FaqPage() {
             a_en: r.a.en,
             a_bn: r.a.bn,
             published: true,
-            sort: r.sort,
+            sort_order: r.sort,
           })}
         />
       ))}
@@ -42,7 +42,7 @@ export default async function FaqPage() {
             a_en: "",
             a_bn: "",
             published: true,
-            sort: rows.length + 1,
+            sort_order: rows.length + 1,
           })}
         />
       </div>

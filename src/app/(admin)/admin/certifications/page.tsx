@@ -10,7 +10,7 @@ const SPEC = [
   { name: "year", label: "Year", type: "text" as const },
   { name: "href", label: "Verify link (URL)", type: "text" as const },
   { name: "published", label: "Published", type: "check" as const },
-  { name: "sort", label: "Sort order", type: "number" as const },
+  { name: "sort_order", label: "Sort order", type: "number" as const },
 ];
 
 export default async function CertificationsPage() {
@@ -31,7 +31,7 @@ export default async function CertificationsPage() {
             year: r.year,
             href: r.href,
             published: true,
-            sort: r.sort,
+            sort_order: r.sort,
           })}
         />
       ))}
@@ -48,7 +48,7 @@ export default async function CertificationsPage() {
             year: "",
             href: "",
             published: true,
-            sort: rows.length + 1,
+            sort_order: rows.length + 1,
           })}
         />
       </div>

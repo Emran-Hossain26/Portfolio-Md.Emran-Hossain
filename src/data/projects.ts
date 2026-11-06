@@ -7,10 +7,17 @@ export type ProjectSlide = {
   caption_bn: string;
 };
 
+/** One case-study metric row (public.projects.metrics jsonb). */
+export type ProjectMetric = { label: string; value: string };
+
 export type Project = {  slug: string;
   title: Localized;
   problem?: Localized;
   solution?: Localized;
+  /** Case-study outcome paragraph (Stage 6); empty until the admin fills it. */
+  result?: Localized;
+  /** Outcome metrics, e.g. [{label:"Downtime", value:"-90%"}]. */
+  metrics?: ProjectMetric[];
   tech: string[];
   /** slides = image slider of modules; video = click-to-load promo; none = no media. */
   media?: "slides" | "video" | "none";

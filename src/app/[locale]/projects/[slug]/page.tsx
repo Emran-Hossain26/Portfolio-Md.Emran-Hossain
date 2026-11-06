@@ -98,6 +98,42 @@ export default async function ProjectPage({
           {t("stackNote")}
         </p>
       </section>
+
+      {/* Case-study outcome (Stage 6 #1): result paragraph + metrics. */}
+      {project.result || project.metrics?.length ? (
+        <section style={{ marginTop: 28 }}>
+          <h2 style={{ fontSize: 22 }}>{s("result")}</h2>
+          {project.result ? <p style={{ maxWidth: 760 }}>{text(resolved, project.result)}</p> : null}
+          {project.metrics?.length ? (
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                marginTop: 14,
+              }}
+            >
+              {project.metrics.map((m, i) => (
+                <div className="card" key={i} style={{ padding: "14px 16px" }}>
+                  <b
+                    style={{
+                      display: "block",
+                      fontSize: 24,
+                      color: "var(--accent)",
+                      fontFamily: "var(--font-sora), sans-serif",
+                    }}
+                  >
+                    {m.value}
+                  </b>
+                  <span className="mute" style={{ fontSize: 13 }}>
+                    {m.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
       <JsonLd
         data={breadcrumbLd([
           { name: crumbs("home"), path: "/" },

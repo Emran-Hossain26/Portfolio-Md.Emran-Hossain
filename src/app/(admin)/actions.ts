@@ -27,6 +27,9 @@ const TABLES: Record<string, TableSpec> = {
     problem_bn: "text",
     solution_en: "text",
     solution_bn: "text",
+    result_en: "text",
+    result_bn: "text",
+    metrics: "jsonb",
     tech: "tags",
     media: "text",
     video: "text",
@@ -88,15 +91,16 @@ const TABLES: Record<string, TableSpec> = {
     desc_en: "text",
     desc_bn: "text",
     icon: "text",
+    price: "text",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   skills: {
     name: "text",
     category: "text",
     level: "int",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   certifications: {
     title_en: "text",
@@ -106,7 +110,7 @@ const TABLES: Record<string, TableSpec> = {
     year: "text",
     href: "text",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   faqs: {
     q_en: "text",
@@ -114,14 +118,14 @@ const TABLES: Record<string, TableSpec> = {
     a_en: "text",
     a_bn: "text",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   stats: {
     value: "text",
     label_en: "text",
     label_bn: "text",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   social_links: {
     platform: "text",
@@ -129,7 +133,7 @@ const TABLES: Record<string, TableSpec> = {
     label_en: "text",
     label_bn: "text",
     published: "bool",
-    sort: "int",
+    sort_order: "int",
   },
   contact_info: {
     email: "text",
@@ -146,6 +150,21 @@ const TABLES: Record<string, TableSpec> = {
   },
   messages: {
     status: "text",
+  },
+  now_items: {
+    kind: "text",
+    text_en: "text",
+    text_bn: "text",
+    published: "bool",
+    sort: "int",
+  },
+  booking_slots: {
+    slot_date: "text",
+    slot_time: "text",
+    capacity: "int",
+    booked: "int",
+    note: "text",
+    published: "bool",
   },
   media_assets: {
     alt_en: "text",
@@ -179,6 +198,23 @@ function parse(spec: TableSpec, formData: FormData) {
           .filter(Boolean);
         break;
       case "jsonb": {
+        // Case-study metrics (Stage 6): [{label, value}] from a JSON textarea.
+        if (col === "metrics") {
+          let parsedMetrics: unknown = [];
+          try {
+            parsedMetrics = JSON.parse(String(formData.get(col) ?? "") || "[]");
+          } catch {}
+          row[col] = Array.isArray(parsedMetrics)
+            ? (parsedMetrics as unknown[])
+                .filter((m) => typeof m === "object" && m !== null)
+                .map((m) => ({
+                  label: String((m as { label?: unknown }).label ?? "").trim().slice(0, 80),
+                  value: String((m as { value?: unknown }).value ?? "").trim().slice(0, 40),
+                }))
+                .filter((m) => m.label && m.value)
+            : [];
+          break;
+        }
         // Slides list: {src, caption_en, caption_bn} — an empty/missing src is
         // KEPT as a caption-only slide (rendered as the mockup placeholder);
         // only non-object junk is dropped (4c: never a broken image).
@@ -1042,4 +1078,41 @@ export async function deleteSubscriberAction(id: string) {
   await logAdminAction(user, "delete", "newsletter_subscribers", id);
   refresh();
   redirect("/admin/newsletter?deleted=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage 6: module toggles (skills/now/terminal/palette/services/      */
+/* booking/github/country badge) — one settings page saves all         */
+/* ------------------------------------------------------------------ */
+
+export async function saveModuleSettingsAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const on = (k: string) => formData.get(k) === "on";
+  const updates: Record<string, Record<string, unknown>> = {
+    skills_settings: { enabled: on("skills") },
+    now_settings: { enabled: on("now") },
+    terminal_settings: { enabled: on("terminal") },
+    palette_settings: { enabled: on("palette") },
+    services_settings: { enabled: on("services"), quote_enabled: on("quote") },
+    booking_settings: { enabled: on("booking") },
+    country_badge: { enabled: on("country_badge") },
+  };
+  const db = createServiceClient();
+  for (const [key, value] of Object.entries(updates)) {
+    await db.from("site_settings").upsert({ key, value }, { onConflict: "key" });
+  }
+  const username = String(formData.get("github_username") ?? "").trim().slice(0, 60);
+  await db
+    .from("site_settings")
+    .upsert(
+      { key: "github_widget", value: { enabled: on("github"), username } },
+      { onConflict: "key" },
+    );
+  await logAdminAction(user, "update", "site_settings", "stage6_module_settings", null, {
+    ...updates,
+    github_widget: { enabled: on("github"), username },
+  });
+  refresh();
+  redirect("/admin/extras?saved=1");
 }

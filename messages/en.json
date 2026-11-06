@@ -22,6 +22,10 @@
       "contact": {
         "title": "Contact | Md Emran Hossain",
         "description": "Contact Md Emran Hossain for IT infrastructure, cybersecurity or web work: engremran.it@gmail.com, Dhaka, Bangladesh."
+      },
+      "services": {
+        "title": "Services & packages",
+        "description": "IT infrastructure, cybersecurity and full-stack development packages for businesses in Dhaka — request a quote online."
       }
     }
   },
@@ -70,7 +74,9 @@
     "footer": "© {year} Md Emran Hossain",
     "stats": "Proof in numbers",
     "certifications": "Certifications & training",
-    "faq": "Common questions"
+    "faq": "Common questions",
+    "skillsTitle": "Tech stack & tools",
+    "result": "Result"
   },
   "pages": {
     "projects": {
@@ -147,5 +153,61 @@
   },
   "a11y": {
     "skip": "Skip to main content"
+  },
+  "now": {
+    "title": "Now",
+    "working": "Working on",
+    "learning": "Learning",
+    "reading": "Reading"
+  },
+  "contactForm": {
+    "sent": "Message sent. Thank you!",
+    "sentNote": "It landed in the inbox — you will usually get a reply within a day.",
+    "sending": "Sending…",
+    "error_validation": "Please fill in your name, a valid email and a message of at least 10 characters.",
+    "error_rate_limited": "Too many messages — please try again later.",
+    "error_unavailable": "Sending is temporarily unavailable.",
+    "error_server": "Something went wrong. Please try again."
+  },
+  "contactQuick": {
+    "title": "Prefer chat?"
+  },
+  "quote": {
+    "title": "Request a quote",
+    "intro": "Tell me about the project and you will get an estimate by email.",
+    "name": "Your name",
+    "email": "Email",
+    "budget": "Budget (optional)",
+    "details": "What do you need?",
+    "detailsPh": "Short description of the work, timeline, anything important…",
+    "submit": "Send request",
+    "sending": "Sending…",
+    "success": "Request sent. Thank you!",
+    "error_validation": "Please fill in your name, a valid email and a short description.",
+    "error_rate_limited": "Too many requests — please try again later.",
+    "error_unavailable": "Requests are temporarily unavailable.",
+    "error_server": "Something went wrong. Please try again."
+  },
+  "booking": {
+    "title": "Book a consultation",
+    "intro": "Pick a free slot and tell me what the session is about.",
+    "pick": "Available slots",
+    "none": "No open slots right now — check back soon or use the contact form.",
+    "selected": "Selected",
+    "name": "Your name",
+    "email": "Email",
+    "topic": "What should we talk about?",
+    "submit": "Book slot",
+    "sending": "Booking…",
+    "success": "Booked! A confirmation email is on its way when email delivery is configured.",
+    "error_validation": "Pick a slot and fill in your name, email and topic.",
+    "error_rate_limited": "Too many attempts — please try again later.",
+    "error_taken": "That slot was just taken — please pick another.",
+    "error_unavailable": "Booking is temporarily unavailable.",
+    "error_server": "Something went wrong. Please try again."
+  },
+  "terminal": {
+    "title": "Terminal",
+    "hint": "type help + Enter"
   }
 }
