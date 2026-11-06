@@ -523,7 +523,10 @@ export async function getMessagesInbox(): Promise<{ id: string; name: string; em
   "use cache"; cacheTag("content");
   if (!configured()) return [];
   try {
-    const { data, error } = await db().from("messages").select("id,name,email,message,status,created_at").order("created_at", { ascending: false }).limit(50);
+    // Visitor messages are RLS-protected (no anon policies) — read through
+    // the service role, exactly like the admin pages do.
+    const { createServiceClient } = await import("@/lib/supabase/admin");
+    const { data, error } = await createServiceClient().from("messages").select("id,name,email,message,status,created_at").order("created_at", { ascending: false }).limit(50);
     if (error || !data) return [];
     return data.map((r) => ({ id: r.id as string, name: r.name as string, email: r.email as string, message: r.message as string, status: (r.status as string) ?? "new", created_at: r.created_at as string }));
   } catch { return []; }

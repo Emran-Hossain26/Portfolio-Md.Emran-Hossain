@@ -4,6 +4,25 @@
 -- Do NOT edit old migrations; this is additive.
 -- ============================================================================
 
+-- Backfill: the table is defined in the Stage 0 initial schema, but some
+-- live databases never ran that file — without this CREATE the INSERTs
+-- below fail with 42P01 and (the SQL Editor runs one transaction) roll back
+-- the entire migration batch.
+create table if not exists public.theme_presets (
+  id uuid primary key default gen_random_uuid(),
+  name_en text unique not null,
+  name_bn text not null default '',
+  is_default boolean not null default false,
+  is_enabled boolean not null default true,
+  colors jsonb not null default '{}'::jsonb,
+  fonts jsonb not null default '{}'::jsonb,
+  radius jsonb not null default '{}'::jsonb,
+  shadows jsonb not null default '{}'::jsonb,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- Add the 4 missing presets (Ocean, Sunset, Forest, High Contrast)
 INSERT INTO theme_presets (name_en, name_bn, is_default, is_enabled, colors, fonts, radius, shadows, sort_order) VALUES
   ('Ocean', 'ওশান', false, true, '{"accent":"#0E9AA7","bg":"#0A1929","panel":"#0F2744","ink":"#E0F0FF","mute":"#7BA8D4","line":"#1E3A5F","radius":"12px"}', '{"heading":"Bricolage Grotesque","body":"Hind Siliguri"}', '{"card":"12px","button":"12px"}', '{"card":"0 4px 14px rgba(14,154,167,0.2)"}', 6),
