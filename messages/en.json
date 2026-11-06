@@ -92,7 +92,23 @@
     "testimonials": {
       "heading": "Testimonials",
       "intro": "What clients say about working with me.",
-      "moderation": "Public submissions go through moderation before they appear here (form arrives in the testimonials milestone)."
+      "moderation": "Public submissions go through moderation before they appear here (form arrives in the testimonials milestone).",
+      "form": {
+        "heading": "Worked with me? Share your experience",
+        "name": "Your name",
+        "company": "Company / role",
+        "companyOptional": "optional",
+        "rating": "Rating",
+        "quote": "Your review (at least 20 characters)",
+        "submit": "Submit review",
+        "sending": "Sending…",
+        "success": "Thank you! Your review was submitted.",
+        "pendingNote": "It will appear on this page after a quick moderation check.",
+        "error_validation": "Please fill in your name and a review of at least 20 characters.",
+        "error_rate_limited": "Too many submissions — please try again later.",
+        "error_unavailable": "Submissions are temporarily unavailable.",
+        "error_server": "Something went wrong. Please try again."
+      }
     },
     "about": {
       "heading": "About me",
@@ -112,6 +128,22 @@
       "projects": "Projects",
       "blog": "Blog"
     }
+  },
+  "newsletter": {
+    "title": "Get new posts by email",
+    "placeholder": "you@example.com",
+    "button": "Subscribe",
+    "joining": "Subscribing…",
+    "hint": "No spam. Unsubscribe anytime.",
+    "success": "You are subscribed. Thank you!",
+    "error_validation": "Please enter a valid email address.",
+    "error_rate_limited": "Too many attempts — please try again later.",
+    "error_unavailable": "Subscription is temporarily unavailable.",
+    "error_server": "Something went wrong. Please try again."
+  },
+  "maintenance": {
+    "heading": "Be back soon",
+    "sub": "The site is briefly down for maintenance. Please check back in a little while."
   },
   "a11y": {
     "skip": "Skip to main content"

@@ -28,9 +28,11 @@ export async function Hero({
           <a className="btn p" href="#contact">
             {t("hire")}
           </a>
-          {/* CV enabled once the admin uploads one (storage bucket "cv"); disabled otherwise */}
+          {/* CV enabled once the admin uploads one (storage bucket "cv"); the
+              counting route increments the download counter, then redirects.
+              Disabled until an upload exists. */}
           {cvPath ? (
-            <a className="btn" href={cvPath} target="_blank" rel="noopener noreferrer">
+            <a className="btn" href="/api/download-cv" target="_blank" rel="noopener noreferrer">
               {t("cv")}
             </a>
           ) : (

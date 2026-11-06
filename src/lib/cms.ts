@@ -144,7 +144,9 @@ export async function getTestimonials(): Promise<
       }));
     }
     return data.map((row) => ({
-      quote: L(row.quote_en, row.quote_bn),
+      // Public submissions arrive in one language; the other locale falls
+      // back to the same text so a card is never blank.
+      quote: L(row.quote_en, row.quote_bn || row.quote_en),
       name: [row.name, row.company].filter(Boolean).join(", "),
     }));
   } catch {
@@ -543,6 +545,7 @@ export type BlogPost = {
   seo_title: Localized;
   seo_desc: Localized;
   og_image: string;
+  cover_url: string;
   canonical: string;
   noindex: boolean;
   view_count: number;
@@ -584,21 +587,28 @@ export async function getBlogPosts(opts?: { category?: string; tag?: string; sea
     return samplePosts.map((p) => ({
       slug: p.slug, bn_slug: "", title: p.title, body: p.body, meta: p.meta,
       status: "published" as const, scheduled_at: null, categories: [], tags: [],
-      seo_title: { en: "", bn: "" }, seo_desc: { en: "", bn: "" }, og_image: "", canonical: "", noindex: false, view_count: 0,
+      seo_title: { en: "", bn: "" }, seo_desc: { en: "", bn: "" }, og_image: "", cover_url: "", canonical: "", noindex: false, view_count: 0,
       reading_time: readingTimeMinutes(p.body.en + " " + p.body.bn),
     }));
   }
   try {
-    let q = db().from("posts").select("slug,bn_slug,title_en,title_bn,body_en,body_bn,meta_en,meta_bn,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,canonical,noindex,view_count").order("created_at", { ascending: false });
-    if (opts?.category) q = q.contains("categories", [opts.category]);
-    if (opts?.tag) q = q.contains("tags", [opts.tag]);
-    const { data, error } = await q;
-    if (error || !data?.length) {
+    const fetchPosts = async (select: string): Promise<Record<string, unknown>[] | null> => {
+      let q = db().from("posts").select(select).order("created_at", { ascending: false });
+      if (opts?.category) q = q.contains("categories", [opts.category]);
+      if (opts?.tag) q = q.contains("tags", [opts.tag]);
+      const { data, error } = await q;
+      if (error) return null;
+      return (data as unknown as Record<string, unknown>[]) ?? null;
+    };
+    // cover_url arrives with migration 20261110 — retry without it pre-migration.
+    let data = await fetchPosts("slug,bn_slug,title_en,title_bn,body_en,body_bn,meta_en,meta_bn,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,cover_url,canonical,noindex,view_count");
+    if (!data) data = await fetchPosts("slug,bn_slug,title_en,title_bn,body_en,body_bn,meta_en,meta_bn,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,canonical,noindex,view_count");
+    if (!data?.length) {
       const { samplePosts } = await import("@/data/posts");
       return samplePosts.map((p) => ({
         slug: p.slug, bn_slug: "", title: p.title, body: p.body, meta: p.meta,
         status: "published" as const, scheduled_at: null, categories: [], tags: [],
-        seo_title: { en: "", bn: "" }, seo_desc: { en: "", bn: "" }, og_image: "", canonical: "", noindex: false, view_count: 0,
+        seo_title: { en: "", bn: "" }, seo_desc: { en: "", bn: "" }, og_image: "", cover_url: "", canonical: "", noindex: false, view_count: 0,
         reading_time: readingTimeMinutes(p.body.en + " " + p.body.bn),
       }));
     }
@@ -631,6 +641,7 @@ export async function getBlogPosts(opts?: { category?: string; tag?: string; sea
           seo_title: L(r.seo_title_en, r.seo_title_bn),
           seo_desc: L(r.seo_desc_en, r.seo_desc_bn),
           og_image: (r.og_image as string) ?? "",
+          cover_url: (r.cover_url as string) ?? "",
           canonical: (r.canonical as string) ?? "",
           noindex: (r.noindex as boolean) ?? false,
           view_count: (r.view_count as number) ?? 0,
@@ -650,7 +661,7 @@ export async function getBlogPosts(opts?: { category?: string; tag?: string; sea
     return samplePosts.map((p) => ({
       slug: p.slug, bn_slug: "", title: p.title, body: p.body, meta: p.meta,
       status: "published" as const, scheduled_at: null, categories: [], tags: [],
-      seo_title: { en: "", bn: "" }, seo_desc: { en: "", bn: "" }, og_image: "", canonical: "", noindex: false, view_count: 0,
+      seo_title: { en: "", bn: "" }, seo_desc: { en: "", bn: "" }, og_image: "", cover_url: "", canonical: "", noindex: false, view_count: 0,
       reading_time: readingTimeMinutes(p.body.en + " " + p.body.bn),
     }));
   }
@@ -826,5 +837,130 @@ export async function getEffectsSettings(): Promise<EffectsSettings> {
     return { ...FX_DEFAULTS, ...((data?.value ?? {}) as Partial<EffectsSettings>) };
   } catch {
     return FX_DEFAULTS;
+  }
+}
+
+// --- Session 2: branding / footer / about / maintenance / admin profile ---
+// Every helper returns null/false when the admin has not saved anything —
+// components then fall back to the next-intl seed strings.
+
+export type Branding = {
+  brand_en: string;
+  brand_bn: string;
+  badge_url: string;
+};
+
+export async function getBranding(): Promise<Branding | null> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return null;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "branding")
+      .maybeSingle();
+    const v = (data?.value ?? {}) as Partial<Branding>;
+    const out: Branding = {
+      brand_en: String(v.brand_en ?? "").trim(),
+      brand_bn: String(v.brand_bn ?? "").trim(),
+      badge_url: String(v.badge_url ?? "").trim(),
+    };
+    if (!out.brand_en && !out.brand_bn && !out.badge_url) return null;
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+export async function getFooterText(): Promise<Localized | null> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return null;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "footer_text")
+      .maybeSingle();
+    const v = (data?.value ?? {}) as Partial<Localized>;
+    const en = String(v.en ?? "").trim();
+    const bn = String(v.bn ?? "").trim();
+    if (!en && !bn) return null;
+    return { en, bn };
+  } catch {
+    return null;
+  }
+}
+
+export async function getAboutTexts(): Promise<Localized | null> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return null;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "about_texts")
+      .maybeSingle();
+    const v = (data?.value ?? {}) as Partial<Localized>;
+    const en = String(v.en ?? "").trim();
+    const bn = String(v.bn ?? "").trim();
+    if (!en && !bn) return null;
+    return { en, bn };
+  } catch {
+    return null;
+  }
+}
+
+export async function getMaintenanceMode(): Promise<boolean> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return false;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "maintenance_mode")
+      .maybeSingle();
+    return Boolean((data?.value as { enabled?: boolean } | null)?.enabled);
+  } catch {
+    return false;
+  }
+}
+
+export type AdminProfile = {
+  display_name: string;
+  avatar_url: string;
+};
+
+// NOTE: admin_profile is read by the admin layout with a local "use cache"
+// helper — importing this cms module there trips Next's prerender detector
+// in dev (Date.now). getAdminProfile stays for any future consumer.
+
+export async function getCvDownloads(): Promise<number> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return 0;
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "cv_downloads")
+      .maybeSingle();
+    const n = (data?.value as { count?: number } | null)?.count;
+    return typeof n === "number" && Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function getNewsletterSettings(): Promise<{ enabled: boolean }> {
+  "use cache"; cacheTag("content");
+  if (!configured()) return { enabled: false };
+  try {
+    const { data } = await db()
+      .from("site_settings")
+      .select("value")
+      .eq("key", "newsletter_settings")
+      .maybeSingle();
+    return { enabled: Boolean((data?.value as { enabled?: boolean } | null)?.enabled) };
+  } catch {
+    return { enabled: false };
   }
 }

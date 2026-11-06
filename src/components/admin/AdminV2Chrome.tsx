@@ -13,15 +13,20 @@ import { logoutAction } from "@/app/(admin)/actions";
  */
 
 const NAV: [string, [string, string, string][]][] = [
-  ["Overview", [["/admin", "Overview", "◧"]]],
+  ["Overview", [
+    ["/admin", "Overview", "◧"],
+    ["/admin/analytics", "Analytics", "◔"],
+  ]],
   ["Inbox & people", [
     ["/admin/inbox", "Inbox", "✉"],
     ["/admin/testimonials", "Reviews", "★"],
+    ["/admin/newsletter", "Newsletter", "@"],
   ]],
   ["Content", [
     ["/admin/sections", "Sections", "☰"],
     ["/admin/blog", "Blog & projects", "✎"],
     ["/admin/hero", "Hero editor", "Aa"],
+    ["/admin/branding", "Branding", "◆"],
   ]],
   ["Appearance", [
     ["/admin/themes", "Visitor themes", "◐"],
@@ -30,15 +35,23 @@ const NAV: [string, [string, string, string][]][] = [
   ["Growth & system", [
     ["/admin/seo-health", "SEO health", "⌕"],
     ["/admin/system", "System", "⚙"],
+    ["/admin/audit", "Audit log", "≣"],
+    ["/admin/profile", "Profile & security", "●"],
   ]],
 ];
 
 export function AdminV2Chrome({
   children,
   inboxCount = 0,
+  pendingTestimonials = 0,
+  adminName = "Administrator",
+  adminAvatar = "",
 }: {
   children: React.ReactNode;
   inboxCount?: number;
+  pendingTestimonials?: number;
+  adminName?: string;
+  adminAvatar?: string;
 }) {
   const pathname = usePathname();
   const bare =
@@ -55,6 +68,7 @@ export function AdminV2Chrome({
       if (active(href)) title = label;
     }
   }
+  const initial = (adminName || "A").trim().charAt(0).toUpperCase() || "A";
 
   return (
     <div className="av2" data-t={dark ? "dark" : "light"}>
@@ -76,6 +90,9 @@ export function AdminV2Chrome({
                   {href === "/admin/inbox" && inboxCount > 0 ? (
                     <b>{inboxCount}</b>
                   ) : null}
+                  {href === "/admin/testimonials" && pendingTestimonials > 0 ? (
+                    <b>{pendingTestimonials}</b>
+                  ) : null}
                 </Link>
               ))}
             </div>
@@ -87,7 +104,7 @@ export function AdminV2Chrome({
               <span aria-hidden="true">⇥</span> Log out
             </button>
           </form>
-          Signed in as Administrator
+          Signed in as {adminName}
         </div>
       </aside>
 
@@ -102,7 +119,12 @@ export function AdminV2Chrome({
             ◐
           </button>
           <Link className="btn p" href="/" target="_blank">View site ↗</Link>
-          <div className="av" title="Administrator">A</div>
+          {adminAvatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="av" src={adminAvatar} alt={adminName} title={adminName} />
+          ) : (
+            <div className="av" title={adminName}>{initial}</div>
+          )}
         </div>
         <div className="pg" tabIndex={-1}>
           <Suspense fallback={null}>{children}</Suspense>

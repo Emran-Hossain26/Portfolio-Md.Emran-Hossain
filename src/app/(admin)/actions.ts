@@ -2,9 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
+import { cookies } from "next/headers";
+import { createHash, randomBytes } from "node:crypto";
+import { Secret, TOTP } from "otpauth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
+import { logAdminAction, auditValue } from "@/lib/audit";
+import { sendEmail, emailHtml, escapeHtml } from "@/lib/email";
 
 /* ------------------------------------------------------------------ */
 /* Whitelisted admin-writable tables + columns                          */
@@ -35,6 +40,7 @@ const TABLES: Record<string, TableSpec> = {
     bn_slug: "text",
     title_en: "text",
     title_bn: "text",
+    cover_url: "text",
     meta_en: "text",
     meta_bn: "text",
     body_en: "text",
@@ -248,7 +254,7 @@ export async function logoutAction() {
 
 export async function saveRowAction(table: string, id: string, formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
 
   const spec = TABLES[table];
   if (!spec) throw new Error(`Unknown table: ${table}`);
@@ -317,16 +323,25 @@ export async function saveRowAction(table: string, id: string, formData: FormDat
   } else {
     await db.from(table).update(row).eq("id", id);
   }
+  await logAdminAction(
+    user,
+    id === "__new" ? "create" : "update",
+    table,
+    id === "__new" ? "(new row)" : id,
+    null,
+    auditValue(row),
+  );
   refresh();
   redirect(`/admin/${table === "education" ? "education" : table}`);
 }
 
 export async function deleteRowAction(table: string, id: string) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   // Protected seed row for testimonials placeholders needs no special-case:
   // the admin decides which rows to remove.
   await createServiceClient().from(table).delete().eq("id", id);
+  await logAdminAction(user, "delete", table, id);
   refresh();
   redirect(`/admin/${table === "education" ? "education" : table}`);
 }
@@ -337,7 +352,7 @@ export async function deleteRowAction(table: string, id: string) {
 
 export async function saveTextsAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
 
   const value = {
     en: {
@@ -352,6 +367,7 @@ export async function saveTextsAction(formData: FormData) {
   await createServiceClient()
     .from("site_settings")
     .upsert({ key: "hero_texts", value }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "hero_texts", null, auditValue(value));
   refresh();
   redirect("/admin/texts");
 }
@@ -376,9 +392,10 @@ async function upsertTheme(key: string, json: string) {
 
 export async function saveThemeAction(lightJson: string, darkJson: string) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   await upsertTheme("theme_light", lightJson);
   await upsertTheme("theme_dark", darkJson);
+  await logAdminAction(user, "update", "site_settings", "theme_light/theme_dark");
   refresh();
   redirect("/admin/theme?saved=1");
 }
@@ -389,7 +406,7 @@ export async function saveThemeAction(lightJson: string, darkJson: string) {
 
 export async function saveCvAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) redirect("/admin/cv?error=empty");
@@ -411,17 +428,19 @@ export async function saveCvAction(formData: FormData) {
       { key: "cv_path", value: { url: data.publicUrl } },
       { onConflict: "key" },
     );
+  await logAdminAction(user, "update", "site_settings", "cv_path", null, { url: data.publicUrl });
   refresh();
   redirect("/admin/cv");
 }
 
 export async function removeCvAction() {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   await createServiceClient()
     .from("site_settings")
     .delete()
     .eq("key", "cv_path");
+  await logAdminAction(user, "delete", "site_settings", "cv_path");
   refresh();
   redirect("/admin/cv");
 }
@@ -434,7 +453,7 @@ const SEO_PATHS = ["/", "/projects", "/blog", "/about", "/contact", "/testimonia
 
 export async function saveSeoAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
 
   const path = String(formData.get("__path") ?? "");
   const bangla = formData.get("__lang") === "bn";
@@ -465,6 +484,7 @@ export async function saveSeoAction(formData: FormData) {
   } else {
     await db.from("page_seo").insert(payload);
   }
+  await logAdminAction(user, "update", "page_seo", `${path} (${lang})`, null, auditValue(payload));
   refresh();
   redirect("/admin/seo");
 }
@@ -475,7 +495,7 @@ export async function saveSeoAction(formData: FormData) {
 
 export async function saveSeoSettingsAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const db = createServiceClient();
   const value = {
     title_template: String(formData.get("title_template") ?? "").trim(),
@@ -489,6 +509,7 @@ export async function saveSeoSettingsAction(formData: FormData) {
     { key: "seo_settings", value },
     { onConflict: "key" },
   );
+  await logAdminAction(user, "update", "site_settings", "seo_settings", null, auditValue(value));
   refresh();
   redirect("/admin/seo?saved=1");
 }
@@ -519,17 +540,18 @@ export async function moveSectionAction(key: string, direction: "up" | "down") {
 
 export async function updateMessageStatusAction(id: string, status: string) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const allowed = ["new", "read", "replied", "spam"];
-  if (!allowed.includes(status)) redirect("/admin/messages");
+  if (!allowed.includes(status)) redirect("/admin/inbox");
   await createServiceClient().from("messages").update({ status }).eq("id", id);
+  await logAdminAction(user, "update", "messages", id, null, { status });
   refresh();
-  redirect("/admin/messages");
+  redirect("/admin/inbox");
 }
 
 export async function saveContactInfoAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const db = createServiceClient();
   const payload = {
     key: "main",
@@ -550,13 +572,14 @@ export async function saveContactInfoAction(formData: FormData) {
   } else {
     await db.from("contact_info").insert(payload);
   }
+  await logAdminAction(user, "update", "contact_info", "main", null, auditValue(payload));
   refresh();
   redirect("/admin/contact-info?saved=1");
 }
 
 export async function uploadMediaAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) redirect("/admin/media?error=empty");
   if (file.size > 8 * 1024 * 1024) redirect("/admin/media?error=size");
@@ -577,17 +600,19 @@ export async function uploadMediaAction(formData: FormData) {
     mime_type: file.type,
     size_bytes: file.size,
   });
+  await logAdminAction(user, "create", "media_assets", path, null, { url: data.publicUrl });
   refresh();
   redirect("/admin/media?saved=1");
 }
 
 export async function deleteMediaAction(id: string) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const db = createServiceClient();
   const { data } = await db.from("media_assets").select("path").eq("id", id).maybeSingle();
   if (data?.path) await db.storage.from("media").remove([data.path as string]);
   await db.from("media_assets").delete().eq("id", id);
+  await logAdminAction(user, "delete", "media_assets", id, null, { path: data?.path });
   refresh();
   redirect("/admin/media");
 }
@@ -598,7 +623,7 @@ export async function deleteMediaAction(id: string) {
 
 export async function saveEffectsAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const on = (k: string) => formData.get(k) === "on";
   const value = {
     master: on("master"),
@@ -618,6 +643,7 @@ export async function saveEffectsAction(formData: FormData) {
   };
   const db = createServiceClient();
   await db.from("site_settings").upsert({ key: "effects_settings", value }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "effects_settings", null, auditValue(value));
   refresh();
   redirect("/admin/effects?saved=1");
 }
@@ -628,7 +654,7 @@ export async function saveEffectsAction(formData: FormData) {
 
 export async function saveHeroTextsAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const value = {
     heading: {
       en: String(formData.get("heading_en") ?? "").trim(),
@@ -642,13 +668,14 @@ export async function saveHeroTextsAction(formData: FormData) {
   await createServiceClient()
     .from("site_settings")
     .upsert({ key: "hero_texts", value }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "hero_texts", null, auditValue(value));
   refresh();
   redirect("/admin/hero?saved=1");
 }
 
 export async function saveMaintenanceAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
-  await requireAdmin();
+  const user = await requireAdmin();
   const on = formData.get("maintenance") === "on";
   await createServiceClient()
     .from("site_settings")
@@ -656,6 +683,363 @@ export async function saveMaintenanceAction(formData: FormData) {
       { key: "maintenance_mode", value: { enabled: on } },
       { onConflict: "key" },
     );
+  await logAdminAction(user, "update", "site_settings", "maintenance_mode", null, { enabled: on });
   refresh();
   redirect("/admin/system?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Session 2: branding / footer / about (site_settings KV)             */
+/* ------------------------------------------------------------------ */
+
+export async function saveBrandingAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const db = createServiceClient();
+
+  // Preserve the badge (managed by its own upload form) unless removal is ticked.
+  const { data: existing } = await db
+    .from("site_settings")
+    .select("value")
+    .eq("key", "branding")
+    .maybeSingle();
+  const prev = (existing?.value ?? {}) as { badge_url?: string };
+  const removeBadge = formData.get("remove_badge") === "on";
+
+  const branding = {
+    brand_en: String(formData.get("brand_en") ?? "").trim().slice(0, 60),
+    brand_bn: String(formData.get("brand_bn") ?? "").trim().slice(0, 60),
+    badge_url: removeBadge ? "" : String(prev.badge_url ?? "").trim(),
+  };
+  const footerText = {
+    en: String(formData.get("footer_en") ?? "").trim().slice(0, 300),
+    bn: String(formData.get("footer_bn") ?? "").trim().slice(0, 300),
+  };
+  const aboutTexts = {
+    en: String(formData.get("about_en") ?? "").trim().slice(0, 20000),
+    bn: String(formData.get("about_bn") ?? "").trim().slice(0, 20000),
+  };
+
+  await db.from("site_settings").upsert({ key: "branding", value: branding }, { onConflict: "key" });
+  await db.from("site_settings").upsert({ key: "footer_text", value: footerText }, { onConflict: "key" });
+  await db.from("site_settings").upsert({ key: "about_texts", value: aboutTexts }, { onConflict: "key" });
+  await logAdminAction(
+    user,
+    "update",
+    "site_settings",
+    "branding/footer_text/about_texts",
+    null,
+    { branding, footer: footerText, aboutChars: { en: aboutTexts.en.length, bn: aboutTexts.bn.length } },
+  );
+  refresh();
+  redirect("/admin/branding?saved=1");
+}
+
+export async function saveBrandBadgeAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const file = formData.get("badge");
+  if (!(file instanceof File) || file.size === 0) redirect("/admin/branding?error=empty");
+  if (file.size > 2 * 1024 * 1024) redirect("/admin/branding?error=size");
+
+  const okTypes: Record<string, string> = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+    "image/svg+xml": "svg",
+  };
+  const ext = okTypes[file.type];
+  if (!ext) redirect("/admin/branding?error=type");
+
+  const db = createServiceClient();
+  const path = `brand/badge.${ext}`;
+  const { error } = await db.storage
+    .from("media")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) redirect("/admin/branding?error=upload");
+
+  const { data } = db.storage.from("media").getPublicUrl(path);
+
+  const { data: existing } = await db
+    .from("site_settings")
+    .select("value")
+    .eq("key", "branding")
+    .maybeSingle();
+  const prev = (existing?.value ?? {}) as { brand_en?: string; brand_bn?: string };
+  const branding = {
+    brand_en: String(prev.brand_en ?? ""),
+    brand_bn: String(prev.brand_bn ?? ""),
+    badge_url: data.publicUrl,
+  };
+  await db.from("site_settings").upsert({ key: "branding", value: branding }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "branding.badge_url", null, { badge_url: data.publicUrl });
+  refresh();
+  redirect("/admin/branding?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Session 2: admin profile (name, avatar) + password change           */
+/* ------------------------------------------------------------------ */
+
+export async function saveAdminProfileAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const db = createServiceClient();
+
+  const { data: existing } = await db
+    .from("site_settings")
+    .select("value")
+    .eq("key", "admin_profile")
+    .maybeSingle();
+  const prev = (existing?.value ?? {}) as { avatar_url?: string };
+
+  const value: { display_name: string; avatar_url: string } = {
+    display_name: String(formData.get("display_name") ?? "").trim().slice(0, 80),
+    avatar_url: prev.avatar_url ?? "",
+  };
+
+  if (formData.get("remove_avatar") === "on") {
+    value.avatar_url = "";
+  }
+
+  const file = formData.get("avatar");
+  if (file instanceof File && file.size > 0) {
+    if (file.size > 4 * 1024 * 1024) redirect("/admin/profile?error=size");
+    const okTypes: Record<string, string> = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/webp": "webp",
+    };
+    const ext = okTypes[file.type];
+    if (!ext) redirect("/admin/profile?error=type");
+    const path = `avatar/avatar-${Date.now()}.${ext}`;
+    const { error } = await db.storage
+      .from("media")
+      .upload(path, file, { upsert: false, contentType: file.type });
+    if (error) redirect("/admin/profile?error=upload");
+    const { data } = db.storage.from("media").getPublicUrl(path);
+    value.avatar_url = data.publicUrl;
+  }
+
+  await db
+    .from("site_settings")
+    .upsert({ key: "admin_profile", value }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "admin_profile", null, {
+    display_name: value.display_name,
+    avatar_changed: Boolean(file instanceof File && file.size > 0) || formData.get("remove_avatar") === "on",
+  });
+  refresh();
+  redirect("/admin/profile?saved=1");
+}
+
+export async function changePasswordAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+
+  const current = String(formData.get("current_password") ?? "");
+  const next = String(formData.get("new_password") ?? "");
+  if (next.length < 8) redirect("/admin/profile?error=short");
+
+  const supabase = await createSupabaseServerClient();
+  // Re-authenticate with the current password before allowing a change.
+  const { error: reauth } = await supabase.auth.signInWithPassword({
+    email: user.email ?? "",
+    password: current,
+  });
+  if (reauth) redirect("/admin/profile?error=current");
+
+  const { error } = await supabase.auth.updateUser({ password: next });
+  if (error) redirect("/admin/profile?error=update");
+  await logAdminAction(user, "password_change", "auth_user", user.id);
+  redirect("/admin/profile?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Session 2: two-factor login (TOTP gate AFTER password login — the   */
+/* login page itself is never touched)                                 */
+/* ------------------------------------------------------------------ */
+
+const A2FA_COOKIE = "a2fa";
+const TOTP_ISSUER = "Portfolio Admin";
+
+async function adminsRow(db: ReturnType<typeof createServiceClient>, userId: string) {
+  const { data } = await db
+    .from("admins")
+    .select("id,email,totp_secret,totp_enabled")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data ?? null) as
+    | { id: string; email: string; totp_secret: string | null; totp_enabled: boolean }
+    | null;
+}
+
+function totpFor(secretBase32: string, label: string): TOTP {
+  return new TOTP({
+    issuer: TOTP_ISSUER,
+    label,
+    algorithm: "SHA1",
+    digits: 6,
+    period: 30,
+    secret: Secret.fromBase32(secretBase32),
+  });
+}
+
+async function setA2faSession(userId: string): Promise<void> {
+  const token = randomBytes(32).toString("hex");
+  const hash = createHash("sha256").update(token).digest("hex");
+  await createServiceClient()
+    .from("admins")
+    .update({ totp_session_hash: hash })
+    .eq("id", userId);
+  const jar = await cookies();
+  jar.set(A2FA_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 30,
+    path: "/",
+  });
+}
+
+/** Generates (or regenerates) the TOTP secret; the profile page then shows
+ *  the QR + confirm form while totp_enabled is still false. */
+export async function startTwoFactorSetupAction() {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const db = createServiceClient();
+  const row = await adminsRow(db, user.id);
+  if (row?.totp_enabled) redirect("/admin/profile");
+
+  const secret = new Secret({ size: 20 });
+  await db
+    .from("admins")
+    .update({ totp_secret: secret.base32, totp_session_hash: null })
+    .eq("id", user.id);
+  await logAdminAction(user, "2fa_secret_generated", "admins", user.id);
+  redirect("/admin/profile?setup=1");
+}
+
+export async function confirmTwoFactorAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const code = String(formData.get("code") ?? "").trim();
+
+  const db = createServiceClient();
+  const row = await adminsRow(db, user.id);
+  if (!row?.totp_secret) redirect("/admin/profile?error=setup");
+  if (row.totp_enabled) redirect("/admin/profile");
+
+  const totp = totpFor(row.totp_secret, row.email || user.email || "admin");
+  const valid = code ? totp.validate({ token: code, window: 1 }) !== null : false;
+  if (!valid) redirect("/admin/profile?error=code");
+
+  await db.from("admins").update({ totp_enabled: true }).eq("id", user.id);
+  await setA2faSession(user.id);
+  await logAdminAction(user, "2fa_enabled", "admins", user.id);
+  refresh();
+  redirect("/admin/profile?saved=1");
+}
+
+export async function disableTwoFactorAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const code = String(formData.get("code") ?? "").trim();
+
+  const db = createServiceClient();
+  const row = await adminsRow(db, user.id);
+  if (!row?.totp_enabled) redirect("/admin/profile");
+  if (!row.totp_secret) redirect("/admin/profile?error=setup");
+
+  const totp = totpFor(row.totp_secret!, row.email || user.email || "admin");
+  const valid = code ? totp.validate({ token: code, window: 1 }) !== null : false;
+  if (!valid) redirect("/admin/profile?error=code");
+
+  await db
+    .from("admins")
+    .update({ totp_enabled: false, totp_secret: null, totp_session_hash: null })
+    .eq("id", user.id);
+  const jar = await cookies();
+  jar.delete(A2FA_COOKIE);
+  await logAdminAction(user, "2fa_disabled", "admins", user.id);
+  refresh();
+  redirect("/admin/profile?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Session 2: inbox quick reply + email notifications (Resend)         */
+/* ------------------------------------------------------------------ */
+
+export async function sendQuickReplyAction(id: string, formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const reply = String(formData.get("reply") ?? "").trim();
+  if (!reply) redirect("/admin/inbox?error=empty");
+
+  const db = createServiceClient();
+  const { data: msg } = await db
+    .from("messages")
+    .select("name,email,subject")
+    .eq("id", id)
+    .maybeSingle();
+  if (!msg?.email) redirect("/admin/inbox?error=notfound");
+
+  const res = await sendEmail({
+    to: String(msg.email),
+    replyTo: process.env.ADMIN_EMAIL || undefined,
+    subject: msg.subject ? `Re: ${msg.subject}` : "Re: your message",
+    html: emailHtml(
+      "Reply to your message",
+      `<p>Hi ${escapeHtml(String(msg.name || "there"))},</p><p>${escapeHtml(reply).replaceAll("\n", "<br/>")}</p>`,
+    ),
+  });
+  if (!res.ok) {
+    redirect(`/admin/inbox?error=email${res.error ? `&detail=${encodeURIComponent(res.error.slice(0, 100))}` : ""}`);
+  }
+
+  await db.from("messages").update({ status: "replied" }).eq("id", id);
+  await logAdminAction(user, "quick_reply", "messages", id, null, { to: msg.email, chars: reply.length });
+  refresh();
+  redirect("/admin/inbox?sent=1");
+}
+
+export async function sendTestEmailAction() {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const to = process.env.ADMIN_EMAIL || user.email || "";
+  if (!to) redirect("/admin/system?emailerror=norecipient");
+  const res = await sendEmail({
+    to,
+    subject: "Test email from your portfolio admin",
+    html: emailHtml("It works 🎉", `<p>Email notifications are configured correctly.</p>`),
+  });
+  if (!res.ok) {
+    redirect(`/admin/system?emailerror=${res.skipped ? "nokey" : "send"}`);
+  }
+  await logAdminAction(user, "test_email", "email", to);
+  redirect("/admin/system?emailsent=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Session 2: newsletter admin                                         */
+/* ------------------------------------------------------------------ */
+
+export async function toggleNewsletterAction(formData: FormData) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  const enabled = formData.get("newsletter") === "on";
+  await createServiceClient()
+    .from("site_settings")
+    .upsert({ key: "newsletter_settings", value: { enabled } }, { onConflict: "key" });
+  await logAdminAction(user, "update", "site_settings", "newsletter_settings", null, { enabled });
+  refresh();
+  redirect("/admin/newsletter?saved=1");
+}
+
+export async function deleteSubscriberAction(id: string) {
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const user = await requireAdmin();
+  await createServiceClient().from("newsletter_subscribers").delete().eq("id", id);
+  await logAdminAction(user, "delete", "newsletter_subscribers", id);
+  refresh();
+  redirect("/admin/newsletter?deleted=1");
 }

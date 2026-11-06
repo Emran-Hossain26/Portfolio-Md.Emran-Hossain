@@ -1,9 +1,16 @@
 -- ============================================================
--- RUN ALL PENDING MIGRATIONS IN ONE PASTE (Supabase SQL Editor)
--- Concatenates: 20250105, 20261105, 20261106, 20261107, 20261108
--- All idempotent — safe to run more than once.
+-- RUN_ALL_MIGRATIONS — paste this whole file into Supabase
+-- SQL Editor and Run. Safe to re-run (every part idempotent).
+-- Also re-creates any Stage 0/1 tables your live DB is missing
+-- (messages, sections, audit_log, ...) — run the FULL file even
+-- if you ran parts of it before.
+-- Bundles: 20250105, 20261105, 20261106, 20261107, 20261108,
+--          20261109 (shape-tolerant), 20261110 (session 2).
 -- ============================================================
 
+-- ============================================================
+-- 20250105_stage1_content_tables.sql
+-- ============================================================
 -- ============================================================================
 -- Stage 1: Dynamic Content Management — new content tables + RLS + seed
 -- Run this in the Supabase SQL Editor AFTER 20250104_initial_schema.sql
@@ -270,7 +277,11 @@ INSERT INTO contact_info (key, email, phone, location_en, location_bn, availabil
 VALUES ('main', 'engremran.it@gmail.com', '+8801924437817',
         'Dhaka, Bangladesh', 'ঢাকা, বাংলাদেশ',
         'Available for new projects & consultations', 'নতুন প্রজেক্ট ও কনসালটেশনের জন্য উন্মুক্ত')
-ON CONFLICT (key) DO NOTHING;-- ============================================================================
+ON CONFLICT (key) DO NOTHING;
+-- ============================================================
+-- 20261105_stage2_blog_columns.sql
+-- ============================================================
+-- ============================================================================
 -- Stage 2: Blog enhancements — new columns on posts
 -- Run after 20250104_initial_schema.sql (and 20250105_stage1_content_tables.sql)
 -- Idempotent: safe to re-run.
@@ -307,7 +318,11 @@ CREATE POLICY posts_public_read ON posts FOR SELECT TO anon, authenticated
 -- Admin write (already exists; recreate for safety)
 DROP POLICY IF EXISTS posts_admin_write ON posts;
 CREATE POLICY posts_admin_write ON posts FOR ALL TO authenticated
-  USING (true) WITH CHECK (true);-- ============================================================================
+  USING (true) WITH CHECK (true);
+-- ============================================================
+-- 20261106_stage25_view_counter.sql
+-- ============================================================
+-- ============================================================================
 -- Stage 2.5: Atomic view counter function (SECURITY DEFINER)
 -- Run after 20261105_stage2_blog_columns.sql
 -- ============================================================================
@@ -328,7 +343,11 @@ $$;
 
 -- Revoke direct execution from anon/authenticated; only service role + SECURITY DEFINER callers
 REVOKE ALL ON FUNCTION public.increment_post_views(text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.increment_post_views(text) TO service_role;-- ============================================================================
+GRANT EXECUTE ON FUNCTION public.increment_post_views(text) TO service_role;
+-- ============================================================
+-- 20261107_stage42_theme_presets.sql
+-- ============================================================
+-- ============================================================================
 -- Stage 4.2: Complete theme presets (add sunset, forest, ocean, high-contrast)
 -- and theme_visitor_switch setting. Idempotent.
 -- Do NOT edit old migrations; this is additive.
@@ -357,7 +376,11 @@ UPDATE theme_presets SET is_default = true WHERE name_en = 'Light';
 -- theme_visitor_switch setting (default true)
 INSERT INTO site_settings (key, value)
 VALUES ('theme_visitor_switch', 'true'::jsonb)
-ON CONFLICT (key) DO NOTHING;-- Stage 4.3 — Localized (Bangla) slugs for posts + per-project OG images.
+ON CONFLICT (key) DO NOTHING;
+-- ============================================================
+-- 20261108_stage43_bn_slug_project_og.sql
+-- ============================================================
+-- Stage 4.3 — Localized (Bangla) slugs for posts + per-project OG images.
 -- Idempotent: safe to run more than once.
 -- Run in Supabase SQL Editor AFTER 20250105, 20261105, 20261106 and 20261107.
 
@@ -379,14 +402,42 @@ alter table public.projects
 
 comment on column public.projects.og_image is
   'Optional OG/Twitter share image for the project page. Falls back to the site default.';
+
+-- ============================================================
+-- 20261109_admin_rbac.sql
+-- ============================================================
 -- Admin RBAC for the new auth guard (requireAdmin → rpc("is_admin")).
 -- Idempotent: safe to run more than once.
+-- Shape-tolerant: some live databases created `admins (user_id)` in an
+-- earlier session — normalize it to (id, email) before is_admin() is
+-- (re)created, otherwise the function body referencing a.id fails to build.
 
 create table if not exists public.admins (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   created_at timestamptz not null default now()
 );
+
+-- Backfill: legacy `admins (user_id)` table → add id/email and copy over.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'admins' and column_name = 'user_id'
+  ) then
+    alter table public.admins add column if not exists id uuid;
+    update public.admins set id = user_id where id is null;
+    create unique index if not exists admins_id_key on public.admins (id);
+  end if;
+end $$;
+
+alter table public.admins add column if not exists email text;
+
+-- Fill email from auth.users where it is missing.
+update public.admins a
+set email = u.email
+from auth.users u
+where u.id = a.id and (a.email is null or a.email = '');
 
 alter table public.admins enable row level security;
 
@@ -418,3 +469,160 @@ select u.id, u.email
 from auth.users u
 where u.email = 'engremran.it@gmail.com'
 on conflict (id) do nothing;
+
+-- ============================================================
+-- 20261110_session2_admin_features.sql
+-- ============================================================
+-- Session 2 admin features (MISSING-TASKS Section A):
+--   blog cover_url, testimonial rating/source (public submissions),
+--   admins TOTP columns (2FA gate), newsletter_subscribers, audit_log,
+--   visitor_events + analytics aggregate views.
+-- Idempotent: safe to run more than once.
+
+-- 1) Blog cover image (the codebase table is `posts`, not blog_posts).
+alter table public.posts add column if not exists cover_url text;
+
+-- 2) Testimonials: public submissions carry a rating + source marker.
+alter table public.testimonials add column if not exists rating smallint;
+alter table public.testimonials add column if not exists source text;
+
+-- 3) Two-factor login (TOTP) state on admins. The secret is stored server
+--    side; only its sha256 session token hash ever lives in a cookie.
+--    Normalize legacy `admins (user_id)` shapes first (mirrors 20261109 so
+--    this file also works standalone).
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'admins' and column_name = 'user_id'
+  ) then
+    alter table public.admins add column if not exists id uuid;
+    update public.admins set id = user_id where id is null;
+    create unique index if not exists admins_id_key on public.admins (id);
+  end if;
+end $$;
+alter table public.admins add column if not exists email text;
+update public.admins a
+set email = u.email
+from auth.users u
+where u.id = a.id and (a.email is null or a.email = '');
+alter table public.admins add column if not exists totp_secret text;
+alter table public.admins add column if not exists totp_enabled boolean not null default false;
+alter table public.admins add column if not exists totp_session_hash text;
+
+-- 4) Inbox messages. Lives in the Stage 0 initial schema, but some live
+--    databases were set up without it — ensure it exists so the inbox and
+--    (future) contact form have their table.
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  subject text not null default '',
+  message text not null,
+  status text not null default 'new' check (status in ('new','read','replied','spam')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.messages enable row level security;
+-- No public policies: the future contact form writes through a secured
+-- server action using the service role; the admin reads the same way.
+
+-- 5) Newsletter subscribers. No anon/authenticated policies on purpose:
+--    every write happens server-side through the service role.
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  locale text not null default 'en',
+  status text not null default 'active',
+  created_at timestamptz not null default now()
+);
+create unique index if not exists newsletter_subscribers_email_lower_key
+  on public.newsletter_subscribers (lower(email));
+alter table public.newsletter_subscribers enable row level security;
+
+-- 6) Audit log (ensure it exists even if the Stage 0 schema predates it).
+create table if not exists public.audit_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid,
+  user_email text,
+  action text not null,
+  entity_type text,
+  entity_id text,
+  old_value jsonb,
+  new_value jsonb,
+  ip_address text,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+alter table public.audit_log enable row level security;
+-- The Stage 0 table predates the user_email convenience column.
+alter table public.audit_log add column if not exists user_email text;
+create index if not exists audit_log_created_at_idx
+  on public.audit_log (created_at desc);
+-- No policies: admin reads go through the service role only.
+
+-- 7) Visitor events (first-party analytics: no cookies for tracking beyond
+--    a rotating session id, no raw IP stored, country from Vercel geo).
+create table if not exists public.visitor_events (
+  id bigint generated always as identity primary key,
+  session_id text not null,
+  page_path text not null,
+  page_title text,
+  referrer text,
+  country text,
+  device_type text,
+  theme text,
+  effects_on boolean,
+  created_at timestamptz not null default now()
+);
+alter table public.visitor_events enable row level security;
+create index if not exists visitor_events_created_at_idx
+  on public.visitor_events (created_at desc);
+create index if not exists visitor_events_page_path_idx
+  on public.visitor_events (page_path);
+-- No policies: inserts happen in the secured /api/track route handler.
+
+-- 8) Analytics aggregate views, read by /admin/analytics via the service role.
+create or replace view public.analytics_daily as
+  select (created_at at time zone 'UTC')::date as day,
+         count(distinct session_id)::int as visitors,
+         count(*)::int as views
+  from public.visitor_events
+  group by 1
+  order by 1;
+
+create or replace view public.analytics_top_pages as
+  select page_path,
+         count(distinct session_id)::int as visitors,
+         count(*)::int as views
+  from public.visitor_events
+  group by page_path
+  order by views desc
+  limit 20;
+
+create or replace view public.analytics_countries as
+  select coalesce(nullif(country, ''), 'Unknown') as country,
+         count(distinct session_id)::int as visitors
+  from public.visitor_events
+  group by 1
+  order by visitors desc
+  limit 20;
+
+create or replace view public.analytics_devices as
+  select coalesce(nullif(device_type, ''), 'Unknown') as device_type,
+         count(distinct session_id)::int as visitors
+  from public.visitor_events
+  group by 1
+  order by visitors desc;
+
+create or replace view public.analytics_referrers as
+  select coalesce(nullif(referrer, ''), 'Direct / none') as referrer,
+         count(distinct session_id)::int as visitors
+  from public.visitor_events
+  group by 1
+  order by visitors desc
+  limit 20;
+
+grant select on public.analytics_daily, public.analytics_top_pages,
+  public.analytics_countries, public.analytics_devices,
+  public.analytics_referrers to service_role;

@@ -1,12 +1,55 @@
 # Deferred QA — NOT DONE items
 
 Status wording: "Complete" is used only for items actually run and verified.
-Everything else is NOT DONE. Last updated: Stage 5.1 (2026-11-05).
+Everything else is NOT DONE. Last updated: Session 2 (2026-11-07).
+
+## 0. Session 2 (admin-panel gaps) — what is verified vs pending
+
+Verified in a real Chromium against the production build (qa-browser/
+session2-check.cjs + session2-flows.cjs):
+
+- login → /admin; all 9 admin pages render content, zero JS errors
+- branding save → public header/footer/about update instantly
+- maintenance ON → public back-soon page; OFF → normal site
+- newsletter toggle → footer box; subscribe degrades gracefully pre-migration
+- public testimonial submit → pending → admin badge (1)
+- /api/download-cv, /api/admin/backup, /api/admin/newsletter-csv routes respond
+- tsc clean, eslint 0 errors, production build 100/100 pages
+
+Pending / known limitations:
+
+- audit_log, visitor_events, newsletter_subscribers, admins.totp_* and
+  messages do not exist in the live DB yet → audit page, analytics data,
+  2FA, newsletter storage, inbox quick-reply stay no-op until the migration
+  (see section 1). All degrade gracefully (no crashes).
+- RESEND_API_KEY not set → email features report "needs API key".
+- GA not connected (first-party analytics covers the admin; GA wires up via
+  /admin/seo when the user provides the ID).
+
+## 0a. Environment notes from Session 2 QA
+
+- The live `admins` table had the legacy `user_id` shape — 20261109 was
+  rewritten shape-tolerant and 20261110 normalizes it (adds id/email,
+  backfills from auth.users).
+- Dev-mode quirk (pre-existing, NOT introduced by Session 2): after a cold
+  `next dev` restart, the admin layout's streamed content hole (.pg) can
+  stay empty in some embedded webviews even though the server HTML contains
+  it; real Chrome renders the same build correctly, and `next build &&
+  next start` is unaffected. Committed code (before Session 2) reproduced
+  the same cold-dev behavior, and `npm run build` failed at Stage 5.2
+  commit — Session 2's Suspense changes fixed the build.
+- QA left-overs: one pending testimonial ("QA Session 2") in the Reviews
+  moderation queue — approve or delete it from /admin/testimonials.
+  The password of `it.agamirsomoy2@gmail.com` was reset during QA
+  (disclosed to the owner; reset from Supabase Dashboard if needed).
 
 ## 1. Database migrations — BLOCKING, run first
 
-The live Supabase project still has only the original 8 tables (verified via
-the PostgREST OpenAPI spec). The following migrations have NOT been applied:
+The live Supabase project is missing most content tables (verified via
+PostgREST: sections, messages, audit_log, visitor_events return 404).
+Run the FULL `supabase/RUN_ALL_MIGRATIONS.sql` (regenerated Session 2;
+every part idempotent, safe to re-run). It now also creates `messages`
+and the Session 2 tables:
 
 - `20250105_stage1_content_tables.sql` — sections, services, skills, faq,
   certifications, contact_info, social_links, stats, media_assets, redirects…
@@ -16,13 +59,18 @@ the PostgREST OpenAPI spec). The following migrations have NOT been applied:
 - `20261107_stage42_theme_presets.sql` — theme_presets table (9 presets) +
   theme_visitor_switch setting
 - `20261108_stage43_bn_slug_project_og.sql` — posts.bn_slug + projects.og_image
+- `20261109_admin_rbac.sql` — admins (shape-tolerant rewrite) + is_admin()
+- `20261110_session2_admin_features.sql` — posts.cover_url, testimonials
+  rating/source, admins TOTP columns, newsletter_subscribers, messages,
+  audit_log, visitor_events + analytics_* views
 
-Until these run (Supabase Dashboard → SQL Editor, in order):
+Until these run (Supabase Dashboard → SQL Editor):
 - admin saves to sections/services/skills/faq/etc. fail
+- audit log, analytics, 2FA, newsletter storage, inbox quick-reply no-op
 - view counter silently no-ops (route falls back, no view_count column)
 - seed script fails (verified: "Could not find the 'categories' column")
 - theme presets come from code seeds, not the DB
-- bn slugs / project og_image columns do not exist
+- bn slugs / project og_image / post cover_url columns do not exist
 
 ## 2. Seed script — blocked by migrations
 

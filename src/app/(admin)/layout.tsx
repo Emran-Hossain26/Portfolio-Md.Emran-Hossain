@@ -21,7 +21,7 @@ async function inboxCount(): Promise<number> {
   try {
     const db = createServiceClient();
     const { count } = await db
-      .from("contact_messages")
+      .from("messages")
       .select("id", { count: "exact", head: true })
       .eq("status", "new");
     return count ?? 0;
@@ -30,10 +30,45 @@ async function inboxCount(): Promise<number> {
   }
 }
 
-async function InboxBadge() {
-  const n = await inboxCount();
-  if (!n) return null;
-  return <b className="av2-badge">{n}</b>;
+async function pendingTestimonialsCount(): Promise<number> {
+  "use cache";
+  cacheTag("content");
+  if (!adminConfigured()) return 0;
+  try {
+    const db = createServiceClient();
+    const { count } = await db
+      .from("testimonials")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+// Read locally (not via @/lib/cms): importing the cms module into the admin
+// layout trips Next's prerender detector (Date.now) in dev — the local
+// "use cache" pattern from inboxCount is safe.
+async function adminProfile(): Promise<{ display_name: string; avatar_url: string }> {
+  "use cache";
+  cacheTag("content");
+  const fallback = { display_name: "Administrator", avatar_url: "" };
+  if (!adminConfigured()) return fallback;
+  try {
+    const db = createServiceClient();
+    const { data } = await db
+      .from("site_settings")
+      .select("value")
+      .eq("key", "admin_profile")
+      .maybeSingle();
+    const v = (data?.value ?? {}) as { display_name?: string; avatar_url?: string };
+    return {
+      display_name: String(v.display_name ?? "").trim() || "Administrator",
+      avatar_url: String(v.avatar_url ?? "").trim(),
+    };
+  } catch {
+    return fallback;
+  }
 }
 
 export default async function AdminLayout({
@@ -41,7 +76,11 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const unread = await inboxCount();
+  const [unread, pendingReviews, profile] = await Promise.all([
+    inboxCount(),
+    pendingTestimonialsCount(),
+    adminProfile(),
+  ]);
   return (
       <html lang="en" className={inter.className}>
       <head>
@@ -51,7 +90,14 @@ export default async function AdminLayout({
       </head>
       <body>
         <Suspense fallback={null}>
-          <AdminV2Chrome inboxCount={unread}>{children}</AdminV2Chrome>
+          <AdminV2Chrome
+            inboxCount={unread}
+            pendingTestimonials={pendingReviews}
+            adminName={profile.display_name}
+            adminAvatar={profile.avatar_url}
+          >
+            {children}
+          </AdminV2Chrome>
         </Suspense>
       </body>
     </html>

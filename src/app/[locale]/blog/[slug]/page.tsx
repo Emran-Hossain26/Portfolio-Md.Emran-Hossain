@@ -1,5 +1,6 @@
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
@@ -83,7 +84,25 @@ export default async function PostPage({
       />
       <article>
         <PageHeading>{title}</PageHeading>
-        <p className="mute" style={{ marginTop: -16, marginBottom: 18 }}>
+        {/* Admin-uploaded cover (posts.cover_url); the post is text-only when unset. */}
+        {post.cover_url ? (
+          <Image
+            src={post.cover_url}
+            alt={title}
+            width={1200}
+            height={630}
+            priority
+            sizes="(min-width: 760px) 720px, calc(100vw - 40px)"
+            style={{
+              width: "100%",
+              height: "auto",
+              borderRadius: "var(--radius, 12px)",
+              border: "1px solid var(--line)",
+              marginBottom: 18,
+            }}
+          />
+        ) : null}
+        <p className="mute" style={{ marginTop: post.cover_url ? 0 : -16, marginBottom: 18 }}>
           {pick(resolved, post.meta) || `${minutes} ${resolved === "bn" ? "মিনিট পড়া" : "min read"}`}
           {post.view_count > 0 ? (
             <span style={{ marginLeft: 12 }}>

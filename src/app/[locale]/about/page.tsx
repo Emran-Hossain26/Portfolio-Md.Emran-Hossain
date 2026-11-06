@@ -2,7 +2,7 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { breadcrumbLd, resolvePageMetadata } from "@/lib/seo";
-import { getExperience, getEducation } from "@/lib/cms";
+import { getExperience, getEducation, getAboutTexts } from "@/lib/cms";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { Expertise } from "@/components/home/Expertise";
@@ -21,17 +21,24 @@ export default async function AboutPage({
 
   const t = await getTranslations("pages.about");
   const crumbs = await getTranslations("pages.crumbs");
-  const [experience, education] = await Promise.all([
+  const [experience, education, aboutTexts] = await Promise.all([
     getExperience(),
     getEducation(),
+    getAboutTexts(),
   ]);
+
+  // Admin-editable bio (site_settings: about_texts); messages are the seed
+  // fallback. Blank lines separate paragraphs.
+  const intro = aboutTexts
+    ? (resolved === "bn" ? aboutTexts.bn || aboutTexts.en : aboutTexts.en || aboutTexts.bn)
+    : t("intro");
 
   return (
     <main className="wrap" id="main">
       <Breadcrumbs items={[{ label: t("heading") }]} />
       <section>
         <PageHeading>{t("heading")}</PageHeading>
-        {t("intro").split(String.fromCharCode(10,10)).map((para) => (
+        {intro.split(String.fromCharCode(10,10)).map((para) => (
           <p key={para.slice(0, 16)} style={{ marginBottom: 14 }}>{para}</p>
         ))}
       </section>

@@ -10,6 +10,7 @@ const CONTENT_FIELDS = [
   { name: "slug", label: "Slug (URL part)", type: "text" as const },
   { name: "title_en", label: "Title (EN)", type: "text" as const },
   { name: "title_bn", label: "Title (BN)", type: "text" as const },
+  { name: "cover_url", label: "Cover image URL (optional — shown above the post)", type: "text" as const },
   { name: "meta_en", label: "Meta line (EN)", type: "text" as const },
   { name: "meta_bn", label: "Meta line (BN)", type: "text" as const },
   { name: "body_en", label: "Body (EN, Markdown)", type: "textarea" as const },
@@ -39,13 +40,19 @@ export default async function AdminBlogPage() {
 
   let rows: Row[];
   if (adminConfigured()) {
-    const { data } = await createServiceClient()
-      .from("posts")
-      .select(
-        "id,slug,title_en,title_bn,meta_en,meta_bn,body_en,body_bn,published,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,canonical,noindex",
-      )
-      .order("created_at", { ascending: false });
-    rows = (data ?? []) as Row[];
+    const db = createServiceClient();
+    const base = "id,slug,title_en,title_bn,meta_en,meta_bn,body_en,body_bn,published,status,scheduled_at,categories,tags,seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,og_image,cover_url,canonical,noindex";
+    const { data } = await db.from("posts").select(base).order("created_at", { ascending: false });
+    if (data) {
+      rows = data as unknown as Row[];
+    } else {
+      // Pre-migration: cover_url column missing — retry without it.
+      const retry = await db
+        .from("posts")
+        .select(base.replace(",og_image,cover_url,", ",og_image,"))
+        .order("created_at", { ascending: false });
+      rows = (retry.data ?? []) as unknown as Row[];
+    }
   } else {
     rows = seedPosts.map((p, index) => ({
       id: `seed-${index}`,
@@ -66,6 +73,7 @@ export default async function AdminBlogPage() {
       seo_desc_en: "",
       seo_desc_bn: "",
       og_image: "",
+      cover_url: "",
       canonical: "",
       noindex: false,
     }));
@@ -75,6 +83,7 @@ export default async function AdminBlogPage() {
     slug: "",
     title_en: "",
     title_bn: "",
+    cover_url: "",
     meta_en: "",
     meta_bn: "",
     body_en: "",

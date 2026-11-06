@@ -1,4 +1,5 @@
 import { hasLocale } from "next-intl";
+import Image from "next/image";
 import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -104,6 +105,22 @@ async function BlogContent({
         <div className="grid" style={{ gap: 16 }}>
           {posts.map((p) => (
             <article className="card" key={p.slug}>
+              {p.cover_url ? (
+                <Image
+                  src={p.cover_url}
+                  alt=""
+                  width={720}
+                  height={360}
+                  sizes="(min-width: 760px) 340px, calc(100vw - 40px)"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "var(--radius, 12px)",
+                    border: "1px solid var(--line)",
+                    marginBottom: 12,
+                  }}
+                />
+              ) : null}
               <h2 style={{ fontSize: 20, marginBottom: 6 }}>
                 <Link href={blogPostHref(resolved, p)}>{resolved === "bn" ? p.title.bn || p.title.en : p.title.en || p.title.bn}</Link>
               </h2>

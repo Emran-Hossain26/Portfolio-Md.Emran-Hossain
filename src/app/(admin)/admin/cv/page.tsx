@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { saveCvAction, removeCvAction } from "@/app/(admin)/actions";
-import { getCvPath } from "@/lib/cms";
+import { getCvPath, getCvDownloads } from "@/lib/cms";
 
 export default async function CvPage({
   searchParams,
@@ -10,7 +10,7 @@ export default async function CvPage({
 }) {
   const { error } = await searchParams;
   await requireAdmin();
-  const cv = await getCvPath();
+  const [cv, downloads] = await Promise.all([getCvPath(), getCvDownloads()]);
 
   return (
     <AdminShell current="/admin/cv" heading="CV upload">
@@ -45,6 +45,9 @@ export default async function CvPage({
             <a href={cv} target="_blank" rel="noopener noreferrer">
               Open uploaded file →
             </a>
+          </p>
+          <p className="mute">
+            Downloads counted so far: <b>{downloads}</b> (via /api/download-cv)
           </p>
           <form action={removeCvAction} className="admin-actions">
             <button type="submit" className="btn admin-danger">

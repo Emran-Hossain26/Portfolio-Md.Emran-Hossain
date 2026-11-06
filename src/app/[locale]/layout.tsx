@@ -5,12 +5,14 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hind_Siliguri, Inter, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { site, siteUrl } from "@/data/site";
-import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings } from "@/lib/cms";
+import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings, getMaintenanceMode } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
 import { EffectsButton } from "@/components/EffectsButton";
 import { AdminPreview } from "@/components/AdminPreview";
+import { BackSoon } from "@/components/BackSoon";
+import { VisitorTracker } from "@/components/VisitorTracker";
 import "../globals.css";
 
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
@@ -150,6 +152,7 @@ export default async function LocaleLayout({
   const presets = await getThemePresets();
   const visitorSwitch = await getThemeVisitorSwitch();
   const fxSettings = await getEffectsSettings();
+  const maintenance = await getMaintenanceMode();
 
   // Inject allowed preset keys + default into the no-flash script.
   const allowedKeys = presets.filter((p) => p.enabled).map((p) => p.key);
@@ -211,6 +214,11 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </head>
       <body>
+        {maintenance ? (
+          // Maintenance mode (admin toggle): visitors get the back-soon page;
+          // /admin and /login are separate routes and stay reachable.
+          <BackSoon />
+        ) : (
         <NextIntlClientProvider>
           {/* Deviation #8: sr-only skip link, invisible until focused */}
           <a
@@ -225,6 +233,7 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
           {children}
           <Footer />
           <Analytics id={seoSettings.analytics_id} />
+          <VisitorTracker />
           <AdminPreview allowed={{
             animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
             cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
@@ -248,6 +257,7 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
             dangerouslySetInnerHTML={{ __html: websiteJsonLd() }}
           />
         </NextIntlClientProvider>
+        )}
       </body>
     </html>
   );

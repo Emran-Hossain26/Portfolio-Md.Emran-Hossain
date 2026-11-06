@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { resolvePageMetadata } from "@/lib/seo";
 import { getTestimonials } from "@/lib/cms";
+import { TestimonialSubmitForm } from "@/components/TestimonialSubmitForm";
 import { pick, type Locale } from "@/data/types";
 
 export default async function TestimonialsPage({
@@ -37,6 +38,7 @@ export default async function TestimonialsPage({
         <p className="mute" style={{ marginTop: 18 }}>
           {t("moderation")}
         </p>
+        <TestimonialSubmitForm />
       </section>
     </main>
   );

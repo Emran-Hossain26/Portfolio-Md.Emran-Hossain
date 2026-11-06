@@ -6,6 +6,7 @@ import { placeholderTestimonials as seedTestimonials } from "@/data/testimonials
 
 type Row = Record<string, unknown> & { id: string };
 
+
 const SPEC: {
   name: string;
   label: string;
@@ -33,11 +34,21 @@ export default async function AdminTestimonialsPage() {
 
   let rows: Row[];
   if (adminConfigured()) {
-    const { data } = await createServiceClient()
+    const db = createServiceClient();
+    const { data } = await db
       .from("testimonials")
-      .select("id,name,company,quote_en,quote_bn,status")
+      .select("id,name,company,quote_en,quote_bn,status,source,rating")
       .order("created_at", { ascending: false });
-    rows = (data ?? []) as Row[];
+    if (data) {
+      rows = data as Row[];
+    } else {
+      // Pre-migration: source/rating columns missing — retry without them.
+      const retry = await db
+        .from("testimonials")
+        .select("id,name,company,quote_en,quote_bn,status")
+        .order("created_at", { ascending: false });
+      rows = (retry.data ?? []) as Row[];
+    }
   } else {
     rows = seedTestimonials.map((t, index) => ({
       id: `seed-${index}`,
@@ -46,8 +57,12 @@ export default async function AdminTestimonialsPage() {
       quote_en: t.quote.en,
       quote_bn: t.quote.bn,
       status: "approved",
+      source: "admin",
+      rating: null,
     }));
   }
+
+  const pendingCount = rows.filter((r) => r.status === "pending").length;
 
   const blank: Record<string, unknown> = {
     name: "",
@@ -62,17 +77,33 @@ export default async function AdminTestimonialsPage() {
       <p className="admin-note">
         Only “Approved” quotes appear on the site. Real client quotes only —
         never invent employers, names or dates (content rule).
+        {pendingCount > 0 ? (
+          <>
+            {" "}Visitors submitted {pendingCount} review{pendingCount > 1 ? "s" : ""} —
+            marked <b>public</b> below, waiting for your approval.
+          </>
+        ) : null}
       </p>
       {rows.map((row) => (
-        <RowForm
-          key={row.id}
-          table="testimonials"
-          id={row.id}
-          fields={SPEC.map((field) => ({
-            ...field,
-            value: (row[field.name] ?? "") as string,
-          }))}
-        />
+        <div key={row.id}>
+          {row.status === "pending" ? (
+            <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
+              <span className="chip warn">pending approval</span>
+              {row.source === "public" ? <span className="chip">from website form</span> : null}
+              {typeof row.rating === "number" && row.rating > 0 ? (
+                <span className="chip acc">{row.rating} ★</span>
+              ) : null}
+            </div>
+          ) : null}
+          <RowForm
+            table="testimonials"
+            id={row.id}
+            fields={SPEC.map((field) => ({
+              ...field,
+              value: (row[field.name] ?? "") as string,
+            }))}
+          />
+        </div>
       ))}
       <h2 style={{ fontSize: 20, marginTop: 28 }}>Add testimonial</h2>
       <RowForm
