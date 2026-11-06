@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { createServiceClient, adminConfigured } from "@/lib/supabase/service";
@@ -18,7 +19,7 @@ async function maintenanceEnabled(): Promise<boolean> {
   }
 }
 
-export default async function SystemPage({
+async function SystemInner({
   searchParams,
 }: {
   searchParams: Promise<{ saved?: string }>;
@@ -88,5 +89,17 @@ export default async function SystemPage({
         </div>
       </div>
     </AdminShell>
+  );
+}
+
+export default function SystemPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <SystemInner searchParams={searchParams} />
+    </Suspense>
   );
 }

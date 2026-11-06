@@ -1,9 +1,10 @@
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { getHeroTexts } from "@/lib/cms";
 import { saveHeroTextsAction } from "@/app/(admin)/actions";
+import { Suspense } from "react";
 import { pick, type Locale } from "@/data/types";
 
-export default async function HeroEditorPage({
+async function HeroEditorInner({
   searchParams,
 }: {
   searchParams: Promise<{ saved?: string }>;
@@ -57,5 +58,17 @@ export default async function HeroEditorPage({
         </div>
       </div>
     </>
+  );
+}
+
+export default function HeroEditorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <HeroEditorInner searchParams={searchParams} />
+    </Suspense>
   );
 }

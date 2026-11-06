@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AdminV2Chrome } from "@/components/admin/AdminV2Chrome";
+import { cacheTag } from "next/cache";
 import { createServiceClient, adminConfigured } from "@/lib/supabase/service";
 import "../globals.css";
 import "./admin.css";
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
 const inter = Inter({ subsets: ["latin"] });
 
 async function inboxCount(): Promise<number> {
+  "use cache";
+  cacheTag("content");
   if (!adminConfigured()) return 0;
   try {
     const db = createServiceClient();
