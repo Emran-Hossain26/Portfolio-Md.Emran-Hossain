@@ -67,6 +67,10 @@ export function AdminSidebar({ open }: { open?: boolean }) {
         top: 0,
         height: "100vh",
         overflowY: "auto",
+        overflowX: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
       }}
       className={"admin-sidebar" + (open ? " active" : "")}
     >      <div className="overflow-y-auto p-5">
