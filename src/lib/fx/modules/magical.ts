@@ -7,7 +7,9 @@
 
 export function start({ intensity }: { intensity: string }) {
   const cleanups: (() => void)[] = [];
-  const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Stage 6: admin override_reduced (pre-paint attribute) beats this check.
+  const rm = document.documentElement.dataset.fxRmOverride !== "1" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (rm) return () => {};
   const scale = intensity === "low" ? 0.55 : intensity === "high" ? 1.5 : 1;
 

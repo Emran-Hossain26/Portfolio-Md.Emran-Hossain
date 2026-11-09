@@ -60,10 +60,14 @@ export function computeGroups(allowed: Record<GroupKey, boolean>): {
 } {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const touch = window.matchMedia("(pointer: coarse)").matches;
+  // Stage 6: the admin may force effects past the visitor's reduced-motion
+  // setting (effects_settings.override_reduced → pre-paint attribute).
+  const rmOverride = document.documentElement.dataset.fxRmOverride === "1";
+  const motion = reduced && !rmOverride;
   return {
-    animation: allowed.animation && !reduced && readGroup("animation"),
-    cursor: allowed.cursor && !reduced && !touch && readGroup("cursor"),
-    magical: allowed.magical && !reduced && readGroup("magical"),
+    animation: allowed.animation && !motion && readGroup("animation"),
+    cursor: allowed.cursor && !motion && !touch && readGroup("cursor"),
+    magical: allowed.magical && !motion && readGroup("magical"),
     reduced,
     touch,
   };
