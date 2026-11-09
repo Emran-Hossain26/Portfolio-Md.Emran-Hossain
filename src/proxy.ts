@@ -34,11 +34,22 @@ async function loadRedirects(): Promise<{ from_url: string; to_url: string; perm
 }
 
 function cspFor(nonce: string): string {
+  // React/Turbopack require eval() in DEVELOPMENT only (debugging + HMR);
+  // production keeps the strict list. HMR also needs the dev WebSocket.
+  const isDev = process.env.NODE_ENV !== "production";
   const scriptSrc = [
     "'self'",
     `'nonce-${nonce}'`,
     "'strict-dynamic'",
     "https://challenges.cloudflare.com",
+    ...(isDev ? ["'unsafe-eval'"] : []),
+  ].join(" ");
+  const connectSrc = [
+    "'self'",
+    "https://*.supabase.co",
+    "https://api.github.com",
+    "https://challenges.cloudflare.com",
+    ...(isDev ? ["ws:", "wss:"] : []),
   ].join(" ");
   return [
     "default-src 'self'",
@@ -46,7 +57,7 @@ function cspFor(nonce: string): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
     "img-src 'self' data: blob: https://*.supabase.co",
-    "connect-src 'self' https://*.supabase.co https://api.github.com https://challenges.cloudflare.com",
+    `connect-src ${connectSrc}`,
     "frame-src https://challenges.cloudflare.com https://www.youtube.com https://player.vimeo.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
