@@ -68,6 +68,17 @@ walkSrc(SRC);
 
 // ---- 4. spawn server + walk unauthenticated --------------------------------
 const nextBin = join(ROOT, "node_modules", "next", "dist", "bin", "next");
+// Kill any stale listener on the test port (a zombie server would serve
+// a stale build and falsify the walk).
+try {
+  const { execSync } = await import("node:child_process");
+  const out = execSync("netstat -ano | findstr :" + PORT + " | findstr LISTENING", { shell: "cmd.exe" }).toString();
+  const pids = [...new Set(out.split(/\r?\n/).map((l) => l.trim().split(/\s+/).pop()).filter(Boolean))];
+  for (const pid of pids) {
+    try { execSync("taskkill /PID " + pid + " /F", { shell: "cmd.exe" }); } catch {}
+  }
+  await new Promise((res) => setTimeout(res, 500));
+} catch {}
 const server = spawn(process.execPath, [nextBin, "start", "-p", String(PORT)], { cwd: ROOT, stdio: "pipe" });
 server.stdout.on("data", () => {});
 server.stderr.on("data", () => {});

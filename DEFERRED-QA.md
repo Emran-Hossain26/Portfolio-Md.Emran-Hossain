@@ -1,3 +1,34 @@
+## 0d. Stage 6 security hardening (2026-11-09) — verified
+
+Evidence (real outputs, session log):
+- security-walk (build gate): 37 admin pages + 4 admin APIs walked
+  unauthenticated → all redirect/sealed; exits 1 when a route is open
+  (verified: proxy gate disabled → walk FAILED → restored → OK).
+- curl walk: /admin, /admin/inbox, /admin/themes, /admin/audit →
+  307 → /login.
+- Headers: CSP with per-request nonce + strict-dynamic, nosniff,
+  X-Frame-Options DENY, HSTS, Referrer-Policy, Permissions-Policy.
+- Theme init script + effects UI verified running under the CSP.
+- Username login: profiles.username → email resolved server-side;
+  login as "qa-admin" succeeded (test account).
+- Login failures audit-logged: 6 × login_failed rows in audit_log.
+- Turnstile: widget renders when site key set; with the always-fail
+  Cloudflare TEST secret the contact form is REJECTED (message shown,
+  nothing stored).
+- Uploads: media upload allowlists extension + MIME; CV path is fixed.
+- zod schemas on all public actions; role checks via requireAdmin.
+
+NOT DONE / pending:
+- Durable login lockout E2E evidence: the login_attempts table comes
+  with migration 20261114 — until the final RUN_ALL the lockout is
+  inert by design (graceful degradation). Logic is implemented and
+  unit-shaped; evidence after the migration run.
+- Real Turnstile keys: user provides (test keys used for evidence only).
+- 2FA recovery-codes login E2E: requires 2FA enabled (setup flow exists
+  in Profile & security after the final RUN_ALL seeds nothing — TOTP
+  setup works today; recovery codes regenerate from Profile).
+- CSP nonce forces dynamic rendering for [locale] pages (documented
+  trade-off; data stays cached in the "use cache" layer).
 # Deferred QA — NOT DONE items
 
 Status wording: "Complete" is used only for items actually run and verified.
