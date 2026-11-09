@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { saveEffectsAction } from "@/app/(admin)/actions";
 import { getEffectsSettings, type EffectsSettings } from "@/lib/cms";
 
@@ -42,6 +43,7 @@ export default async function EffectsPage({
 }: {
   searchParams: Promise<{ saved?: string }>;
 }) {
+  await requireAdmin();
   const { saved } = await searchParams;
   const fx = await getEffectsSettings();
 

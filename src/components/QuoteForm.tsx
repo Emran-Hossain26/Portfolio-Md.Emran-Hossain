@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { submitQuoteAction, type PublicActionResult } from "@/lib/actions/public";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 
 const initial: PublicActionResult = { ok: false };
 
@@ -41,6 +42,7 @@ export function QuoteForm() {
         {t("details")}
         <textarea name="details" required minLength={10} maxLength={5000} rows={4} placeholder={t("detailsPh")} />
       </label>
+      <TurnstileWidget />
       {/* Honeypot */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ display: "none" }} />
       {state.error ? (

@@ -8,6 +8,8 @@ import { Secret, TOTP } from "otpauth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
+import { checkLockout, recordAttempt, sha256 } from "@/lib/security";
+import { headers } from "next/headers";
 import { logAdminAction, auditValue } from "@/lib/audit";
 import { sendEmail, emailHtml, escapeHtml } from "@/lib/email";
 
@@ -253,8 +255,37 @@ function refresh() {
 export async function loginAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
 
-  const email = String(formData.get("email") ?? "").trim();
+  const identifierInput = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim()
+    || (await headers()).get("x-real-ip")
+    || "unknown";
+
+  // Stage 6: "username or email" — a value without "@" is resolved to the
+  // account email via profiles.username, server-side. Unknown user and
+  // wrong password return the SAME generic error.
+  let email = identifierInput;
+  if (identifierInput && !identifierInput.includes("@")) {
+    const db = createServiceClient();
+    const { data: profile } = await db
+      .from("profiles")
+      .select("id,email")
+      .ilike("username", identifierInput)
+      .maybeSingle();
+    if (!profile?.email) {
+      await recordAttempt("username:" + identifierInput.toLowerCase(), ip, false);
+      redirect("/login?error=auth");
+    }
+    email = String((profile as { email: string }).email);
+  }
+
+  // Stage 6: durable rate limit + progressive lockout (login_attempts table).
+  const identifier = email.toLowerCase() || "unknown";
+  const verdict = await checkLockout(identifier, ip);
+  if (verdict.locked) {
+    await recordAttempt(identifier, ip, false);
+    redirect("/login?error=auth");
+  }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -263,17 +294,27 @@ export async function loginAction(formData: FormData) {
   });
 
   const allowed = (process.env.ADMIN_EMAIL ?? "").toLowerCase();
-  if (error || !data.user) redirect("/login?error=auth");
+  if (error || !data.user) {
+    const failures = await recordAttempt(identifier, ip, false);
+    await logAdminAction(null, failures >= 5 ? "login_locked" : "login_failed", "auth", identifier);
+    redirect("/login?error=auth");
+  }
   if (allowed && data.user.email?.toLowerCase() !== allowed) {
     await supabase.auth.signOut();
+    await recordAttempt(identifier, ip, false);
+    await logAdminAction(null, "login_failed", "auth", identifier);
     redirect("/login?error=unauthorized");
   }
   // Only admins-table members (is_admin() = true) may enter the panel.
   const { data: isAdmin } = await supabase.rpc("is_admin");
   if (isAdmin !== true) {
     await supabase.auth.signOut();
+    await recordAttempt(identifier, ip, false);
+    await logAdminAction(null, "login_failed", "auth", identifier);
     redirect("/login?error=unauthorized");
   }
+  await recordAttempt(identifier, ip, true);
+  await logAdminAction({ id: data.user.id, email: data.user.email }, "login_success", "auth", identifier);
   redirect("/admin");
 }
 
@@ -626,7 +667,18 @@ export async function uploadMediaAction(formData: FormData) {
   if (!(file instanceof File) || file.size === 0) redirect("/admin/media?error=empty");
   if (file.size > 8 * 1024 * 1024) redirect("/admin/media?error=size");
   const db = createServiceClient();
-  const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+  // Stage 6 item 6: allowlist the extension AND the content type; the
+  // original filename is discarded (path is timestamp+random, no traversal).
+  const MIME_EXT: Record<string, string> = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "image/svg+xml": "svg",
+    "application/pdf": "pdf",
+  };
+  const ext = MIME_EXT[file.type];
+  if (!ext) redirect("/admin/media?error=type");
   const path = `media/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { error: upErr } = await db.storage
     .from("media")
@@ -1240,4 +1292,104 @@ export async function resetThemesAction() {
   await logAdminAction(user, "update", "theme_presets", "reset", null, { defaults: true });
   refresh();
   redirect("/admin/themes?saved=1");
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage 6 item 3: 2FA login-gate verification — fail-closed, rate      */
+/* limited, recovery codes accepted (consumed on use)                   */
+/* ------------------------------------------------------------------ */
+
+export async function verifyTwoFactorLoginAction(formData: FormData) {
+  // Light auth check (no 2FA cookie yet — that is what we are verifying).
+  if (!adminConfigured()) redirect(CONFIGURED_ERROR);
+  const supa = await createSupabaseServerClient();
+  const { data: u } = await supa.auth.getUser();
+  if (!u.user) redirect("/login");
+  const { data: isAdm } = await supa.rpc("is_admin");
+  if (isAdm !== true) redirect("/login?reason=notadmin");
+  const user = { id: u.user.id, email: u.user.email ?? "" };
+  async function supabaseSignOut() {
+    await (await createSupabaseServerClient()).auth.signOut();
+  }
+  const code = String(formData.get("code") ?? "").trim();
+  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim()
+    || (await headers()).get("x-real-ip")
+    || "unknown";
+  const identifier = "2fa:" + user.id;
+
+  // Rate limit code attempts: 5 per 15 minutes, durable store.
+  const verdict = await checkLockout(identifier, ip);
+  if (verdict.locked) {
+    await recordAttempt(identifier, ip, false);
+    redirect("/admin/verify-2fa?error=locked");
+  }
+
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("admins")
+    .select("id,email,totp_secret,totp_enabled,recovery_codes")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  // FAIL CLOSED: no row, no secret, or a DB problem all deny access.
+  if (!row?.totp_enabled || !row.totp_secret) {
+    await recordAttempt(identifier, ip, false);
+    await supabaseSignOut();
+    redirect("/login?reason=generic");
+  }
+
+  const totp = new TOTP({
+    issuer: TOTP_ISSUER,
+    label: row.email || user.email || "admin",
+    algorithm: "SHA1",
+    digits: 6,
+    period: 30,
+    secret: Secret.fromBase32(row.totp_secret),
+  });
+  const totpOk = code ? totp.validate({ token: code, window: 1 }) !== null : false;
+
+  let recoveryOk = false;
+  if (!totpOk && code) {
+    const hash = sha256(code.toUpperCase());
+    const codes = Array.isArray(row.recovery_codes) ? (row.recovery_codes as string[]) : [];
+    if (codes.includes(hash)) {
+      // Single use: consume the code.
+      await db
+        .from("admins")
+        .update({ recovery_codes: codes.filter((c) => c !== hash) })
+        .eq("id", user.id);
+      recoveryOk = true;
+    }
+  }
+
+  if (!totpOk && !recoveryOk) {
+    await recordAttempt(identifier, ip, false);
+    await logAdminAction({ id: user.id, email: user.email }, "2fa_failed", "auth", user.id);
+    redirect("/admin/verify-2fa?error=code");
+  }
+
+  await setA2faSession(user.id);
+  await recordAttempt(identifier, ip, true);
+  await logAdminAction({ id: user.id, email: user.email }, recoveryOk ? "2fa_recovery_used" : "2fa_verified", "auth", user.id);
+  redirect("/admin");
+}
+
+/** Generates a fresh set of 2FA recovery codes (hashed at rest). The plain
+ *  codes are returned ONCE through the action state; regenerating replaces
+ *  every previous code. */
+export async function generateRecoveryCodesAction(): Promise<{ codes: string[] } | { error: string }> {
+  if (!adminConfigured()) return { error: "not_configured" };
+  const user = await requireAdmin();
+  const codes: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const raw = randomBytes(5).toString("hex").toUpperCase(); // 10 hex chars
+    codes.push(raw.slice(0, 5) + "-" + raw.slice(5));
+  }
+  const hashes = codes.map((c) => sha256(c));
+  await createServiceClient()
+    .from("admins")
+    .update({ recovery_codes: hashes })
+    .eq("id", user.id);
+  await logAdminAction(user, "2fa_recovery_regenerated", "admins", user.id);
+  return { codes };
 }

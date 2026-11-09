@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hind_Siliguri, Inter, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
+import { headers } from "next/headers";
+
+// Stage 6 item 5: the nonce-CSP layout reads request headers, so the whole
+// locale subtree renders per request (blocking route). Data stays cached
+// through the "use cache" layer — only the HTML shell re-renders.
+export const instant = false;
 import { site, siteUrl } from "@/data/site";
 import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings, getMaintenanceMode, getModuleSettings, getBlogPosts, getProjects } from "@/lib/cms";
 import { blogPostHref } from "@/lib/cms";
@@ -73,9 +80,6 @@ function buildThemeStyle(overrides: {
     .join("\n");
 }
 
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export function generateMetadata(): Metadata {
   // Pages define their own (locale-aware) title/description/hreflang via
@@ -110,6 +114,7 @@ function professionalServiceJsonLd() {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
+    "@id": `${siteUrl}/#professional-service`,
     name: `${site.name} — IT Infrastructure & Cybersecurity`,
     url: `${siteUrl}/`,
     description:
@@ -128,12 +133,21 @@ function websiteJsonLd() {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
     name: site.name,
     url: `${siteUrl}/`,
     description:
       "IT infrastructure, cybersecurity and full-stack development portfolio",
     inLanguage: ["en", "bn"],
-    publisher: { "@type": "Person", name: site.name },
+    publisher: { "@type": "Person", "@id": `${siteUrl}/#person`, name: site.name },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/blog?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   });
 }
 
@@ -145,10 +159,15 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const resolved = hasLocale(routing.locales, locale)
-    ? locale
-    : routing.defaultLocale;
+  // Unknown top-level paths can reach this dynamic segment when middleware is
+  // skipped (e.g. "/llms.txt" has a dot). They must 404, never render home.
+  if (!hasLocale(routing.locales, locale)) notFound();
+  const resolved = locale;
   setRequestLocale(resolved);
+
+  // Stage 6 item 5 — per-request nonce from the proxy; stamps the inline
+  // theme/effects scripts so they pass the nonce-based CSP.
+  const nonce = (await headers()).get("x-nonce") ?? "";
 
   const themeStyle = buildThemeStyle(await getThemeOverrides());
   const seoSettings = await getSeoSettings();
@@ -228,8 +247,8 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: noFlashScript }} />
-        <script dangerouslySetInnerHTML={{ __html: effectsScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: noFlashScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: effectsScript }} />
         {themeStyle ? (
           <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         ) : null}
@@ -239,8 +258,8 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
         {seoSettings.bing_verification ? (
           <meta name="msvalidate.01" content={seoSettings.bing_verification} />
         ) : null}
-        {/* FontAwesome for Icons */}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+        {/* Icons are inline SVG; the old FontAwesome CDN stylesheet was a
+            third-party render-blocking request (Lighthouse LCP 3.8s). */}
       </head>
       <body>
         {maintenance ? (

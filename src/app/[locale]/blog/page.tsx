@@ -41,10 +41,11 @@ export async function generateMetadata({
   if (filtered || all.length === 0) {
     base.robots = { index: false, follow: true };
   }
+  const cleanList = resolved === "bn" ? "/bn/blog" : "/blog";
   if (filtered) {
-    base.alternates = { ...base.alternates, canonical: "/blog" };
+    base.alternates = { ...base.alternates, canonical: cleanList };
   } else if (page > 1) {
-    base.alternates = { ...base.alternates, canonical: `/blog?page=${page}` };
+    base.alternates = { ...base.alternates, canonical: `${cleanList}?page=${page}` };
   }
 
   return base;
@@ -71,7 +72,7 @@ async function BlogContent({
 
   return (
     <>
-      <form method="get" action="/blog" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+      <form method="get" action={resolved === "bn" ? "/bn/blog" : "/blog"} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
         <input
           type="search"
           name="q"
@@ -214,4 +215,8 @@ export default async function BlogPage({
       </Suspense>
     </main>
   );
+}
+// Root locale param only (Stage 6: nonce CSP makes the layout dynamic).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
 }

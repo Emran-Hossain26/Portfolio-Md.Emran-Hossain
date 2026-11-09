@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { createServiceClient, adminConfigured } from "@/lib/supabase/service";
 
 type Issue = { type: string; detail: string; info?: boolean };
@@ -11,6 +12,7 @@ type SeoRow = { path: string; lang: string; title: string; description: string }
  * a skipped check instead of a 500.
  */
 export default async function SeoHealthPage() {
+  await requireAdmin();
   const issues: Issue[] = [];
   if (adminConfigured()) {
     const db = createServiceClient();

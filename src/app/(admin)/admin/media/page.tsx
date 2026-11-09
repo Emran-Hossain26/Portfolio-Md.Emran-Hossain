@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { uploadMediaAction, deleteMediaAction } from "@/app/(admin)/actions";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -9,6 +10,7 @@ export default async function MediaPage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
+  await requireAdmin();
   const { saved, error } = await searchParams;
   let assets: { id: string; url: string; alt_en: string; alt_bn: string; mime_type: string; size_bytes: number }[] = [];
   if (adminConfigured()) {

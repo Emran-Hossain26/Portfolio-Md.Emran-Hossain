@@ -1,7 +1,7 @@
 -- ============================================================
 -- RUN_ALL_MIGRATIONS — paste this whole file into Supabase
 -- SQL Editor and Run. Safe to re-run (every part idempotent).
--- Bundles: 20250105 ... 20261113 (Stage 6 modules).
+-- Bundles: 20250105 ... 20261114 (security hardening).
 -- ============================================================
 
 -- ============================================================
@@ -873,10 +873,10 @@ create policy booking_slots_public_read on public.booking_slots
   using (published = true);
 
 -- 6) Module toggles (site_settings) — newsletter/effects pattern.
+--    skills/now are gated by the sections table instead (they are home
+--    sections); the rest are non-section features.
 insert into public.site_settings (key, value)
 values
-  ('skills_settings', '{"enabled": true}'::jsonb),
-  ('now_settings', '{"enabled": true}'::jsonb),
   ('terminal_settings', '{"enabled": true}'::jsonb),
   ('palette_settings', '{"enabled": true}'::jsonb),
   ('services_settings', '{"enabled": true, "quote_enabled": true}'::jsonb),
@@ -884,3 +884,31 @@ values
   ('github_widget', '{"enabled": false, "username": ""}'::jsonb),
   ('country_badge', '{"enabled": false}'::jsonb)
 on conflict (key) do nothing;
+
+-- 7) Stage 7: Vercel Speed Insights toggle (off by default)
+insert into public.site_settings (key, value)
+values ('speed_insights', '{"enabled": false}'::jsonb)
+on conflict (key) do nothing;
+
+
+-- ============================================================
+-- 20261114_security_hardening.sql
+-- ============================================================
+-- Stage 6 security hardening. Idempotent.
+--  - login_attempts: durable store for login + 2FA rate limiting / lockout
+--    (identifier + IP based, written server-side with the service role)
+--  - admins.recovery_codes: hashed 2FA recovery codes (SHA-256, jsonb array)
+
+create table if not exists public.login_attempts (
+  id uuid primary key default gen_random_uuid(),
+  identifier text not null,
+  ip text not null default '',
+  success boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists login_attempts_lookup_idx
+  on public.login_attempts (identifier, created_at desc);
+alter table public.login_attempts enable row level security;
+-- No public policies: written/read only by server code via the service role.
+
+alter table public.admins add column if not exists recovery_codes jsonb;

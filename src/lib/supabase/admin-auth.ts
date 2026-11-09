@@ -73,7 +73,9 @@ export async function requireAdmin() {
       }
     }
   } catch {
-    // infra error (e.g. pre-migration schema) — allow through
+    // FAIL CLOSED (Stage 6): any infra error in the 2FA check denies access.
+    await supabase.auth.signOut();
+    redirect("/login?reason=generic");
   }
 
   return user;
@@ -101,7 +103,8 @@ export async function requireAdminPending2fa() {
       pending = false; // no 2FA enabled → nothing to verify
     }
   } catch {
-    pending = false;
+    // FAIL CLOSED: cannot confirm the 2FA state → deny (verify page redirects).
+    redirect("/login?reason=generic");
   }
   return { user, pending };
 }

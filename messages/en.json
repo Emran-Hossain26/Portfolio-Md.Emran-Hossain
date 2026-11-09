@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Md Emran Hossain — IT Infrastructure & Full Stack Dev",
+    "title": "IT Infrastructure & Full Stack Dev",
     "description": "IT infrastructure, cybersecurity and AI-assisted full stack development from Dhaka: Windows Server, Linux, networking, cloud security and web apps.",
     "pages": {
       "projects": {
@@ -114,7 +114,8 @@
         "error_validation": "Please fill in your name and a review of at least 20 characters.",
         "error_rate_limited": "Too many submissions — please try again later.",
         "error_unavailable": "Submissions are temporarily unavailable.",
-        "error_server": "Something went wrong. Please try again."
+        "error_server": "Something went wrong. Please try again.",
+        "error_turnstile": "Verification failed — please complete the anti-bot check and try again."
       }
     },
     "about": {
@@ -168,7 +169,8 @@
     "error_validation": "Please fill in your name, a valid email and a message of at least 10 characters.",
     "error_rate_limited": "Too many messages — please try again later.",
     "error_unavailable": "Sending is temporarily unavailable.",
-    "error_server": "Something went wrong. Please try again."
+    "error_server": "Something went wrong. Please try again.",
+    "error_turnstile": "Verification failed — please complete the anti-bot check and try again."
   },
   "contactQuick": {
     "title": "Prefer chat?"
@@ -187,7 +189,8 @@
     "error_validation": "Please fill in your name, a valid email and a short description.",
     "error_rate_limited": "Too many requests — please try again later.",
     "error_unavailable": "Requests are temporarily unavailable.",
-    "error_server": "Something went wrong. Please try again."
+    "error_server": "Something went wrong. Please try again.",
+    "error_turnstile": "Verification failed — please complete the anti-bot check and try again."
   },
   "booking": {
     "title": "Book a consultation",

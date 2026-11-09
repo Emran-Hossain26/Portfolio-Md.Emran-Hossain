@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/security-walk.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:security": "node scripts/security-walk.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -19,7 +20,8 @@
     "qrcode": "^1.5.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "sanitize-html": "^2.18.1"
+    "sanitize-html": "^2.18.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

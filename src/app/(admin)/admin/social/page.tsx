@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { RowForm, fieldsFromSpec } from "@/components/admin/RowForm";
 import { getSocialLinks } from "@/lib/cms";
 
@@ -12,6 +13,7 @@ const SPEC = [
 ];
 
 export default async function SocialPage() {
+  await requireAdmin();
   const rows = await getSocialLinks();
   return (
     <AdminShell current="/admin/social" heading="Social links">

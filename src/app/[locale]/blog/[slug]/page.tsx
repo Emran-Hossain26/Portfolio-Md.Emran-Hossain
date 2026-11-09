@@ -1,8 +1,15 @@
+import { connection } from "next/server";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+
+// Root locale param only (Stage 6: nonce CSP makes the layout dynamic;
+// slugs render on demand).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
 import { siteUrl } from "@/data/site";
 import { getBlogPost, getRelatedPosts, extractToc, blogPostHref } from "@/lib/cms";
@@ -13,21 +20,11 @@ import { ViewCounter } from "@/components/ViewCounter";
 import { pick, type Locale } from "@/data/types";
 import Link from "next/link";
 
+// Stage 6 item 5: nonce-CSP layout is dynamic — this page renders per request.
+export const instant = false;
+
 // CMS-backed post slugs at build time (published posts only). Bangla gets
 // its bn_slug variant when the admin has set one.
-export async function generateStaticParams() {
-  const posts = await (await import("@/lib/cms")).getBlogPosts();
-  const out: { locale: string; slug: string }[] = [];
-  for (const locale of routing.locales) {
-    if (locale === "bn") {
-      const slugs = new Set(posts.flatMap((p) => (p.bn_slug ? [p.slug, p.bn_slug] : [p.slug])));
-      for (const slug of slugs) out.push({ locale, slug });
-    } else {
-      for (const post of posts) out.push({ locale, slug: post.slug });
-    }
-  }
-  return out;
-}
 
 export default async function PostPage({
   params,
@@ -39,6 +36,8 @@ export default async function PostPage({
     ? locale
     : routing.defaultLocale) as Locale;
   setRequestLocale(resolved);
+  // Stage 6 item 5: nonce-CSP layout is dynamic — pages render on demand.
+  await connection();
 
   const post = await getBlogPost(slug, resolved);
   if (!post) notFound();
@@ -230,7 +229,7 @@ export async function generateMetadata({
     desc,
     undefined,
     // hreflang pair uses each locale's own URL form (bn_slug for Bangla).
-    { en: `/blog/${post.slug}`, bn: `/blog/${post.bn_slug || post.slug}` },
+    { en: `/blog/${post.slug}`, bn: `/bn/blog/${post.bn_slug || post.slug}` },
   );
   if (post.noindex) {
     meta.robots = { index: false, follow: false };

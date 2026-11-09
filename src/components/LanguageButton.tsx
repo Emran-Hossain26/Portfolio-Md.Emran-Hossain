@@ -13,7 +13,7 @@ export function LanguageButton() {
   const pathname = usePathname();
   const target = locale === "en" ? "bn" : "en";
   return (
-    <Link href={pathname} locale={target} aria-label="Switch language">
+    <Link href={pathname} locale={target} aria-label="বাং / EN — switch language">
       বাং / EN
     </Link>
   );

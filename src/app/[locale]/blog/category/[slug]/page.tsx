@@ -1,7 +1,14 @@
+import { connection } from "next/server";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+
+// Root locale param only (Stage 6: nonce CSP makes the layout dynamic;
+// slugs render on demand).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 import { resolvePageMetadata } from "@/lib/seo";
 import { getBlogPosts, getPageSeo } from "@/lib/cms";
 import { breadcrumbLd } from "@/lib/seo";
@@ -9,11 +16,11 @@ import { type Locale } from "@/data/types";
 import Link from "next/link";
 import { Suspense } from "react";
 
+// Stage 6 item 5: nonce-CSP layout is dynamic — this page renders per request.
+export const instant = false;
+
 const PER_PAGE = 6;
 
-export async function generateStaticParams() {
-  return [{ slug: "_" }];
-}
 
 export async function generateMetadata({
   params,
@@ -53,6 +60,8 @@ async function ArchiveInner({
     ? locale
     : routing.defaultLocale;
   setRequestLocale(resolved);
+  // Stage 6 item 5: nonce-CSP layout is dynamic — pages render on demand.
+  await connection();
 
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page ?? 1) || 1);

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { updateMessageStatusAction, sendQuickReplyAction } from "@/app/(admin)/actions";
@@ -21,6 +22,7 @@ async function InboxInner({
 }: {
   searchParams: Promise<{ sent?: string; error?: string; detail?: string; msg?: string }>;
 }) {
+  await requireAdmin();
   const sp = await searchParams;
   const rows = await getMessagesInbox();
   const selectedId = sp.msg ?? rows[0]?.id ?? "";

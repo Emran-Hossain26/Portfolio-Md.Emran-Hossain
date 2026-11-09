@@ -8,6 +8,7 @@ export const instant = false;
 const ERRORS: Record<string, string> = {
   auth: "Wrong email or password.",
   unauthorized: "That account is not the configured admin (ADMIN_EMAIL).",
+  generic: "Sign-in failed — please try again.",
 };
 
 export default async function AdminLoginPage({

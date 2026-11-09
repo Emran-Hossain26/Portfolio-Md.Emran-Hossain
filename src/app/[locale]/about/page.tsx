@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
@@ -11,6 +12,9 @@ import { GithubActivity } from "@/components/GithubActivity";
 import { pick, type Locale } from "@/data/types";
 import { site } from "@/data/site";
 
+// Stage 6 item 5: nonce-CSP layout is dynamic — this page renders per request.
+export const instant = false;
+
 export default async function AboutPage({
   params,
 }: {
@@ -21,6 +25,8 @@ export default async function AboutPage({
     ? locale
     : routing.defaultLocale) as Locale;
   setRequestLocale(resolved);
+  // Stage 6 item 5: nonce-CSP layout is dynamic — pages render on demand.
+  await connection();
 
   const t = await getTranslations("pages.about");
   const crumbs = await getTranslations("pages.crumbs");
@@ -169,4 +175,9 @@ export async function generateMetadata({
     : routing.defaultLocale) as Locale;
   const t = await getTranslations({ locale: resolved, namespace: "meta.pages.about" });
   return resolvePageMetadata(resolved, "/about", t("title"), t("description"));
+}
+
+// Root locale param only (Stage 6: nonce CSP makes the layout dynamic).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
 }

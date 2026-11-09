@@ -56,7 +56,7 @@ export async function Hero({
           alt={t("photoAlt")}
           width={640}
           height={640}
-          priority
+          preload
           sizes="(min-width: 761px) 431px, calc(100vw - 40px)"
         />
         <div className="card status" style={{ marginTop: 14 }}>

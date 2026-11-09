@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { saveContactInfoAction } from "@/app/(admin)/actions";
 import { getContactInfo } from "@/lib/cms";
 
@@ -7,6 +8,7 @@ export default async function ContactInfoPage({
 }: {
   searchParams: Promise<{ saved?: string }>;
 }) {
+  await requireAdmin();
   const { saved } = await searchParams;
   const c = await getContactInfo();
   return (

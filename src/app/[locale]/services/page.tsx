@@ -1,19 +1,26 @@
 import { hasLocale } from "next-intl";
+import { connection } from "next/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+
+// Root locale param only (Stage 6: nonce CSP makes the layout dynamic;
+// slugs render on demand).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 import { resolvePageMetadata } from "@/lib/seo";
 import { getServices } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
 import { QuoteForm } from "@/components/QuoteForm";
+
+// Stage 6 item 5: nonce-CSP layout is dynamic — this page renders per request.
+export const instant = false;
 
 /**
  * Stage 6 #8 — Services & packages with a request-a-quote form. The page
  * renders only when services_settings.enabled (checked via notFound());
  * the quote form honors its own quote_enabled flag.
  */
-export async function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export default async function ServicesPage({
   params,
@@ -25,6 +32,8 @@ export default async function ServicesPage({
     ? locale
     : routing.defaultLocale) as Locale;
   setRequestLocale(resolved);
+  // Stage 6 item 5: nonce-CSP layout is dynamic — pages render on demand.
+  await connection();
 
   const t = await getTranslations({ locale: resolved, namespace: "meta.pages.services" });
   const rows = await getServices();

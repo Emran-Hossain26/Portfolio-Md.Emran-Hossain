@@ -1,7 +1,14 @@
 import { hasLocale } from "next-intl";
+import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+
+// Root locale param only (Stage 6: nonce CSP makes the layout dynamic;
+// slugs render on demand).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
 import { siteUrl } from "@/data/site";
 import { getProject, getProjects } from "@/lib/cms";
@@ -11,13 +18,9 @@ import { pick, type Locale } from "@/data/types";
 import { ProjectMedia, type MediaLabels } from "@/components/ProjectMedia";
 import { text } from "@/components/ProjectCard";
 
-export async function generateStaticParams() {
-  // CMS-backed project slugs at build time.
-  const projects = await getProjects();
-  return routing.locales.flatMap((locale) =>
-    projects.map((project) => ({ locale, slug: project.slug })),
-  );
-}
+// Stage 6 item 5: nonce-CSP layout is dynamic — this page renders per request.
+export const instant = false;
+
 
 export default async function ProjectPage({
   params,
@@ -29,6 +32,8 @@ export default async function ProjectPage({
     ? locale
     : routing.defaultLocale) as Locale;
   setRequestLocale(resolved);
+  // Stage 6 item 5: nonce-CSP layout is dynamic — pages render on demand.
+  await connection();
 
   const project = await getProject(slug);
   if (!project) notFound();

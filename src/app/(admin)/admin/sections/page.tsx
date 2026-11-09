@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { saveRowAction, moveSectionAction } from "@/app/(admin)/actions";
 import { getSections } from "@/lib/cms";
 
@@ -18,6 +19,7 @@ const LABELS: Record<string, string> = {
 };
 
 export default async function SectionsPage() {
+  await requireAdmin();
   const rows = await getSections();
   const enabled = rows.filter((r) => r.enabled && r.key !== "hero");
 

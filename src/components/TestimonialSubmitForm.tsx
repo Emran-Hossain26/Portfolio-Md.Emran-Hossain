@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { submitTestimonialAction, type PublicActionResult } from "@/lib/actions/public";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 
 const initial: PublicActionResult = { ok: false };
 
@@ -52,6 +53,7 @@ export function TestimonialSubmitForm() {
           {t("quote")}
           <textarea name="quote" required minLength={20} maxLength={2000} rows={4} />
         </label>
+        <TurnstileWidget />
         {/* Honeypot — hidden from humans, catnip for bots */}
         <input
           type="text"

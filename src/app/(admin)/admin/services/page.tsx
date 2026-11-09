@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { RowForm, fieldsFromSpec } from "@/components/admin/RowForm";
 import { getServices } from "@/lib/cms";
 
@@ -14,6 +15,7 @@ const SPEC = [
 ];
 
 export default async function ServicesPage() {
+  await requireAdmin();
   const rows = await getServices();
   return (
     <AdminShell current="/admin/services" heading="Services / Expertise cards">

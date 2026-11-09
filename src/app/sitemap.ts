@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/", priority: 1, freq: "weekly" as const },
     { path: "/projects", priority: 0.9, freq: "monthly" as const },
     { path: "/blog", priority: 0.8, freq: "weekly" as const },
+    { path: "/services", priority: 0.8, freq: "monthly" as const },
     { path: "/about", priority: 0.7, freq: "monthly" as const },
     { path: "/testimonials", priority: 0.6, freq: "monthly" as const },
     { path: "/contact", priority: 0.7, freq: "monthly" as const },
@@ -50,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Only published, currently-visible, non-noindex posts.
   for (const post of posts) {
     if (post.noindex) continue;
-    out.push(entry(`/blog/${post.slug}`, 0.6, "monthly", `/blog/${post.bn_slug || post.slug}`));
+    out.push(entry(`/blog/${post.slug}`, 0.6, "monthly", `/bn/blog/${post.bn_slug || post.slug}`));
   }
   // Category and tag archives with 2+ posts (per locale).
   const catCounts = new Map<string, number>();

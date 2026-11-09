@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { requireAdminPending2fa } from "@/lib/supabase/admin-auth";
-import { confirmTwoFactorAction } from "@/app/(admin)/actions";
+import { verifyTwoFactorLoginAction } from "@/app/(admin)/actions";
 
 
 async function Verify2faInner({
@@ -24,20 +24,24 @@ async function Verify2faInner({
           <b>{user.email}</b> to finish signing in.
         </p>
         {sp.error ? (
-          <p className="chip bad" style={{ marginBottom: 10 }}>
-            That code was not valid — check the app and try again.
-          </p>
+          sp.error === "locked" ? (
+            <p className="chip bad" style={{ marginBottom: 10 }}>
+              Too many attempts — try again in a few minutes.
+            </p>
+          ) : (
+            <p className="chip bad" style={{ marginBottom: 10 }}>
+              That code was not valid — check the app or use a recovery code.
+            </p>
+          )
         ) : null}
-        <form action={confirmTwoFactorAction} style={{ display: "grid", gap: 10 }}>
+        <form action={verifyTwoFactorLoginAction} style={{ display: "grid", gap: 10 }}>
           <label>
-            Authenticator code
+            Authenticator code — or a recovery code
             <input
               type="text"
               name="code"
-              inputMode="numeric"
-              pattern="[0-9]*"
               autoComplete="one-time-code"
-              maxLength={6}
+              maxLength={12}
               autoFocus
               required
             />

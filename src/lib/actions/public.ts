@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { z } from "zod";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { updateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { sendEmail, emailHtml, escapeHtml } from "@/lib/email";
@@ -15,7 +17,7 @@ import { sendEmail, emailHtml, escapeHtml } from "@/lib/email";
 
 export type PublicActionResult = {
   ok: boolean;
-  error?: "rate_limited" | "validation" | "unavailable" | "server" | "taken";
+  error?: "rate_limited" | "validation" | "unavailable" | "server" | "taken" | "turnstile";
 };
 
 const rateMap = new Map<string, { count: number; reset: number }>();
@@ -42,6 +44,21 @@ async function clientIp(): Promise<string> {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+// Stage 6 item 6 — zod input schemas for every public form.
+const nameSchema = z.string().trim().min(1).max(120);
+const emailSchema = z.string().trim().email().max(200);
+const messageSchema = z.string().trim().min(10).max(5000);
+const quoteSchema = z.string().trim().min(20).max(2000);
+
+/** Turnstile gate (item 4): server-verified token; honeypot stays too. */
+async function gateTurnstile(formData: FormData): Promise<PublicActionResult | null> {
+  const ip = await clientIp();
+  const verdict = await verifyTurnstile(String(formData.get("cf-turnstile-response") ?? ""), ip);
+  if (!verdict.ok) return { ok: false, error: "turnstile" };
+  return null;
+}
+
+
 export async function subscribeNewsletterAction(
   _prev: PublicActionResult,
   formData: FormData,
@@ -51,7 +68,7 @@ export async function subscribeNewsletterAction(
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const locale = String(formData.get("locale") ?? "en") === "bn" ? "bn" : "en";
-  if (!EMAIL_RE.test(email) || email.length > 200) {
+  if (!emailSchema.safeParse(email).success) {
     return { ok: false, error: "validation" };
   }
   if (rateLimited("nl:" + (await clientIp()), 5, 60 * 60 * 1000)) {
@@ -92,17 +109,18 @@ export async function submitTestimonialAction(
 ): Promise<PublicActionResult> {
   if (String(formData.get("website") ?? "") !== "") return { ok: true };
 
-  const name = String(formData.get("name") ?? "").trim();
-  const company = String(formData.get("company") ?? "").trim();
-  const quote = String(formData.get("quote") ?? "").trim();
-  const rating = Math.min(5, Math.max(1, Math.trunc(Number(formData.get("rating") ?? 5)) || 5));
+  const gate = await gateTurnstile(formData);
+  if (gate) return gate;
 
-  if (!name || name.length > 120 || company.length > 160) {
+  const nameParsed = nameSchema.safeParse(formData.get("name"));
+  const quoteParsed = quoteSchema.safeParse(formData.get("quote"));
+  const company = String(formData.get("company") ?? "").trim().slice(0, 160);
+  const rating = Math.min(5, Math.max(1, Math.trunc(Number(formData.get("rating") ?? 5)) || 5));
+  if (!nameParsed.success || !quoteParsed.success) {
     return { ok: false, error: "validation" };
   }
-  if (quote.length < 20 || quote.length > 2000) {
-    return { ok: false, error: "validation" };
-  }
+  const name = nameParsed.data;
+  const quote = quoteParsed.data;
   if (rateLimited("tm:" + (await clientIp()), 5, 60 * 60 * 1000)) {
     return { ok: false, error: "rate_limited" };
   }
@@ -168,13 +186,18 @@ export async function submitContactAction(
     return { ok: true };
   }
 
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
+  const gate = await gateTurnstile(formData);
+  if (gate) return gate;
 
-  if (!name || name.length > 120) return { ok: false, error: "validation" };
-  if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, error: "validation" };
-  if (message.length < 10 || message.length > 5000) return { ok: false, error: "validation" };
+  const parsed = nameSchema.safeParse(formData.get("name"));
+  const emailParsed = emailSchema.safeParse(formData.get("email"));
+  const messageParsed = messageSchema.safeParse(formData.get("message"));
+  if (!parsed.success || !emailParsed.success || !messageParsed.success) {
+    return { ok: false, error: "validation" };
+  }
+  const name = parsed.data;
+  const email = emailParsed.data;
+  const message = messageParsed.data;
   if (rateLimited("ct:" + (await clientIp()), 5, 60 * 60 * 1000)) {
     return { ok: false, error: "rate_limited" };
   }
@@ -222,14 +245,19 @@ export async function submitQuoteAction(
 ): Promise<PublicActionResult> {
   if (String(formData.get("website") ?? "") !== "") return { ok: true };
 
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const budget = String(formData.get("budget") ?? "").trim().slice(0, 80);
-  const details = String(formData.get("details") ?? "").trim();
+  const gate = await gateTurnstile(formData);
+  if (gate) return gate;
 
-  if (!name || name.length > 120) return { ok: false, error: "validation" };
-  if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, error: "validation" };
-  if (details.length < 10 || details.length > 5000) return { ok: false, error: "validation" };
+  const nameParsed = nameSchema.safeParse(formData.get("name"));
+  const emailParsed = emailSchema.safeParse(formData.get("email"));
+  const detailsParsed = messageSchema.safeParse(formData.get("details"));
+  if (!nameParsed.success || !emailParsed.success || !detailsParsed.success) {
+    return { ok: false, error: "validation" };
+  }
+  const name = nameParsed.data;
+  const email = emailParsed.data;
+  const budget = String(formData.get("budget") ?? "").trim().slice(0, 80);
+  const details = detailsParsed.data;
   if (rateLimited("qt:" + (await clientIp()), 5, 60 * 60 * 1000)) {
     return { ok: false, error: "rate_limited" };
   }
@@ -277,13 +305,18 @@ export async function submitBookingAction(
 ): Promise<PublicActionResult> {
   if (String(formData.get("website") ?? "") !== "") return { ok: true };
 
-  const slotId = String(formData.get("slot_id") ?? "").trim();
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const topic = String(formData.get("topic") ?? "").trim();
+  const gate = await gateTurnstile(formData);
+  if (gate) return gate;
 
-  if (!slotId || !name || name.length > 120) return { ok: false, error: "validation" };
-  if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, error: "validation" };
+  const slotId = String(formData.get("slot_id") ?? "").trim();
+  const nameParsed = nameSchema.safeParse(formData.get("name"));
+  const emailParsed = emailSchema.safeParse(formData.get("email"));
+  if (!slotId || !nameParsed.success || !emailParsed.success) {
+    return { ok: false, error: "validation" };
+  }
+  const name = nameParsed.data;
+  const email = emailParsed.data;
+  const topic = String(formData.get("topic") ?? "").trim();
   if (topic.length < 5 || topic.length > 1000) return { ok: false, error: "validation" };
   if (rateLimited("bk:" + (await clientIp()), 5, 60 * 60 * 1000)) {
     return { ok: false, error: "rate_limited" };

@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { RowForm, fieldsFromSpec } from "@/components/admin/RowForm";
 import { createServiceClient } from "@/lib/supabase/service";
 import { adminConfigured } from "@/lib/supabase/service";
@@ -17,6 +18,7 @@ export default async function RedirectsPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  await requireAdmin();
   const { error } = await searchParams;
   let rows: { id: string; from_url: string; to_url: string; permanent: boolean }[] = [];
   if (adminConfigured()) {

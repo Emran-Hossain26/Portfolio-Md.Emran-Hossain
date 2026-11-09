@@ -51,14 +51,22 @@ export async function getProjects(): Promise<Project[]> {
   cacheTag("content");
   if (!configured()) return (await import("@/data/projects")).seedProjects;
   try {
-    const { data, error } = await db()
+    // result_en/result_bn/metrics arrive with migration 20261113 — retry
+    // without them pre-migration so the real showcase never falls back to seeds.
+    const P_SELECT = "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,tech,media,video,demo_url,slides,sort_order";
+    const P_SELECT_FULL = P_SELECT.replace("tech,", "result_en,result_bn,metrics,tech,");
+    const fetchProjects = async (select: string) => {
+      const { data, error } = await db()
       .from("projects")
-      .select(
-        "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,result_en,result_bn,metrics,tech,media,video,demo_url,slides,sort_order",
-      )
+      .select(select)
       .eq("published", true)
       .order("sort_order");
-    if (error || !data?.length) {
+      if (error) return null;
+      return (data as unknown as Record<string, unknown>[]) ?? null;
+    };
+    let data = await fetchProjects(P_SELECT_FULL);
+    if (!data) data = await fetchProjects(P_SELECT);
+    if (!data?.length) {
       return (await import("@/data/projects")).seedProjects;
     }
     return data.map((row) => {
@@ -337,8 +345,14 @@ export async function getServices(): Promise<Service[]> {
     }));
   }
   try {
-    const { data, error } = await db().from("services").select("id,title_en,title_bn,desc_en,desc_bn,icon,price,sort_order").eq("published", true).is("deleted_at", null).order("sort_order");
-    if (error || !data?.length) {
+    // price arrives with migration 20261113 — retry without it pre-migration.
+    const fetchServices = async (select: string): Promise<Record<string, unknown>[] | null> => {
+      const { data, error } = await db().from("services").select(select).eq("published", true).is("deleted_at", null).order("sort_order");
+      return error ? null : (data as unknown as Record<string, unknown>[]);
+    };
+    const data = (await fetchServices("id,title_en,title_bn,desc_en,desc_bn,icon,price,sort_order"))
+      ?? (await fetchServices("id,title_en,title_bn,desc_en,desc_bn,icon,sort_order"));
+    if (!data?.length) {
       const { expertiseItems } = await import("@/data/expertise");
       return expertiseItems.map((e, i) => ({ id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", price: "", sort: i + 1 }));
     }

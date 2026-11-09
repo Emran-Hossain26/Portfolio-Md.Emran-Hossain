@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { RowForm, fieldsFromSpec } from "@/components/admin/RowForm";
 import { getStats } from "@/lib/cms";
 
@@ -11,6 +12,7 @@ const SPEC = [
 ];
 
 export default async function StatsPage() {
+  await requireAdmin();
   const rows = await getStats();
   return (
     <AdminShell current="/admin/stats" heading="Stats (Proof in numbers)">

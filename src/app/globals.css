@@ -5,13 +5,13 @@
   These variables are the admin panel's edit targets (milestone 3).
 */
 :root {
-  --accent: #2F6BFF;
+  --accent: #2B5BFF;
   --bg: #F4F6F9;
   --panel: #fff;
   --ink: #0F1B2D;
   --mute: #5B6678;
   --line: #DCE1E9;
-  --ok: #1FA971;
+  --ok: #17845A;
   --r: 14px;
 }
 [data-theme=dark] {
@@ -197,10 +197,15 @@ section h2 { font-size: 30px; margin-bottom: 26px }
   display: flex; justify-content: center; gap: 6px; z-index: 1;
 }
 .dots button {
-  width: 7px; height: 7px; border-radius: 50%; padding: 0; cursor: pointer;
-  background: var(--line); border: 0;
+  width: 24px; height: 24px; border-radius: 50%; padding: 0; cursor: pointer;
+  background: transparent; border: 0; position: relative;
 }
-.dots button.on { background: var(--accent) }
+.dots button::before {
+  content: ""; position: absolute; inset: 0; margin: auto;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--line);
+}
+.dots button.on { background: transparent }
+.dots button.on::before { background: var(--accent) }
 .media .poster { opacity: 0.35 }
 .media iframe, .media video {
   position: absolute; inset: 0; width: 100%; height: 100%;

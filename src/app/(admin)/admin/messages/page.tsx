@@ -1,10 +1,12 @@
 import { AdminShell } from "@/components/admin/AdminShell";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { updateMessageStatusAction } from "@/app/(admin)/actions";
 import { getMessagesInbox } from "@/lib/cms";
 
 const STATUSES = ["new", "read", "replied", "spam"] as const;
 
 export default async function MessagesPage() {
+  await requireAdmin();
   const rows = await getMessagesInbox();
   return (
     <AdminShell current="/admin/messages" heading="Inbox (contact messages)">

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { RecoveryCodes } from "@/components/admin/RecoveryCodes";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
@@ -210,6 +211,7 @@ async function ProfileInner({
             </form>
           </>
         )}
+        <RecoveryCodes />
       </div>
     </AdminShell>
   );

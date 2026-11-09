@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { submitContactAction, type PublicActionResult } from "@/lib/actions/public";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 
 const initial: PublicActionResult = { ok: false };
 
@@ -63,6 +64,8 @@ export function ContactForm() {
         minLength={10}
         maxLength={5000}
       />
+      {/* Turnstile (item 4) — renders only when the site key is set */}
+      <TurnstileWidget />
       {/* Honeypot — invisible, removed from tab order, only bots fill it. */}
       <div style={{ display: "none" }} aria-hidden="true">
         <label>

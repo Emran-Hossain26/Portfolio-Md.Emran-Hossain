@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AdminV2Chrome } from "@/components/admin/AdminV2Chrome";
 import { cacheTag } from "next/cache";
+import { headers } from "next/headers";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { createServiceClient, adminConfigured } from "@/lib/supabase/service";
 import "../globals.css";
 import "./admin.css";
@@ -76,6 +78,13 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Stage 6 item 1: route-level default guard, OUTSIDE the chrome's
+  // Suspense hole — unauthenticated requests get a real 307 to /login
+  // before any admin UI renders. /login renders bare and skips this.
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/logout")) {
+    await requireAdmin();
+  }
   const [unread, pendingReviews, profile] = await Promise.all([
     inboxCount(),
     pendingTestimonialsCount(),
