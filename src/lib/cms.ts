@@ -839,6 +839,8 @@ export type EffectsSettings = {
   touch_disable: boolean;
   /** Scales particle counts and glow strength. */
   intensity: 'low' | 'medium' | 'high';
+  /** Stage 6: when ON, visitor reduced-motion no longer disables effects. */
+  override_reduced: boolean;
 };
 
 export const FX_DEFAULTS: EffectsSettings = {
@@ -856,6 +858,7 @@ export const FX_DEFAULTS: EffectsSettings = {
   default_mode: 'full',
   touch_disable: true,
   intensity: 'medium',
+  override_reduced: false,
 };
 
 export async function getEffectsSettings(): Promise<EffectsSettings> {

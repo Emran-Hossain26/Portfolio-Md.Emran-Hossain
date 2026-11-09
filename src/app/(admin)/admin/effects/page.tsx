@@ -97,6 +97,13 @@ export default async function EffectsPage({
             </span>
           </label>
           <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+            <input type="checkbox" name="override_reduced" defaultChecked={fx.override_reduced} />
+            <span>
+              <b>Ignore visitors' reduced-motion setting</b>{" "}
+              <span style={{ color: "var(--mute)", fontSize: 12.5 }}>— force effects even when the visitor's OS asks for less motion (off = accessibility-respecting default)</span>
+            </span>
+          </label>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
             <span>
               Effects intensity:{" "}
               <select name="intensity" defaultValue={fx.intensity} style={{ font: "inherit", padding: "6px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--panel)", color: "var(--ink)" }}>

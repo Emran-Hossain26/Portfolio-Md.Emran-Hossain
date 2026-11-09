@@ -225,7 +225,7 @@ document.documentElement.dataset.theme=t;
 var s=${JSON.stringify(fxSettings)};
 var touch=matchMedia("(pointer: coarse)").matches;
 var slow=(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.connection&&navigator.connection.saveData);
-var rm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+var rm=(${fxSettings.override_reduced}?false:matchMedia("(prefers-reduced-motion: reduce)").matches);
 function allow(names){if(!s.master)return false;for(var i=0;i<names.length;i++){if(s[names[i]]===true)return true;}return false;}
 var av={animation:allow(["tilt","parallax","scramble","counters"]),cursor:allow(["mascot","trail","ripple","magnetic"])&&!(touch&&s.touch_disable!==false),magical:allow(["aurora","network"])};
 var lite=s.default_mode==="lite"&&(touch||slow)&&!localStorage.getItem("fx_chosen");

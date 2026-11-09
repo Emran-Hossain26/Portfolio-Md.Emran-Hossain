@@ -734,6 +734,7 @@ export async function saveEffectsAction(formData: FormData) {
     default_mode: formData.get("default_mode") === "lite" ? "lite" : "full",
     touch_disable: on("touch_disable"),
     intensity: formData.get("intensity") === "low" ? "low" : formData.get("intensity") === "high" ? "high" : "medium",
+    override_reduced: on("override_reduced"),
   };
   const db = createServiceClient();
   await db.from("site_settings").upsert({ key: "effects_settings", value }, { onConflict: "key" });
