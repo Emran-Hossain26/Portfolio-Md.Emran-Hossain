@@ -10,10 +10,10 @@ export async function BlogPreview() {
 
   return (
     <section id="blog" data-sec="blog">
-      <h2>{t("blog")}</h2>
+      <h2 data-ac="text">{t("blog")}</h2>
       <div className="grid">
         {posts.map((post) => (
-          <article className="card" key={post.slug}>
+          <article className="card" data-ac="box" key={post.slug}>
             <h3>{pick(locale, post.title)}</h3>
             <p className="mute">{pick(locale, post.meta)}</p>
           </article>

@@ -21,10 +21,10 @@ export async function SkillsWall() {
   return (
     <section id="skills" data-sec="skills">
       <div className="wrap">
-        <h2>{t("skillsTitle")}</h2>
+        <h2 data-ac="text">{t("skillsTitle")}</h2>
         <div className="grid">
           {[...groups.entries()].map(([category, list]) => (
-            <div className="card" key={category}>
+            <div className="card" data-ac="box" key={category}>
               <h3 style={{ marginBottom: 12 }}>{category}</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {list.map((s) => (

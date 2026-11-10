@@ -32,7 +32,7 @@ export async function Footer() {
       <div className="wrap" style={{ display: "grid", gap: 14 }}>
         {newsletter.enabled ? <NewsletterForm /> : null}
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <span>{line}</span>
+          <span data-ac="text">{line}</span>
           {modules.countryBadge ? <CountryBadge /> : null}
         </div>
       </div>

@@ -426,6 +426,27 @@ html[data-fx-animation="off"] .chip i { animation: none }
 /* ---- Theme select (header dropdown, mockup style) ---- */
 /* Styles are appended at the end of this file (Stage 4.3 pass 2). */
 
+/* ---- FX: new cursors / animations / magical ---- */
+.fx-rune { position: fixed; top: 0; left: 0; width: 44px; height: 44px; pointer-events: none; z-index: 9999; margin-left: -22px; margin-top: -22px; mix-blend-mode: screen; }
+.fx-rune-ring { position: absolute; inset: 0; border: 1.5px dashed var(--accent); border-radius: 50%; opacity: 0.7; box-shadow: 0 0 12px var(--accent); }
+.fx-floaters { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.fx-orb { position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.25; animation: fx-float 12s ease-in-out infinite; }
+.fx-orb-a { width: 260px; height: 260px; background: var(--accent); top: 10%; left: 5%; }
+.fx-orb-b { width: 320px; height: 320px; background: var(--ok, #17845A); bottom: 5%; right: 8%; animation-delay: -4s; }
+.fx-orb-c { width: 200px; height: 200px; background: var(--accent); top: 50%; left: 60%; animation-delay: -8s; opacity: 0.18; }
+@keyframes fx-float { 0%,100% { transform: translate(0,0); } 33% { transform: translate(30px,-40px); } 66% { transform: translate(-20px,30px); } }
+[data-fx-shimmer="on"] h1, [data-fx-shimmer="on"] h2 { background-image: linear-gradient(90deg, var(--ink) 0%, var(--accent) 50%, var(--ink) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: fx-shimmer 4s linear infinite; }
+@keyframes fx-shimmer { to { background-position: -200% 0; } }
+.card { --gx: 50%; --gy: 50%; }
+.card:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 12px 40px color-mix(in srgb, var(--accent) 18%, transparent); }
+.fx-nebula { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+.fx-nebula-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.18; animation: fx-nebula 18s ease-in-out infinite; }
+.fx-nebula-a { width: 420px; height: 420px; background: var(--accent); top: -120px; left: -80px; }
+.fx-nebula-b { width: 360px; height: 360px; background: var(--ok, #17845A); bottom: -100px; right: -60px; animation-delay: -6s; }
+.fx-nebula-c { width: 300px; height: 300px; background: #9B7BFF; top: 40%; left: 50%; animation-delay: -12s; opacity: 0.12; }
+@keyframes fx-nebula { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.1); } }
+.fx-comet, .fx-fairy, .fx-firefly, .fx-starfield, .fx-sparklefield { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+
 /* ---- Stage 4.1: sunset + forest presets ---- */
 [data-theme="sunset"] {
   --bg: #1C0F1F;
@@ -470,7 +491,7 @@ html[data-fx-animation="off"] .chip i { animation: none }
 }
 
 /* ---- Effects button + glass panel (Stage 5.1, public site only) ---- */
-.fx-btn-root { position: fixed; right: 14px; bottom: 14px; z-index: 80 }
+.fx-btn-root { position: fixed; top: 50%; right: max(14px, env(safe-area-inset-right, 0px)); transform: translateY(-50%); z-index: 80 }
 .fx-btn {
   display: inline-flex; align-items: center; gap: 10px;
   font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
@@ -530,7 +551,7 @@ html[data-fx-animation="off"] .chip i { animation: none }
 @media (prefers-reduced-motion: reduce) { .fx-knob-track, .fx-knob { transition: none } }
 .fx-note { font-size: 12.5px; color: var(--mute); margin: 4px 6px 2px; line-height: 1.5 }
 @media (max-width: 760px) {
-  .fx-btn-root { right: 10px; bottom: 14px }
+  .fx-btn-root { right: max(10px, env(safe-area-inset-right, 0px)); }
   .fx-btn { padding: 9px 14px; font-size: 13.5px }
 }
 
@@ -673,3 +694,19 @@ html[data-fx-animation="off"] .chip i { animation: none }
 @media (prefers-reduced-motion: reduce) {
   .admin-preview-toggle .track, .admin-preview-toggle .track::after { transition: none }
 }
+
+/* ---- Agent Cursors intro: cursor-drawn page build (ported from Agent Cursors mockup) ---- */
+html.ac-run [data-ac] { visibility: hidden; }
+html.ac-run [data-ac="box"] { opacity: 0; }
+html.ac-run [data-ac="box"].ac-in { opacity: 1; visibility: visible; transition: opacity 0.35s; }
+html.ac-run [data-ac="line"] { visibility: visible; transform: scaleX(0); transform-origin: left center; }
+
+.ac-layer { position: absolute; left: 0; top: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 9999; }
+.ac-cur { position: absolute; left: 0; top: 0; will-change: transform; }
+.ac-cur span { position: absolute; left: 12px; top: 16px; color: #fff; font: 600 11px/1 system-ui, sans-serif; padding: 3px 7px; border-radius: 99px; white-space: nowrap; }
+.ac-ghost { position: absolute; border: 1.5px solid var(--accent); box-sizing: border-box; border-radius: 4px; }
+.ac-badge { position: absolute; color: #fff; font: 600 10px/1 ui-monospace, monospace; padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
+.ac-caret { position: absolute; width: 2px; animation: acb 0.6s steps(2) infinite; }
+@keyframes acb { 50% { opacity: 0; } }
+.ac-btn { position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 10000; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 14px; border-radius: 99px; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .ac-caret { animation: none; } }

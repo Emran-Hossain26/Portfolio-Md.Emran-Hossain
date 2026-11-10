@@ -101,7 +101,7 @@ export default async function HomePage({
 
   // id="avail" — targeted by the visitor preview panel's availability toggle
   const availabilityChip = (
-    <p className="chip on" id="avail">
+    <p className="chip on" id="avail" data-ac="text">
       <i aria-hidden="true" />
       {resolved === "bn"
         ? contact.availability.bn || contact.availability.en

@@ -20,7 +20,7 @@ export async function Projects() {
 
   return (
     <section id="projects" data-sec="projects">
-      <h2>{t("projects")}</h2>
+      <h2 data-ac="text">{t("projects")}</h2>
       <div className="grid pj">
         {projects.map((project) => (
           <ProjectCard key={project.slug} project={project} locale={locale} labels={labels} />

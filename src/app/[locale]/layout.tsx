@@ -13,11 +13,13 @@ import { headers } from "next/headers";
 export const instant = false;
 import { site, siteUrl } from "@/data/site";
 import { getThemeOverrides, getSeoSettings, getThemePresets, getThemeVisitorSwitch, getEffectsSettings, getMaintenanceMode, getModuleSettings, getBlogPosts, getProjects } from "@/lib/cms";
+import { EFFECTS } from "@/lib/fx/effects";
 import { blogPostHref } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
 import { EffectsButton } from "@/components/EffectsButton";
+import { AgentCursors } from "@/components/AgentCursors";
 import { BackSoon } from "@/components/BackSoon";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -228,18 +230,38 @@ var slow=(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.connect
 document.documentElement.dataset.fxRmOverride=${fxSettings.override_reduced}?"1":"0";
 var rm=(${fxSettings.override_reduced}?false:matchMedia("(prefers-reduced-motion: reduce)").matches);
 function allow(names){if(!s.master)return false;for(var i=0;i<names.length;i++){if(s[names[i]]===true)return true;}return false;}
-var av={animation:allow(["tilt","parallax","scramble","counters"]),cursor:allow(["mascot","trail","ripple","magnetic"])&&!(touch&&s.touch_disable!==false),magical:allow(["aurora","network"])};
+var cursorAllowed=!(touch&&s.touch_disable!==false);
+var av={};
+for(var ei=0;ei<${JSON.stringify(EFFECTS.map(e=>e.key))}.length;ei++){
+  var ek=${JSON.stringify(EFFECTS.map(e=>e.key))}[ei];
+  var grp=${JSON.stringify(EFFECTS.map(e=>e.group))}[ei];
+  var gok = grp==="cursor"?cursorAllowed:true;
+  av[ek]=gok && allow([ek]);
+  document.documentElement.setAttribute("data-fx-"+ek, (av[ek]?"on":"off"));
+}
 var lite=s.default_mode==="lite"&&(touch||slow)&&!localStorage.getItem("fx_chosen");
 var out={};
-["animation","cursor","magical"].forEach(function(k){
+${JSON.stringify(EFFECTS.map(e=>e.key))}.forEach(function(k){
 var v=false;
-if(av[k]&&!rm&&!lite){try{v=localStorage.getItem("fx_group_"+k)!=="off";}catch(e){v=true;}}
+if(av[k]&&!rm&&!lite){try{v=localStorage.getItem("fx_effect_"+k)!=="off";}catch(e){v=true;}}
 out[k]=v;
 document.documentElement.setAttribute("data-fx-"+k,v?"on":"off");
 });
 }catch(e){}
 try{var th=(JSON.parse(localStorage.getItem("pf")||"{}").themes)||{};document.querySelectorAll(".theme-select select option").forEach(function(o){if(th[o.value]===false){o.disabled=true;o.hidden=true;}});}catch(e){}
 try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttribute("data-nav","1");}else{sessionStorage.setItem("pf_nav","1");}setTimeout(function(){document.documentElement.setAttribute("data-nav","1");},400);}catch(e){}`;
+
+  // Agent Cursors intro — pre-paint gate. Adds `ac-run` to <html> before first
+  // paint ONLY when the visitor opted in (default on), is not reduced-motion /
+  // bot-like, and has not already seen the intro this session. Failsafe removes
+  // the class after 30s so the page is never stuck hidden.
+  const agentCursorsScript = `try{
+var acSeen=0;try{acSeen=sessionStorage.getItem('ac-seen')==='1'}catch(e){}
+var acFlag=1;try{var v=localStorage.getItem('effects:agentCursors');if(v!==null)acFlag=v!=='off'}catch(e){}
+var acRm=matchMedia('(prefers-reduced-motion: reduce)').matches;var acBot=/googlebot|bingo|bingpreview|lighthouse|headless|phantom|spider|crawler|preview/i.test(navigator.userAgent);
+if(acFlag&&!acRm&&!acBot&&!acSeen)document.documentElement.classList.add('ac-run');
+}catch(e){}
+setTimeout(function(){try{document.documentElement.classList.remove('ac-run')}catch(e){}},30000);`;
 
   return (
     <html
@@ -250,6 +272,7 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: noFlashScript }} />
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: effectsScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: agentCursorsScript }} />
         {themeStyle ? (
           <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         ) : null}
@@ -310,11 +333,18 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
               themes={presets.filter((th) => th.enabled).map((th) => ({ key: th.key, label: th.name }))}
             />
           ) : null}
-          <EffectsButton allowed={{
-            animation: fxSettings.master && (fxSettings.tilt || fxSettings.parallax || fxSettings.scramble || fxSettings.counters),
-            cursor: fxSettings.master && (fxSettings.mascot || fxSettings.trail || fxSettings.ripple || fxSettings.magnetic),
-            magical: fxSettings.master && (fxSettings.aurora || fxSettings.network),
-          }} intensity={fxSettings.intensity} />
+          <EffectsButton
+            allowed={{
+              ...Object.fromEntries(EFFECTS.map((e) => [e.key, fxSettings.master && !!(fxSettings as Record<string, unknown>)[e.key]])),
+              // Agent Cursors intro ships with the visitor-facing switch ON by
+              // default (opt-out persisted under `effects:agentCursors`).
+              agentCursors: true,
+            }}
+            intensity={fxSettings.intensity}
+          />
+          {/* Agent Cursors intro: portfolio-route-only client engine (guarded
+              against /login and /admin inside the component). */}
+          <AgentCursors />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: personJsonLd() }}

@@ -10,10 +10,10 @@ export async function Expertise() {
   return (
     <section id="expertise" data-sec="expertise">
       <div className="wrap">
-        <h2>{t("expertise")}</h2>
+        <h2 data-ac="text">{t("expertise")}</h2>
         <div className="grid">
           {services.map((item) => (
-            <div className="card" key={item.id}>
+            <div className="card" data-ac="box" key={item.id}>
               <h3>{pick(locale, item.title)}</h3>
               <p>{pick(locale, item.desc)}</p>
             </div>

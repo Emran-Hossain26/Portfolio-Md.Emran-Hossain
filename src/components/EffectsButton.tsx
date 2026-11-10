@@ -1,84 +1,88 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import {
-  applyGroupFlags,
-  computeGroups,
-  subscribeGroups,
-  writeGroup,
-  type GroupKey,
-} from "@/lib/fx/groups";
-
-/**
- * The single public "✨ Effects" control (Stage 5.1): a glass pill fixed
- * bottom-right opening a small glass panel with exactly three switches —
- * Animation / Magical cursor / Magical animation. Everything heavy lives in
- * dynamically imported modules (lib/fx/modules/*), loaded after window load
- * + requestIdleCallback and only for groups that are ON. The admin decides
- * which groups exist (props); visitors only switch an available group off.
- */
+import { useLocale } from "next-intl";
+import { EFFECTS, EFFECT_KEYS, writeEffect, readEffect, FX_EVENT, effectDef } from "@/lib/fx/effects";
 
 export type EffectsButtonProps = {
-  /** Groups the admin allows (per-effect OR'ed server-side, master applied). */
-  allowed: Record<GroupKey, boolean>;
+  /** Per-effect availability from the admin (master already applied). */
+  allowed: Record<string, boolean>;
   /** Effects intensity from the admin (scales particles and glow). */
   intensity: "low" | "medium" | "high";
 };
 
-type Snapshot = {
-  animation: boolean;
-  cursor: boolean;
-  magical: boolean;
-  reduced: boolean;
-  touch: boolean;
-};
-
-const SERVER_SNAPSHOT: Snapshot = { animation: false, cursor: false, magical: false, reduced: false, touch: false };
-let cached: Snapshot = SERVER_SNAPSHOT;
-
-function clientSnapshot(allowed: Record<GroupKey, boolean>): Snapshot {
-  const next: Snapshot = computeGroups(allowed);
-  if (
-    cached.animation !== next.animation || cached.cursor !== next.cursor ||
-    cached.magical !== next.magical || cached.reduced !== next.reduced ||
-    cached.touch !== next.touch
-  ) {
-    cached = next;
-  }
-  return cached;
-}
-
-type ModuleStop = () => void;
-type ModuleFactory = (cfg: { intensity: string }) => ModuleStop;
-const MODULES: Record<GroupKey, () => Promise<{ start: ModuleFactory }>> = {
-  animation: () => import("@/lib/fx/modules/animation"),
-  cursor: () => import("@/lib/fx/modules/cursor"),
-  magical: () => import("@/lib/fx/modules/magical"),
-};
+const SERVER_SNAPSHOT: Record<string, boolean> = {};
+for (const k of EFFECT_KEYS) SERVER_SNAPSHOT[k] = false;
 
 export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
+  const [enabled, setEnabled] = useState<Record<string, boolean>>(() => {
+    const out: Record<string, boolean> = {};
+    for (const k of EFFECT_KEYS) {
+      if (!allowed[k]) { out[k] = false; continue; }
+      const def = effectDef(k);
+      const stored = readEffect(k, def?.lsKey);
+      out[k] = stored === null ? true : stored;
+    }
+    return out;
+  });
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
-  const stops = useRef<Partial<Record<GroupKey, ModuleStop>>>({});
-  const running = useRef<Partial<Record<GroupKey, boolean>>>({});
+  const stops = useRef<Partial<Record<string, () => void>>>({}); // group -> stop
+  const running = useRef<Partial<Record<string, boolean>>>({});
+  const groupOf = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const e of EFFECTS) m[e.key] = e.group;
+    return m;
+  }, []);
+  const locale = useLocale();
+  const acLabels = locale === "bn"
+    ? { switch: "এজেন্ট কারসর আনিম", replay: "আনিম পুনরায় চালান" }
+    : { switch: "Agent Cursors intro", replay: "Replay intro" };
 
-  const snap = useSyncExternalStore(
-    subscribeGroups,
-    () => clientSnapshot(allowed),
-    () => SERVER_SNAPSHOT,
-  );
-  const groups: Record<GroupKey, boolean> = useMemo(
-    () => ({ animation: snap.animation, cursor: snap.cursor, magical: snap.magical }),
-    [snap.animation, snap.cursor, snap.magical],
-  );
+  // persist + broadcast on toggle
+  const toggle = (key: string) => {
+    const def = effectDef(key);
+    setEnabled((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      writeEffect(key, next[key], def?.lsKey);
+      return next;
+    });
+  };
 
-  // Keep <html data-fx-*> in sync for the CSS-gated pieces (reveal, fade).
+  // Agent Cursors intro: switch ON -> run the intro (replay semantics),
+  // switch OFF -> stop it instantly. The intro engine lives in <AgentCursors />.
+  const onToggle = (key: string) => {
+    if (key !== "agentCursors") { toggle(key); return; }
+    const nextOn = !enabled[key];
+    const def = effectDef(key);
+    writeEffect(key, nextOn, def?.lsKey);
+    setEnabled((prev) => ({ ...prev, [key]: nextOn }));
+    try { window.dispatchEvent(new CustomEvent("pf:agentCursors", { detail: { on: nextOn, replay: true } })); } catch { /* noop */ }
+  };
+
+  // group on/off derived
+  const groupOn = useMemo(() => {
+    const g: Record<string, boolean> = { cursor: false, animation: false, magical: false };
+    for (const e of EFFECTS) {
+      if (allowed[e.key] && enabled[e.key]) g[e.group] = true;
+    }
+    return g;
+  }, [allowed, enabled]);
+
+  // CSS data attrs for gated pieces
   useEffect(() => {
-    applyGroupFlags(groups);
-  }, [groups]);
+    const root = document.documentElement;
+    for (const e of EFFECTS) {
+      root.setAttribute(`data-fx-${e.key}`, enabled[e.key] && allowed[e.key] ? "on" : "off");
+    }
+  }, [enabled, allowed]);
 
-  // Lazy-load + start/stop group modules as the state changes. The first
-  // import of a session waits for window load + requestIdleCallback.
+  const MODULES: Record<string, () => Promise<{ start: (cfg: { intensity: string; effects: string[] }) => () => void }>> = {
+    cursor: () => import("@/lib/fx/modules/cursor"),
+    animation: () => import("@/lib/fx/modules/animation"),
+    magical: () => import("@/lib/fx/modules/magical"),
+  };
+
   useEffect(() => {
     let cancelled = false;
     const schedule = (cb: () => void) => {
@@ -87,31 +91,36 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
       if (document.readyState === "complete") go();
       else window.addEventListener("load", go, { once: true });
     };
-
-    (Object.keys(MODULES) as GroupKey[]).forEach((group) => {
-      const shouldRun = groups[group];
+    for (const group of ["cursor", "animation", "magical"]) {
+      const shouldRun = groupOn[group];
       if (!shouldRun) {
         stops.current[group]?.();
         stops.current[group] = undefined;
         running.current[group] = false;
-        return;
+        continue;
       }
-      if (running.current[group]) return;
+      if (running.current[group]) {
+        // restart to apply new effect subset
+        stops.current[group]?.();
+        stops.current[group] = undefined;
+        running.current[group] = false;
+      }
       running.current[group] = true;
+      const effectsInGroup = EFFECTS.filter((e) => e.group === group && allowed[e.key] && enabled[e.key]).map((e) => e.key).filter((k) => k !== "agentCursors");
       schedule(async () => {
-        if (cancelled || !groups[group]) { running.current[group] = false; return; }
+        if (cancelled) { running.current[group] = false; return; }
         try {
           const mod = await MODULES[group]();
-          if (cancelled || !groups[group]) { running.current[group] = false; return; }
+          if (cancelled) { running.current[group] = false; return; }
           stops.current[group]?.();
-          stops.current[group] = mod.start({ intensity });
+          stops.current[group] = mod.start({ intensity, effects: effectsInGroup });
         } catch {
           running.current[group] = false;
         }
       });
-    });
+    }
     return () => { cancelled = true; };
-  }, [groups, intensity]);
+  }, [groupOn, intensity, enabled, allowed]);
 
   useEffect(() => {
     if (!open) return;
@@ -127,47 +136,52 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
     };
   }, [open]);
 
-  const allOff = !groups.animation && !groups.cursor && !groups.magical;
-  const showCursorRow = allowed.cursor && !snap.touch;
-  const anyAllowed = allowed.animation || allowed.cursor || allowed.magical;
-
+  const anyAllowed = EFFECTS.some((e) => allowed[e.key]);
   if (!anyAllowed) return null;
 
-  const toggle = (group: GroupKey) => {
-    writeGroup(group, !groups[group]);
-  };
-
-  const rows: { key: GroupKey; label: string }[] = [
-    { key: "animation", label: "Animation" },
-    { key: "cursor", label: "Magical cursor" },
-    { key: "magical", label: "Magical animation" },
-  ];
+  const allOff = !Object.keys(enabled).some((k) => enabled[k] && allowed[k]);
 
   return (
     <div className="fx-btn-root" ref={boxRef}>
       {open ? (
-        <div className="fx-panel" id="fx-panel" role="dialog" aria-label="Effects" aria-modal="false">
-          {rows.map((row) => {
-            if (row.key === "cursor" && !showCursorRow) return null;
-            if (!allowed[row.key]) return null;
+        <div className="fx-panel" id="fx-panel" role="dialog" aria-label="Effects" aria-modal="false" style={{ maxHeight: 420, overflowY: "auto" }}>
+          {["cursor", "animation", "magical"].map((group) => {
+            const items = EFFECTS.filter((e) => e.group === group && allowed[e.key]);
+            if (items.length === 0) return null;
+            const title = group === "cursor" ? "Magical cursor" : group === "animation" ? "Animation" : "Magical animation";
             return (
-              <button
-                key={row.key}
-                type="button"
-                role="switch"
-                aria-checked={groups[row.key]}
-                className={"fx-row" + (groups[row.key] ? " on" : "")}
-                onClick={() => toggle(row.key)}
-              >
-                <span className="fx-row-label">{row.label}</span>
-                <span className="fx-row-state">{groups[row.key] ? "ON" : "OFF"}</span>
-                <span className="fx-knob-track" aria-hidden="true"><span className="fx-knob" /></span>
-              </button>
+              <div key={group} style={{ marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: "var(--mute)", margin: "6px 2px 4px", textTransform: "uppercase", letterSpacing: ".08em" }}>{title}</p>
+                {items.map((e) => (
+                  <button
+                    key={e.key}
+                    type="button"
+                    role="switch"
+                    aria-checked={enabled[e.key]}
+                    className={"fx-row" + (enabled[e.key] ? " on" : "")}
+                    onClick={() => onToggle(e.key)}
+                    title={e.hint}
+                  >
+                    <span className="fx-row-label">{e.key === "agentCursors" ? acLabels.switch : e.label}</span>
+                    <span className="fx-row-state">{enabled[e.key] ? "ON" : "OFF"}</span>
+                    <span className="fx-knob-track" aria-hidden="true"><span className="fx-knob" /></span>
+                  </button>
+                ))}
+                {group === "magical" && allowed.agentCursors ? (
+                  <button
+                    type="button"
+                    className="fx-row"
+                    onClick={() => { try { window.dispatchEvent(new CustomEvent("pf:agentCursors", { detail: { on: true, replay: true } })); } catch { /* noop */ } }}
+                    title="Run the Agent Cursors intro again"
+                    style={{ marginTop: 4 }}
+                  >
+                    <span className="fx-row-label">▶ {acLabels.replay}</span>
+                    <span className="fx-row-state">PLAY</span>
+                  </button>
+                ) : null}
+              </div>
             );
           })}
-          {snap.reduced ? (
-            <p className="fx-note">Reduced motion is on in your device settings.</p>
-          ) : null}
         </div>
       ) : null}
       <button

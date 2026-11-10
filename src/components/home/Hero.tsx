@@ -23,17 +23,17 @@ export async function Hero({
         {/* Availability chip is admin-controlled (hero_texts.avail; default on) */}
         {texts?.avail === false ? null : chip}
         {/* id="h1" — targeted by the visitor preview panel's headline box */}
-        <h1 id="h1">{texts ? pick(locale, texts.heading) : t("heading")}</h1>
-        <p>{texts ? pick(locale, texts.intro) : t("intro")}</p>
+        <h1 id="h1" data-ac="text">{texts ? pick(locale, texts.heading) : t("heading")}</h1>
+        <p data-ac="text">{texts ? pick(locale, texts.intro) : t("intro")}</p>
         <div className="cta">
-          <a className="btn p" href="#contact">
+          <a className="btn p" href="#contact" data-ac="box">
             {texts ? pick(locale, texts.cta) || t("hire") : t("hire")}
           </a>
           {/* CV enabled once the admin uploads one (storage bucket "cv"); the
               counting route increments the download counter, then redirects.
               Disabled until an upload exists. */}
           {cvPath ? (
-            <a className="btn" href="/api/download-cv" target="_blank" rel="noopener noreferrer">
+            <a className="btn" href="/api/download-cv" target="_blank" rel="noopener noreferrer" data-ac="box">
               {t("cv")}
             </a>
           ) : (
@@ -43,6 +43,7 @@ export async function Hero({
               title={t("cvSoon")}
               disabled
               aria-disabled="true"
+              data-ac="box"
             >
               {t("cv")}
             </button>
@@ -58,8 +59,9 @@ export async function Hero({
           height={640}
           preload
           sizes="(min-width: 761px) 431px, calc(100vw - 40px)"
+          data-ac="box"
         />
-        <div className="card status" style={{ marginTop: 14 }}>
+        <div className="card status" style={{ marginTop: 14 }} data-ac="box">
           {statusItems.map((row) => (
             <div key={row}>
               <span>{row}</span>

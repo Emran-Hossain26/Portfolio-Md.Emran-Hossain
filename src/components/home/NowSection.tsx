@@ -22,8 +22,8 @@ export async function NowSection() {
   return (
     <section id="now" data-sec="now">
       <div className="wrap">
-        <h2>{t("title")}</h2>
-        <div className="card" style={{ maxWidth: 760, display: "grid", gap: 10 }}>
+        <h2 data-ac="text">{t("title")}</h2>
+        <div className="card" data-ac="box" style={{ maxWidth: 760, display: "grid", gap: 10 }}>
           {rows.map((r) => {
             const label = KIND_LABEL[r.kind] ?? KIND_LABEL.working;
             return (

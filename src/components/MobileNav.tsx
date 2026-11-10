@@ -15,6 +15,7 @@ export function MobileNav({ links }: { links: { href: string; label: string }[] 
       <button
         type="button"
         className="nav-burger"
+        data-ac="box"
         aria-expanded={open}
         aria-controls="mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
@@ -39,6 +40,7 @@ export function MobileNav({ links }: { links: { href: string; label: string }[] 
             <a
               key={link.href}
               href={link.href}
+              data-ac="text"
               onClick={() => setOpen(false)}
             >
               {link.label}

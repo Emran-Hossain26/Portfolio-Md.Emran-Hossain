@@ -719,23 +719,16 @@ export async function saveEffectsAction(formData: FormData) {
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
   const user = await requireAdmin();
   const on = (k: string) => formData.get(k) === "on";
-  const value = {
+  const value: Record<string, unknown> = {
     master: on("master"),
-    network: on("network"),
-    trail: on("trail"),
-    ripple: on("ripple"),
-    magnetic: on("magnetic"),
-    tilt: on("tilt"),
-    mascot: on("mascot"),
-    aurora: on("aurora"),
-    parallax: on("parallax"),
-    scramble: on("scramble"),
-    counters: on("counters"),
     default_mode: formData.get("default_mode") === "lite" ? "lite" : "full",
     touch_disable: on("touch_disable"),
     intensity: formData.get("intensity") === "low" ? "low" : formData.get("intensity") === "high" ? "high" : "medium",
     override_reduced: on("override_reduced"),
   };
+  for (const k of ["mascot","trail","ripple","magnetic","comet","fairy","rune","firefly","tilt","parallax","scramble","counters","shimmer","cardGlow","sparkleBurst","floaters","aurora","network","starField","nebula","sparkleField","swarm"]) {
+    value[k] = on(k);
+  }
   const db = createServiceClient();
   await db.from("site_settings").upsert({ key: "effects_settings", value }, { onConflict: "key" });
   await logAdminAction(user, "update", "site_settings", "effects_settings", null, auditValue(value));

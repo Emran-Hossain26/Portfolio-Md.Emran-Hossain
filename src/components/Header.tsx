@@ -38,7 +38,7 @@ export async function Header() {
     <header>
       <div className="wrap">
         <nav aria-label="Main" style={{ position: "relative" }}>
-          <b>
+          <b data-ac="text">
             {branding?.badge_url ? (
               <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,7 +55,7 @@ export async function Header() {
           </b>
           <span className="nav-links">
             {links.map((link) => (
-              <Link key={link.href} href={link.href}>
+              <Link key={link.href} href={link.href} data-ac="text">
                 {link.label}
               </Link>
             ))}

@@ -9,10 +9,10 @@ export async function Reviews() {
 
   return (
     <section id="reviews" data-sec="reviews">
-      <h2>{t("reviews")}</h2>
+      <h2 data-ac="text">{t("reviews")}</h2>
       <div className="grid">
         {testimonials.map((item, index) => (
-          <div className="card" key={index}>
+          <div className="card" data-ac="box" key={index}>
             <blockquote>
               {pick(locale, item.quote)}
               <footer>{item.name}</footer>

@@ -34,7 +34,7 @@ export function ProjectCard({
   caseStudy?: boolean;
 }) {
   return (
-    <article className="card">
+    <article className="card" data-ac="box">
       <ProjectMedia project={project} locale={locale} labels={labels} />
       <h3>{pick(locale, project.title)}</h3>
       {project.problem && (

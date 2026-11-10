@@ -10,10 +10,10 @@ export async function Stats() {
   return (
     <section id="stats" data-sec="stats">
       <div className="wrap">
-        <h2>{t("stats")}</h2>
+        <h2 data-ac="text">{t("stats")}</h2>
         <div className="grid">
           {rows.map((r) => (
-            <div className="card" key={r.id}>
+            <div className="card" data-ac="box" key={r.id}>
               <b
                 style={{ display: "block", fontSize: 34, color: "var(--accent)", fontFamily: "var(--font-sora), sans-serif" }}
                 data-countup

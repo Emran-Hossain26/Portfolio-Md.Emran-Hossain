@@ -39,7 +39,7 @@ export async function Contact() {
 
   return (
     <section id="contact" data-sec="contact">
-      <h2>{t("contact")}</h2>
+      <h2 data-ac="text">{t("contact")}</h2>
       <ContactForm />
 
       {quick.length ? (
@@ -52,6 +52,7 @@ export async function Contact() {
               href={q.url}
               target="_blank"
               rel="noopener noreferrer"
+              data-ac="box"
             >
               {q.label}
             </a>
