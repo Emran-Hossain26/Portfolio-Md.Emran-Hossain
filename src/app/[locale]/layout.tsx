@@ -18,8 +18,6 @@ import { blogPostHref } from "@/lib/cms";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
-import { EffectsButton } from "@/components/EffectsButton";
-import { AgentCursors } from "@/components/AgentCursors";
 import { BackSoon } from "@/components/BackSoon";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -170,6 +168,9 @@ export default async function LocaleLayout({
   // Stage 6 item 5 — per-request nonce from the proxy; stamps the inline
   // theme/effects scripts so they pass the nonce-based CSP.
   const nonce = (await headers()).get("x-nonce") ?? "";
+  // Portfolio route only (Stage 6/7 spec): the intro + its controls live here.
+  const px = (await headers()).get("x-pathname") ?? "";
+  const isHome = px === "/" || px === "/bn" || px === "/en";
 
   const themeStyle = buildThemeStyle(await getThemeOverrides());
   const seoSettings = await getSeoSettings();
@@ -272,7 +273,10 @@ setTimeout(function(){try{document.documentElement.classList.remove('ac-run')}ca
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: noFlashScript }} />
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: effectsScript }} />
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: agentCursorsScript }} />
+        {/* Agent Cursors boot: portfolio route only (Stage 6/7 spec). */}
+        {isHome ? (
+          <script nonce={nonce} dangerouslySetInnerHTML={{ __html: agentCursorsScript }} />
+        ) : null}
         {themeStyle ? (
           <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         ) : null}
@@ -333,18 +337,8 @@ setTimeout(function(){try{document.documentElement.classList.remove('ac-run')}ca
               themes={presets.filter((th) => th.enabled).map((th) => ({ key: th.key, label: th.name }))}
             />
           ) : null}
-          <EffectsButton
-            allowed={{
-              ...Object.fromEntries(EFFECTS.map((e) => [e.key, fxSettings.master && !!(fxSettings as Record<string, unknown>)[e.key]])),
-              // Agent Cursors intro ships with the visitor-facing switch ON by
-              // default (opt-out persisted under `effects:agentCursors`).
-              agentCursors: true,
-            }}
-            intensity={fxSettings.intensity}
-          />
-          {/* Agent Cursors intro: portfolio-route-only client engine (guarded
-              against /login and /admin inside the component). */}
-          <AgentCursors />
+          {/* Agent Cursors intro + its Effects button mount on the portfolio
+              page (src/app/[locale]/page.tsx) only — spec scope. */}
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: personJsonLd() }}

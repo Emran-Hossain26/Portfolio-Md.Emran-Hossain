@@ -3,7 +3,10 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { resolvePageMetadata } from "@/lib/seo";
-import { getContactInfo, getSections, getSkills, getNowItems } from "@/lib/cms";
+import { getContactInfo, getSections, getSkills, getNowItems, getEffectsSettings } from "@/lib/cms";
+import { EFFECTS } from "@/lib/fx/effects";
+import { EffectsButton } from "@/components/EffectsButton";
+import { AgentCursors } from "@/components/AgentCursors";
 import type { Locale } from "@/data/types";
 import { Hero } from "@/components/home/Hero";
 import { Expertise } from "@/components/home/Expertise";
@@ -99,6 +102,14 @@ export default async function HomePage({
     .map((k) => SECTION_MAP[k]?.())
     .filter(Boolean);
 
+  // Agent Cursors intro + its Effects button (Stage 6/7 spec): mounted HERE
+  // (the portfolio page) only — never in the shared root layout.
+  const fxSettings = await getEffectsSettings();
+  const fxAllowed = {
+    ...Object.fromEntries(EFFECTS.map((e) => [e.key, fxSettings.master && !!(fxSettings as Record<string, unknown>)[e.key]])),
+    agentCursors: true,
+  };
+
   // id="avail" — targeted by the visitor preview panel's availability toggle
   const availabilityChip = (
     <p className="chip on" id="avail" data-ac="text">
@@ -110,6 +121,7 @@ export default async function HomePage({
   );
 
   return (
+    <>
     <main className="wrap" id="main">
       {/* Hero stays un-revealed: it holds the LCP element. Sections below
           carry data-reveal — the lazy "Animation" module hides only what is
@@ -120,6 +132,9 @@ export default async function HomePage({
         <div data-reveal key={i}>{node}</div>
       ))}
     </main>
+    <EffectsButton allowed={fxAllowed} intensity={fxSettings.intensity} />
+    <AgentCursors />
+    </>
   );
 }
 
