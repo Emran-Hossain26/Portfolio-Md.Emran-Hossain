@@ -29,6 +29,8 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const stops = useRef<Partial<Record<string, () => void>>>({}); // group -> stop
   const running = useRef<Partial<Record<string, boolean>>>({});
+  // Stage 6/7 staggered load: first start per group gets the delay.
+  const firstStart = useRef<Record<string, boolean>>({ cursor: true, animation: true, magical: true });
   const groupOf = useMemo(() => {
     const m: Record<string, string> = {};
     for (const e of EFFECTS) m[e.key] = e.group;
@@ -85,9 +87,16 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
 
   useEffect(() => {
     let cancelled = false;
-    const schedule = (cb: () => void) => {
+    // Stage 6/7 — staggered "one by one" load: after page load each group
+    // starts a beat later than the previous one (first run only; later
+    // toggles apply instantly).
+    const START_DELAY: Record<string, number> = { cursor: 0, animation: 700, magical: 1500 };
+    const schedule = (cb: () => void, delay = 0) => {
       const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: object) => number };
-      const go = () => { if (w.requestIdleCallback) w.requestIdleCallback(cb, { timeout: 2500 }); else setTimeout(cb, 800); };
+      const go = () => {
+        const kick = () => { if (w.requestIdleCallback) w.requestIdleCallback(cb, { timeout: 2500 }); else setTimeout(cb, 200); };
+        if (delay > 0) setTimeout(kick, delay); else kick();
+      };
       if (document.readyState === "complete") go();
       else window.addEventListener("load", go, { once: true });
     };
@@ -106,8 +115,15 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
         running.current[group] = false;
       }
       running.current[group] = true;
+      const startDelay = firstStart.current[group] ? (START_DELAY[group] ?? 0) : 0;
+      firstStart.current[group] = false;
       const effectsInGroup = EFFECTS.filter((e) => e.group === group && allowed[e.key] && enabled[e.key]).map((e) => e.key).filter((k) => k !== "agentCursors");
       schedule(async () => {
+        if (startDelay > 0) {
+          // Staggered "one by one" load (Stage 6/7 user request).
+          await new Promise((res) => setTimeout(res, startDelay));
+          if (cancelled) { running.current[group] = false; return; }
+        }
         if (cancelled) { running.current[group] = false; return; }
         try {
           const mod = await MODULES[group]();

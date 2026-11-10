@@ -296,10 +296,10 @@ footer.site { padding: 32px 0; border-top: 1px solid var(--line); color: var(--m
    Theme transitions are intentionally unaffected: switching theme is not
    an effect, it is the UI itself. */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto }
-  .reveal { transition: none }
-  .reveal-hidden { opacity: 1; transform: none }
-  .chip i { animation: none }
+  html:not([data-fx-rm-override="1"]) { scroll-behavior: auto }
+  html:not([data-fx-rm-override="1"]) .reveal { transition: none }
+  html:not([data-fx-rm-override="1"]) .reveal-hidden { opacity: 1; transform: none }
+  html:not([data-fx-rm-override="1"]) .chip i { animation: none }
 }
 html[data-fx-animation="off"] {
   scroll-behavior: auto;
@@ -311,8 +311,8 @@ html[data-fx-animation="off"] .chip i { animation: none }
 .reveal { transition: opacity 0.7s ease, transform 0.7s ease }
 .reveal-hidden { opacity: 0; transform: translateY(24px) }
 @media (prefers-reduced-motion: reduce) {
-  .reveal { transition: none }
-  .reveal-hidden { opacity: 1; transform: none }
+  html:not([data-fx-rm-override="1"]) .reveal { transition: none }
+  html:not([data-fx-rm-override="1"]) .reveal-hidden { opacity: 1; transform: none }
 }
 
 /* ---- Visitor theme dock (Stage 4) ---- */
@@ -591,7 +591,7 @@ html[data-fx-animation="off"] .chip i { animation: none }
 @keyframes aurora-b { to { transform: translate(-12vw, -8vh) scale(0.9) } }
 @media (prefers-color-scheme: light) { .fx-aurora-blob { opacity: 0.1 } }
 @media (prefers-reduced-motion: reduce) {
-  .fx-aurora-blob { animation: none }
+  html:not([data-fx-rm-override="1"]) .fx-aurora-blob { animation: none }
 }
 
 /* Mascot butterfly (miniature of the login scene) */
@@ -611,7 +611,7 @@ html[data-fx-animation="off"] .chip i { animation: none }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fx-wing { animation: none }
+  html:not([data-fx-rm-override="1"]) .fx-wing { animation: none }
 }
 
 /* Click ripple ring */
@@ -709,4 +709,19 @@ html.ac-run [data-ac="line"] { visibility: visible; transform: scaleX(0); transf
 .ac-caret { position: absolute; width: 2px; animation: acb 0.6s steps(2) infinite; }
 @keyframes acb { 50% { opacity: 0; } }
 .ac-btn { position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 10000; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 14px; border-radius: 99px; font: 600 13px system-ui, sans-serif; cursor: pointer; }
-@media (prefers-reduced-motion: reduce) { .ac-caret { animation: none; } }
+@media (prefers-reduced-motion: reduce) { html:not([data-fx-rm-override="1"]) .ac-caret { animation: none; } }
+
+/* Stage 6/7 — fx containers fade in one by one as the staggered start
+   brings each group up (mascot → trail/ripple → magical background). */
+@keyframes fx-fade-in { from { opacity: 0 } to { opacity: 1 } }
+.fx-mascot, .fx-trail, .fx-aurora, .hero-network, .fx-starfield, .fx-nebula {
+  animation: fx-fade-in 0.9s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-fx-rm-override="1"]) .fx-mascot,
+  html:not([data-fx-rm-override="1"]) .fx-trail,
+  html:not([data-fx-rm-override="1"]) .fx-aurora,
+  html:not([data-fx-rm-override="1"]) .hero-network,
+  html:not([data-fx-rm-override="1"]) .fx-starfield,
+  html:not([data-fx-rm-override="1"]) .fx-nebula { animation: none }
+}
