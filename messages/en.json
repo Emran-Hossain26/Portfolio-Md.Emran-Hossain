@@ -208,7 +208,9 @@
     "error_rate_limited": "Too many attempts — please try again later.",
     "error_taken": "That slot was just taken — please pick another.",
     "error_unavailable": "Booking is temporarily unavailable.",
-    "error_server": "Something went wrong. Please try again."
+    "error_server": "Something went wrong. Please try again.",
+    "error_turnstile": "Verification failed — please complete the anti-bot check and try again.",
+    "slotsLeft": "left"
   },
   "terminal": {
     "title": "Terminal",

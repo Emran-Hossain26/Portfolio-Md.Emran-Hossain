@@ -112,18 +112,22 @@ export async function getPosts(): Promise<Post[]> {
   try {
     const { data, error } = await db()
       .from("posts")
-      .select("slug,title_en,title_bn,body_en,body_bn,meta_en,meta_bn")
+      .select("slug,title_en,title_bn,body_en,body_bn,meta_en,meta_bn,status")
       .eq("published", true)
       .order("created_at", { ascending: false });
     if (error || !data?.length) {
       return (await import("@/data/posts")).samplePosts;
     }
-    return data.map((row) => ({
-      slug: row.slug as string,
-      title: L(row.title_en, row.title_bn),
-      body: L(row.body_en, row.body_bn),
-      meta: L(row.meta_en, row.meta_bn),
-    }));
+    // Stage 6 audit fix: respect the status lifecycle — a draft/scheduled
+    // row with the legacy published checkbox still true must not leak.
+    return data
+      .filter((row) => ((row.status as string) ?? "published") === "published")
+      .map((row) => ({
+        slug: row.slug as string,
+        title: L(row.title_en, row.title_bn),
+        body: L(row.body_en, row.body_bn),
+        meta: L(row.meta_en, row.meta_bn),
+      }));
   } catch {
     return (await import("@/data/posts")).samplePosts;
   }
@@ -244,15 +248,28 @@ export async function getHeroTexts(): Promise<{
       .eq("key", "hero_texts")
       .maybeSingle();
     if (!data?.value) return null;
+    // Two writer shapes exist in the wild:
+    //  - current /admin/hero: {heading:{en,bn}, intro:{en,bn}, cta, avail}
+    //  - legacy /admin/texts: {en:{heading,intro}, bn:{heading,intro}}
+    // Support both; treat an all-empty save as unset (messages fallback).
     const v = data.value as {
-      en: { heading: string; intro: string };
-      bn: { heading: string; intro: string };
+      heading?: { en: string; bn: string };
+      intro?: { en: string; bn: string };
+      en?: { heading: string; intro: string };
+      bn?: { heading: string; intro: string };
       cta?: { en: string; bn: string };
       avail?: boolean;
     };
+    const heading = v.heading
+      ? L(v.heading.en, v.heading.bn)
+      : L(v.en?.heading, v.bn?.heading);
+    const intro = v.intro
+      ? L(v.intro.en, v.intro.bn)
+      : L(v.en?.intro, v.bn?.intro);
+    if (!heading.en && !heading.bn && !intro.en && !intro.bn) return null;
     return {
-      heading: L(v.en?.heading, v.bn?.heading),
-      intro: L(v.en?.intro, v.bn?.intro),
+      heading,
+      intro,
       cta: L(v.cta?.en, v.cta?.bn),
       avail: v.avail !== false,
     };
@@ -823,42 +840,30 @@ export async function getPageSeo(
 
 export type EffectsSettings = {
   master: boolean;
-  network: boolean;
-  trail: boolean;
-  ripple: boolean;
-  magnetic: boolean;
-  tilt: boolean;
-  mascot: boolean;
-  aurora: boolean;
-  parallax: boolean;
-  scramble: boolean;
-  counters: boolean;
-  /** First-visit default for new visitors: Full or Lite (lite = off on touch/slow). */
-  default_mode: 'full' | 'lite';
-  /** Disable heavy effects (cursor group) on touch/mobile. Default ON. */
+  default_mode: "full" | "lite";
   touch_disable: boolean;
-  /** Scales particle counts and glow strength. */
-  intensity: 'low' | 'medium' | 'high';
-  /** Stage 6: when ON, visitor reduced-motion no longer disables effects. */
+  intensity: "low" | "medium" | "high";
   override_reduced: boolean;
+  // cursor
+  mascot: boolean; trail: boolean; ripple: boolean; magnetic: boolean;
+  comet: boolean; fairy: boolean; rune: boolean; firefly: boolean;
+  // animation
+  tilt: boolean; parallax: boolean; scramble: boolean; counters: boolean;
+  shimmer: boolean; cardGlow: boolean; sparkleBurst: boolean; floaters: boolean;
+  // magical
+  aurora: boolean; network: boolean; starField: boolean; nebula: boolean; sparkleField: boolean; swarm: boolean;
 };
 
 export const FX_DEFAULTS: EffectsSettings = {
   master: true,
-  network: true,
-  trail: true,
-  ripple: true,
-  magnetic: true,
-  tilt: true,
-  mascot: true,
-  aurora: true,
-  parallax: true,
-  scramble: true,
-  counters: true,
-  default_mode: 'full',
+  default_mode: "full",
   touch_disable: true,
-  intensity: 'medium',
+  intensity: "medium",
   override_reduced: false,
+  // per-effect defaults (all on)
+  mascot: true, trail: true, ripple: true, magnetic: true, comet: true, fairy: true, rune: true, firefly: true,
+  tilt: true, parallax: true, scramble: true, counters: true, shimmer: true, cardGlow: true, sparkleBurst: true, floaters: true,
+  aurora: true, network: true, starField: true, nebula: true, sparkleField: true, swarm: true,
 };
 
 export async function getEffectsSettings(): Promise<EffectsSettings> {
