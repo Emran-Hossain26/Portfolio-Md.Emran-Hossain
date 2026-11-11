@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     if (slugs.length) {
       await db
         .from("posts")
-        .update({ status: "published", published: true })
+        .update({ status: "published" })
         .in("slug", slugs)
         .eq("status", "scheduled");
       published = slugs.length;

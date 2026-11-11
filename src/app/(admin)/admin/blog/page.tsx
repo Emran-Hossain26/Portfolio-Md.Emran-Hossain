@@ -32,7 +32,7 @@ const SETTINGS_FIELDS = [
   { name: "scheduled_at", label: "Scheduled publish (ISO, optional)", type: "text" as const },
   { name: "categories", label: "Categories (comma-separated)", type: "text" as const },
   { name: "tags", label: "Tags (comma-separated)", type: "text" as const },
-  { name: "published", label: "Published", type: "check" as const },
+
 ];
 
 export default async function AdminBlogPage() {

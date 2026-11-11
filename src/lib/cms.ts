@@ -113,7 +113,6 @@ export async function getPosts(): Promise<Post[]> {
     const { data, error } = await db()
       .from("posts")
       .select("slug,title_en,title_bn,body_en,body_bn,meta_en,meta_bn,status")
-      .eq("published", true)
       .order("created_at", { ascending: false });
     if (error || !data?.length) {
       return (await import("@/data/posts")).samplePosts;
