@@ -58,7 +58,23 @@ export default async function ProjectPage({
         ]}
       />
       <section style={{ paddingTop: 0 }}>
-        <PageHeading>{pick(resolved, project.title)}</PageHeading>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <PageHeading>{pick(resolved, project.title)}</PageHeading>
+          {project.status === "running" && (
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                borderRadius: 999,
+                padding: "3px 10px",
+                background: "var(--ok, #13805a)",
+                color: "#fff",
+              }}
+            >
+              {s("running")}
+            </span>
+          )}
+        </div>
 
         {/* Case-study layout in the approved showcase style: media area +
             Problem → Solution side by side, stacked on mobile. */}
@@ -84,16 +100,23 @@ export default async function ProjectPage({
                 <span key={tag}>{tag}</span>
               ))}
             </div>
-            {project.demo_url ? (
+            {(project.live_url || project.demo_url || project.repo_url) ? (
               <div className="row">
-                <a
-                  className="btn p"
-                  href={project.demo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("live")}
-                </a>
+                {(project.live_url || project.demo_url) && (
+                  <a
+                    className="btn p"
+                    href={project.live_url || project.demo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t("live")}
+                  </a>
+                )}
+                {project.repo_url && (
+                  <a className="btn" href={project.repo_url} target="_blank" rel="noopener noreferrer">
+                    {s("source")}
+                  </a>
+                )}
               </div>
             ) : null}
           </div>

@@ -16,6 +16,8 @@ export async function Projects() {
     slideJoin: t("slideJoin"),
     screenshot: t("screenshot"),
     promoVideo: t("promoVideo"),
+    running: t("running"),
+    source: t("source"),
   };
 
   return (

@@ -27,6 +27,14 @@ export type Project = {  slug: string;
   slides?: ProjectSlide[];
   /** Optional live demo link ("Live demo" button only when set). */
   demo_url?: string;
+  /** Preferred live link (Stage U2) — wins over demo_url when set. */
+  live_url?: string;
+  /** Public source repository ("Source" button only when set). */
+  repo_url?: string;
+  /** Lifecycle: running projects get a public "Running" badge. */
+  status?: "running" | "completed" | "planned" | "paused";
+  /** Featured projects float to the top of public lists. */
+  featured?: boolean;
   /** Optional OG/Twitter share image for the project page (seed/static only). */
   og_image?: string;
 };

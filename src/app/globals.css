@@ -141,7 +141,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .hero h1 { font-size: clamp(28px, 3.2vw, 42px); max-width: 22ch }
 .hero p { color: var(--mute); margin: 12px 0 20px; max-width: 52ch; font-size: 15px }
 .hero .cta { display: flex; gap: 12px; flex-wrap: wrap }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; position: relative }
 .photo { width: 100%; max-height: 340px; aspect-ratio: 1; object-fit: cover; border-radius: 14px; border: 1px solid var(--line) }
 .status { margin-top: 12px; font-size: 14px; display: grid; gap: 6px }
 .status div {

@@ -51,21 +51,24 @@ export async function getProjects(): Promise<Project[]> {
   cacheTag("content");
   if (!configured()) return (await import("@/data/projects")).seedProjects;
   try {
-    // result_en/result_bn/metrics arrive with migration 20261113 — retry
-    // without them pre-migration so the real showcase never falls back to seeds.
+    // Stage U2: hidden (published=false) and trashed (deleted_at) rows never
+    // reach the public site. Columns arrive with migration 20261117 — the
+    // fetch retries down to the pre-U2 shape (published-only) so the real
+    // showcase never falls back to seeds mid-upgrade. Featured rows float
+    // to the top, then sort_order.
     const P_SELECT = "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,tech,media,video,demo_url,slides,sort_order";
-    const P_SELECT_FULL = P_SELECT.replace("tech,", "result_en,result_bn,metrics,tech,");
-    const fetchProjects = async (select: string) => {
-      const { data, error } = await db()
-      .from("projects")
-      .select(select)
-      .eq("published", true)
-      .order("sort_order");
+    const P_SELECT_CASE = P_SELECT.replace("tech,", "result_en,result_bn,metrics,tech,");
+    const P_SELECT_FULL = P_SELECT_CASE.replace("tech,", "status,featured,live_url,repo_url,tech,");
+    const fetchProjects = async (select: string, useU2 = true) => {
+      let q = db().from("projects").select(select).eq("published", true);
+      if (useU2) q = q.is("deleted_at", null).order("featured", { ascending: false });
+      const { data, error } = await q.order("sort_order");
       if (error) return null;
       return (data as unknown as Record<string, unknown>[]) ?? null;
     };
     let data = await fetchProjects(P_SELECT_FULL);
-    if (!data) data = await fetchProjects(P_SELECT);
+    if (!data) data = await fetchProjects(P_SELECT_CASE);
+    if (!data) data = await fetchProjects(P_SELECT, false);
     if (!data?.length) {
       return (await import("@/data/projects")).seedProjects;
     }
@@ -92,6 +95,12 @@ export async function getProjects(): Promise<Project[]> {
         video: (row.video as string) || undefined,
         slides: parseSlides(row.slides),
         demo_url: (row.demo_url as string) || undefined,
+        live_url: (row.live_url as string) || undefined,
+        repo_url: (row.repo_url as string) || undefined,
+        status: row.status === "running" || row.status === "planned" || row.status === "paused" || row.status === "completed"
+          ? (row.status as Project["status"])
+          : undefined,
+        featured: row.featured === true ? true : undefined,
       };
     });
   } catch {

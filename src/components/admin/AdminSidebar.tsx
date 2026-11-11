@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   IconZap, IconHome, IconHeading, IconPalette, IconEye,
   IconBriefcase, IconFeather, IconStar, IconTimeline, IconGraduation,
-  IconFileUp, IconSearch, IconShuffle, IconPulse, IconLogout,
+  IconFileUp, IconSearch, IconShuffle, IconPulse, IconLogout, IconTrash, IconPlus,
 } from "@/components/admin/icons";
 
 /**
@@ -32,9 +32,18 @@ export function AdminSidebar({ open }: { open?: boolean }) {
       ],
     },
     {
+      title: "My Projects",
+      items: [
+        { href: "/admin/projects", label: "All projects", icon: IconBriefcase, exact: true },
+        { href: "/admin/projects/running", label: "Running", icon: IconPulse },
+        { href: "/admin/projects/new", label: "Add new project", icon: IconPlus },
+        { href: "/admin/projects/hidden", label: "Hidden", icon: IconEye },
+        { href: "/admin/projects/trash", label: "Trash", icon: IconTrash },
+      ],
+    },
+    {
       title: "Content",
       items: [
-        { href: "/admin/projects", label: "Projects", icon: IconBriefcase },
         { href: "/admin/blog", label: "Blog", icon: IconFeather },
         { href: "/admin/testimonials", label: "Testimonials", icon: IconStar },
         { href: "/admin/experience", label: "Experience", icon: IconTimeline },
@@ -52,8 +61,8 @@ export function AdminSidebar({ open }: { open?: boolean }) {
     },
   ];
 
-  const isActive = (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+  const isActive = (href: string, exact?: boolean) =>
+    exact ? pathname === href : href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   return (
     <aside
@@ -92,7 +101,7 @@ export function AdminSidebar({ open }: { open?: boolean }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    aria-current={isActive(item.href) ? "page" : undefined}
+                    aria-current={isActive(item.href, (item as { exact?: boolean }).exact) ? "page" : undefined}
                     className={cn(
         "flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap",
         isActive(item.href) && "bg-blue-50 text-blue-700",

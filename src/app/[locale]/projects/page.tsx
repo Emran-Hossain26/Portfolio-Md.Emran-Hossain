@@ -35,6 +35,8 @@ export default async function ProjectsPage({
     screenshot: s("screenshot"),
     slideJoin: s("slideJoin"),
     promoVideo: s("promoVideo"),
+    running: s("running"),
+    source: s("source"),
   };
   return (
     <main className="wrap" id="main">

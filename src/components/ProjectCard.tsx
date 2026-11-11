@@ -8,6 +8,10 @@ export type CardLabels = MediaLabels & {
   solution: string;
   live: string;
   caseStudy: string;
+  /** Stage U2: "Running" badge label for status === "running". */
+  running?: string;
+  /** Stage U2: "Source" button label for repo_url. */
+  source?: string;
 };
 
 /** EN with BN→EN fallback (Section 4c). */
@@ -36,6 +40,25 @@ export function ProjectCard({
   return (
     <article className="card" data-ac="box">
       <ProjectMedia project={project} locale={locale} labels={labels} />
+      {project.status === "running" && (
+        <span
+          data-ac="text"
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            zIndex: 2,
+            fontSize: 12,
+            fontWeight: 600,
+            borderRadius: 999,
+            padding: "3px 10px",
+            background: "var(--ok, #13805a)",
+            color: "#fff",
+          }}
+        >
+          {labels.running ?? "Running"}
+        </span>
+      )}
       <h3 data-ac="text">{pick(locale, project.title)}</h3>
       {project.problem && (
         <>
@@ -54,17 +77,28 @@ export function ProjectCard({
           <span key={tag}>{tag}</span>
         ))}
       </div>
-      {(project.demo_url || caseStudy) && (
+      {(project.live_url || project.demo_url || project.repo_url || caseStudy) && (
         <div className="row">
-          {project.demo_url && (
+          {(project.live_url || project.demo_url) && (
             <a
               className="btn p"
               style={{ fontSize: 14, padding: "8px 14px" }}
-              href={project.demo_url}
+              href={project.live_url || project.demo_url}
               target="_blank"
               rel="noopener noreferrer"
             >
               {labels.live}
+            </a>
+          )}
+          {project.repo_url && (
+            <a
+              className="btn"
+              style={{ fontSize: 14, padding: "8px 14px" }}
+              href={project.repo_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {labels.source ?? "Source"}
             </a>
           )}
           {caseStudy && (
