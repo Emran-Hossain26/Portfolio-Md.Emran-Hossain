@@ -110,7 +110,7 @@ h1, h2, h3 { font-family: var(--font-sora), var(--font-hind), sans-serif; line-h
 a { color: inherit }
 
 /* ---- Layout & components (verbatim from mockup) ---- */
-.wrap { max-width: 1080px; margin: auto; padding: 0 20px }
+.wrap { max-width: 1280px; margin: auto; padding: 0 clamp(20px, 4vw, 48px) }
 header {
   position: sticky; top: 0;
   background: color-mix(in srgb, var(--bg) 90%, transparent);
@@ -137,12 +137,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   background: var(--accent); border-color: var(--accent); color: #fff;
   font-size: 16px; padding: 11px 20px;
 }
-.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: center; padding: 72px 0 }
-.hero h1 { font-size: clamp(34px, 5vw, 56px) }
-.hero p { color: var(--mute); margin: 18px 0 28px; max-width: 52ch }
+.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(24px, 4vw, 48px); align-items: center; padding: clamp(20px, 3.5vh, 44px) 0 }
+.hero h1 { font-size: clamp(28px, 3.2vw, 42px); max-width: 22ch }
+.hero p { color: var(--mute); margin: 12px 0 20px; max-width: 52ch; font-size: 15px }
 .hero .cta { display: flex; gap: 12px; flex-wrap: wrap }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px }
-.photo { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; border: 1px solid var(--line) }
+.photo { width: 100%; max-height: 340px; aspect-ratio: 1; object-fit: cover; border-radius: 14px; border: 1px solid var(--line) }
 .status { margin-top: 12px; font-size: 14px; display: grid; gap: 6px }
 .status div {
   display: flex; justify-content: space-between;
@@ -283,7 +283,10 @@ footer.site { padding: 32px 0; border-top: 1px solid var(--line); color: var(--m
 
 /* ---- Media queries ---- */
 @media (max-width: 760px) {
-  .hero { grid-template-columns: 1fr; padding: 40px 0 }
+  .hero { grid-template-columns: 1fr; padding: 24px 0 }
+  .hero p { margin: 10px 0 16px }
+  .status { margin-top: 8px }
+  .photo { max-height: 260px }
   nav .nav-links { display: none } /* desktop links hide; hamburger menu takes over (rule #9, approved) */
   .nav-burger { display: inline-block }
 }
@@ -726,3 +729,31 @@ html.ac-run [data-ac="line"] { visibility: visible; transform: scaleX(0); transf
   html:not([data-fx-rm-override="1"]) .fx-starfield,
   html:not([data-fx-rm-override="1"]) .fx-nebula { animation: none }
 }
+
+
+/* ---- Stage U1: Experience timeline on home ---- */
+.timeline { position: relative; padding-left: 26px; max-width: 760px }
+.timeline::before {
+  content: ""; position: absolute; left: 7px; top: 4px; bottom: 4px;
+  width: 2px; background: var(--line); transform-origin: top;
+  animation: cvline .9s ease-out both;
+}
+@keyframes cvline { from { transform: scaleY(0) } to { transform: scaleY(1) } }
+.timeline-item { position: relative }
+.timeline-item::before {
+  content: ""; position: absolute; left: -26px; top: 8px;
+  width: 12px; height: 12px; border-radius: 99px;
+  background: var(--accent); border: 2px solid var(--bg); box-sizing: border-box;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-fx-rm-override="1"]) .timeline::before { animation: none }
+}
+
+/* ---- Stage U1: status compact chips ---- */
+.status-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px }
+.status-chips .chip-s {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; padding: 3px 10px; border-radius: 99px;
+  border: 1px solid var(--line); background: var(--panel)
+}
+.status-chips .chip-s i { color: var(--ok); font-style: normal; font-size: 8px }

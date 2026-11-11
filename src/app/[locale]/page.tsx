@@ -17,6 +17,7 @@ import { BlogPreview } from "@/components/home/BlogPreview";
 import { Contact } from "@/components/home/Contact";
 import { Certifications, Faq, Stats } from "@/components/home/Extras";
 import { NowSection } from "@/components/home/NowSection";
+import { Experience } from "@/components/home/Experience";
 
 // Stage 6 item 5: nonce-CSP layout is dynamic — this page renders per request.
 export const instant = false;
@@ -40,6 +41,7 @@ const SECTION_MAP: Record<string, () => React.ReactNode> = {
   skills: () => <SkillsWall />,
   stats: () => <Stats />,
   projects: () => <Projects />,
+  experience: () => <Experience />,
   certifications: () => <Certifications />,
   reviews: () => <Reviews />,
   faq: () => <Faq />,
@@ -50,10 +52,10 @@ const SECTION_MAP: Record<string, () => React.ReactNode> = {
 
 const DEFAULT_ORDER = [
   "expertise",
+  "projects",
+  "experience",
   "skills",
   "stats",
-  "projects",
-  "certifications",
   "reviews",
   "faq",
   "now",
