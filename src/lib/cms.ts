@@ -51,24 +51,31 @@ export async function getProjects(): Promise<Project[]> {
   cacheTag("content");
   if (!configured()) return (await import("@/data/projects")).seedProjects;
   try {
-    // Stage U2: hidden (published=false) and trashed (deleted_at) rows never
-    // reach the public site. Columns arrive with migration 20261117 — the
-    // fetch retries down to the pre-U2 shape (published-only) so the real
-    // showcase never falls back to seeds mid-upgrade. Featured rows float
-    // to the top, then sort_order.
+    // Stage U4: the publication status is `pub_status` (draft | published |
+    // unpublished | archived); trash stays `deleted_at`. Only published,
+    // non-trashed rows are public. Columns arrive with migration 20261118 —
+    // the fetch retries down to the pre-U2 shape (published-only) so the real
+    // showcase never falls back to seeds mid-upgrade. Featured rows float to
+    // the top, then sort_order.
     const P_SELECT = "slug,title_en,title_bn,problem_en,problem_bn,solution_en,solution_bn,tech,media,video,demo_url,slides,sort_order";
     const P_SELECT_CASE = P_SELECT.replace("tech,", "result_en,result_bn,metrics,tech,");
-    const P_SELECT_FULL = P_SELECT_CASE.replace("tech,", "status,featured,live_url,repo_url,tech,");
-    const fetchProjects = async (select: string, useU2 = true) => {
+    const P_SELECT_U2 = P_SELECT_CASE.replace("tech,", "status,featured,live_url,repo_url,tech,");
+    const P_SELECT_FULL = P_SELECT_U2.replace(
+      "tech,",
+      "cover_url,category,project_type,role_en,role_bn,features_en,features_bn,pub_status,published_at,tech,"
+    );
+    const fetchProjects = async (select: string, useU2 = true, usePub = true) => {
       let q = db().from("projects").select(select).eq("published", true);
+      if (usePub) q = q.eq("pub_status", "published");
       if (useU2) q = q.is("deleted_at", null).order("featured", { ascending: false });
       const { data, error } = await q.order("sort_order");
       if (error) return null;
       return (data as unknown as Record<string, unknown>[]) ?? null;
     };
     let data = await fetchProjects(P_SELECT_FULL);
+    if (!data) data = await fetchProjects(P_SELECT_U2);
     if (!data) data = await fetchProjects(P_SELECT_CASE);
-    if (!data) data = await fetchProjects(P_SELECT, false);
+    if (!data) data = await fetchProjects(P_SELECT, false, false);
     if (!data?.length) {
       return (await import("@/data/projects")).seedProjects;
     }
@@ -101,6 +108,21 @@ export async function getProjects(): Promise<Project[]> {
           ? (row.status as Project["status"])
           : undefined,
         featured: row.featured === true ? true : undefined,
+        cover_url: (row.cover_url as string) || undefined,
+        category: (row.category as string) || undefined,
+        project_type: (row.project_type as string) || undefined,
+        role: (row.role_en || row.role_bn) ? L(row.role_en, row.role_bn) : undefined,
+        features: (row.features_en || row.features_bn) ? L(row.features_en, row.features_bn) : undefined,
+        seo: row.seo_title_en || row.seo_desc_en || row.og_image || row.noindex
+          ? {
+              title: (row.seo_title_en || row.seo_title_bn) ? L(row.seo_title_en, row.seo_title_bn) : undefined,
+              desc: (row.seo_desc_en || row.seo_desc_bn) ? L(row.seo_desc_en, row.seo_desc_bn) : undefined,
+              keywords: (row.seo_keywords as string) || undefined,
+              og_image: (row.og_image as string) || undefined,
+              canonical: (row.canonical as string) || undefined,
+              noindex: row.noindex === true ? true : undefined,
+            }
+          : undefined,
       };
     });
   } catch {
@@ -194,6 +216,14 @@ export type TimelineItem = {
   org: Localized;
   period: string;
   details: string;
+  /** Stage U4 employment fields (experience module only). */
+  logoUrl?: string;
+  websiteUrl?: string;
+  employmentType?: string;
+  summary?: Localized;
+  achievements?: Localized;
+  tags?: string[];
+  featured?: boolean;
 };
 
 export async function getExperience(): Promise<TimelineItem[]> {
@@ -201,17 +231,51 @@ export async function getExperience(): Promise<TimelineItem[]> {
   cacheTag("content");
   if (!configured()) return [];
   try {
-    const { data, error } = await db()
-      .from("experience")
-      .select("role_en,role_bn,org_en,org_bn,period,details")
-      .order("sort");
-    if (error || !data) return [];
-    return data.map((row) => ({
-      role: L(row.role_en, row.role_bn),
-      org: L(row.org_en, row.org_bn),
-      period: row.period ?? "",
-      details: row.details ?? "",
-    }));
+    // Stage U4: publication gate + richer employment fields. Retry chain
+    // keeps pre-migration behavior identical (all rows, by sort).
+    const E_BASE = "role_en,role_bn,org_en,org_bn,period,details";
+    const E_MID = E_BASE.replace("details", "details,sort");
+    const E_FULL = E_MID.replace(
+      "details,",
+      "details,logo_url,website_url,employment_type,start_date,end_date,is_current,summary_en,summary_bn,achievements_en,achievements_bn,tags,featured,"
+    );
+    const fetchRows = async (select: string, gated: boolean) => {
+      let q = db().from("experience").select(select);
+      if (gated) q = q.eq("published", true).is("deleted_at", null).eq("pub_status", "published");
+      const { data, error } = await q.order("sort");
+      if (error || !data) return null;
+      return data as unknown as Record<string, unknown>[];
+    };
+    let data = await fetchRows(E_FULL, true);
+    if (!data) data = await fetchRows(E_MID, false);
+    if (!data) return [];
+    return data.map((row) => {
+      // Structured duration (U4) wins; legacy free-text period stays the fallback.
+      const start = String(row.start_date ?? "");
+      const end = row.is_current === true ? "" : String(row.end_date ?? "");
+      const fmt = (ym: string) => {
+        if (!/^\d{4}-\d{2}$/.test(ym)) return ym;
+        const [y, m] = ym.split("-").map(Number);
+        const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${names[m - 1] ?? ""} ${y}`;
+      };
+      const structured = start
+        ? `${fmt(start)} — ${row.is_current === true ? "Present" : fmt(end) || "Present"}`
+        : "";
+      return {
+        role: L(row.role_en, row.role_bn),
+        org: L(row.org_en, row.org_bn),
+        period: structured || String(row.period ?? ""),
+        details: String(row.details ?? ""),
+        logoUrl: (row.logo_url as string) || undefined,
+        websiteUrl: (row.website_url as string) || undefined,
+        employmentType: (row.employment_type as string) || undefined,
+        summary: (row.summary_en || row.summary_bn) ? L(row.summary_en, row.summary_bn) : undefined,
+        achievements: (row.achievements_en || row.achievements_bn) ? L(row.achievements_en, row.achievements_bn) : undefined,
+        tags: Array.isArray(row.tags) ? (row.tags as string[]) : undefined,
+        featured: row.featured === true ? true : undefined,
+      };
+    });
   } catch {
     return [];
   }
@@ -352,7 +416,21 @@ export async function getThemeOverrides(): Promise<{
 
 // --- Stage 1: Dynamic Content getters (services, skills, certs, faq, stats, social, contact, sections, flags, presets, messages) ---
 
-export type Service = { id: string; title: Localized; desc: Localized; icon: string; price: string; sort: number };
+export type Service = {
+  id: string;
+  title: Localized;
+  desc: Localized;
+  icon: string;
+  price: string;
+  sort: number;
+  /** Stage U4 fields (services / "What I Do" module). */
+  fullDesc?: Localized;
+  iconSvg?: string;
+  image?: string;
+  features?: Localized;
+  tags?: string[];
+  featured?: boolean;
+};
 export type Skill = { id: string; name: string; category: string; level: number; sort: number };
 export type Certification = { id: string; title: Localized; issuer: Localized; year: string; href: string; sort: number };
 export type Faq = { id: string; q: Localized; a: Localized; sort: number };
@@ -370,13 +448,23 @@ export async function getServices(): Promise<Service[]> {
     }));
   }
   try {
-    // price arrives with migration 20261113 — retry without it pre-migration.
-    const fetchServices = async (select: string): Promise<Record<string, unknown>[] | null> => {
-      const { data, error } = await db().from("services").select(select).eq("published", true).is("deleted_at", null).order("sort_order");
+    // Stage U4: pub_status gate + richer fields (full description, image,
+    // icon svg, feature lists, tags). Retry chain keeps pre-migration safe.
+    const S_BASE = "id,title_en,title_bn,desc_en,desc_bn,icon,sort_order";
+    const S_MID = S_BASE.replace("icon,", "price,icon,");
+    const S_FULL = S_MID.replace(
+      "sort_order",
+      "full_desc_en,full_desc_bn,image_url,icon_svg,features_en,features_bn,tags,featured,pub_status,sort_order"
+    );
+    const fetchServices = async (select: string, usePub = true): Promise<Record<string, unknown>[] | null> => {
+      let q = db().from("services").select(select).eq("published", true);
+      if (usePub) q = q.eq("pub_status", "published");
+      const { data, error } = await q.is("deleted_at", null).order("sort_order");
       return error ? null : (data as unknown as Record<string, unknown>[]);
     };
-    const data = (await fetchServices("id,title_en,title_bn,desc_en,desc_bn,icon,price,sort_order"))
-      ?? (await fetchServices("id,title_en,title_bn,desc_en,desc_bn,icon,sort_order"));
+    const data = (await fetchServices(S_FULL))
+      ?? (await fetchServices(S_MID))
+      ?? (await fetchServices(S_BASE, false));
     if (!data?.length) {
       const { expertiseItems } = await import("@/data/expertise");
       return expertiseItems.map((e, i) => ({ id: `seed-${i}`, title: e.title, desc: e.desc, icon: "", price: "", sort: i + 1 }));
@@ -385,7 +473,13 @@ export async function getServices(): Promise<Service[]> {
       id: r.id as string,
       title: L(r.title_en, r.title_bn),
       desc: L(r.desc_en, r.desc_bn),
+      fullDesc: (r.full_desc_en || r.full_desc_bn) ? L(r.full_desc_en, r.full_desc_bn) : undefined,
       icon: (r.icon as string) ?? "",
+      iconSvg: (r.icon_svg as string) || undefined,
+      image: (r.image_url as string) || undefined,
+      features: (r.features_en || r.features_bn) ? L(r.features_en, r.features_bn) : undefined,
+      tags: Array.isArray(r.tags) ? (r.tags as string[]) : undefined,
+      featured: r.featured === true ? true : undefined,
       price: (r.price as string) ?? "",
       sort: (r.sort_order as number) ?? 0,
     }));

@@ -196,15 +196,27 @@ export async function generateMetadata({
     : routing.defaultLocale) as Locale;
   const project = await getProject(slug);
   if (!project) return {};
+  // Task U4: per-record SEO overrides win over the defaults when set.
+  const seoTitle = project.seo?.title ? pick(resolved, project.seo.title) : "";
+  const seoDesc = project.seo?.desc ? text(resolved, project.seo.desc) : "";
   const meta = pageMetadata(
     resolved,
     `/projects/${project.slug}`,
-    `${pick(resolved, project.title)} | ${resolved === "en" ? "Md Emran Hossain" : "মোঃ ইমরান হোসেন"}`,
-    text(resolved, project.solution ?? project.problem),
+    seoTitle
+      ? `${seoTitle} | ${resolved === "en" ? "Md Emran Hossain" : "মোঃ ইমরান হোসেন"}`
+      : `${pick(resolved, project.title)} | ${resolved === "en" ? "Md Emran Hossain" : "মোঃ ইমরান হোসেন"}`,
+    seoDesc || text(resolved, project.solution ?? project.problem),
   );
-  if (project.og_image) {
-    meta.openGraph = { ...meta.openGraph, images: [project.og_image] };
-    meta.twitter = { ...meta.twitter, images: [project.og_image] };
+  const og = project.seo?.og_image || project.og_image;
+  if (og) {
+    meta.openGraph = { ...meta.openGraph, images: [og] };
+    meta.twitter = { ...meta.twitter, images: [og] };
+  }
+  if (project.seo?.canonical) {
+    meta.alternates = { ...meta.alternates, canonical: project.seo.canonical };
+  }
+  if (project.seo?.noindex) {
+    meta.robots = { index: false, follow: false };
   }
   return meta;
 }

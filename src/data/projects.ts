@@ -35,6 +35,25 @@ export type Project = {  slug: string;
   status?: "running" | "completed" | "planned" | "paused";
   /** Featured projects float to the top of public lists. */
   featured?: boolean;
+  /** Cover/thumbnail image (U4) — card media fallback and OG fallback. */
+  cover_url?: string;
+  /** Free-form category (U4), e.g. "Web app", "Infrastructure". */
+  category?: string;
+  /** personal | professional | client (U4). */
+  project_type?: string;
+  /** My role / responsibilities (U4). */
+  role?: Localized;
+  /** Key features list (U4, one per line). */
+  features?: Localized;
+  /** Per-record SEO overrides (U4) — used by the project page metadata. */
+  seo?: {
+    title?: Localized;
+    desc?: Localized;
+    keywords?: string;
+    og_image?: string;
+    canonical?: string;
+    noindex?: boolean;
+  };
   /** Optional OG/Twitter share image for the project page (seed/static only). */
   og_image?: string;
 };

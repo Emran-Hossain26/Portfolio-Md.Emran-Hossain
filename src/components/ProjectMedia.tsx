@@ -108,13 +108,24 @@ export function ProjectMedia({
   const n = slides.length;
 
   // Mockup-faithful placeholder panel (empty slider): same gradient box.
+  // Task U4: the cover/thumbnail image fills the frame when set, replacing
+  // the plain placeholder.
   if (!n) {
+    const cover = project.cover_url?.trim();
     return (
       <div className="media" role="img" aria-label={title}>
-        <div>
-          {labels.screenshot}
-          <div style={{ color: "var(--ink)" }}>{title}</div>
-        </div>
+        {cover ? (
+          <img
+            src={cover}
+            alt={title}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <div>
+            {labels.screenshot}
+            <div style={{ color: "var(--ink)" }}>{title}</div>
+          </div>
+        )}
       </div>
     );
   }
