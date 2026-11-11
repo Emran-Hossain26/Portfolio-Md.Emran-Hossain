@@ -844,6 +844,9 @@ export type EffectsSettings = {
   touch_disable: boolean;
   intensity: "low" | "medium" | "high";
   override_reduced: boolean;
+  /** Agent Cursors intro: swarm size + duration multiplier. */
+  agentCursorCount: number;
+  agentCursorSpeed: number;
   // cursor
   mascot: boolean; trail: boolean; ripple: boolean; magnetic: boolean;
   comet: boolean; fairy: boolean; rune: boolean; firefly: boolean;
@@ -860,6 +863,8 @@ export const FX_DEFAULTS: EffectsSettings = {
   touch_disable: true,
   intensity: "medium",
   override_reduced: false,
+  agentCursorCount: 12,
+  agentCursorSpeed: 1.8,
   // per-effect defaults (all on)
   mascot: true, trail: true, ripple: true, magnetic: true, comet: true, fairy: true, rune: true, firefly: true,
   tilt: true, parallax: true, scramble: true, counters: true, shimmer: true, cardGlow: true, sparkleBurst: true, floaters: true,

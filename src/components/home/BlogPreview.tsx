@@ -14,8 +14,8 @@ export async function BlogPreview() {
       <div className="grid">
         {posts.map((post) => (
           <article className="card" data-ac="box" key={post.slug}>
-            <h3>{pick(locale, post.title)}</h3>
-            <p className="mute">{pick(locale, post.meta)}</p>
+            <h3 data-ac="text">{pick(locale, post.title)}</h3>
+            <p className="mute" data-ac="text">{pick(locale, post.meta)}</p>
           </article>
         ))}
       </div>

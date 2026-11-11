@@ -253,16 +253,26 @@ try{var th=(JSON.parse(localStorage.getItem("pf")||"{}").themes)||{};document.qu
 try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttribute("data-nav","1");}else{sessionStorage.setItem("pf_nav","1");}setTimeout(function(){document.documentElement.setAttribute("data-nav","1");},400);}catch(e){}`;
 
   // Agent Cursors intro — pre-paint gate. Adds `ac-run` to <html> before first
-  // paint ONLY when the visitor opted in (default on), is not reduced-motion /
-  // bot-like, and has not already seen the intro this session. Failsafe removes
-  // the class after 30s so the page is never stuck hidden.
+  // paint when: the visitor explicitly turned it on (runs even with
+  // reduced-motion — explicit consent), or the choice is unset and the
+  // visitor isn't reduced-motion/bot-like. Plays on every load (no
+  // sessionStorage play-once — see AgentCursors.tsx CFG).
+  // Failsafe: the component writes a `data-ac-alive` heartbeat once it
+  // mounts; if that never appears (JS failed/blocked), ac-run is removed
+  // after 12s so the page is never stuck hidden. Once it does appear, the
+  // build is trusted to finish on its own (scroll/skip/escape), however
+  // long the visitor takes — watcher just stops polling.
   const agentCursorsScript = `try{
-var acSeen=0;try{acSeen=sessionStorage.getItem('ac-seen')==='1'}catch(e){}
-var acFlag=1;try{var v=localStorage.getItem('effects:agentCursors');if(v!==null)acFlag=v!=='off'}catch(e){}
-var acRm=matchMedia('(prefers-reduced-motion: reduce)').matches;var acBot=/googlebot|bingo|bingpreview|lighthouse|headless|phantom|spider|crawler|preview/i.test(navigator.userAgent);
-if(acFlag&&!acRm&&!acBot&&!acSeen)document.documentElement.classList.add('ac-run');
+var acV=null;try{acV=localStorage.getItem('effects:agentCursors');}catch(e){}
+var acChoice=(acV==='on'||acV==='off')?acV:'unset';
+var acBot=!!navigator.webdriver||/googlebot|bingo|bingpreview|lighthouse|headless|phantom|spider|crawler|preview/i.test(navigator.userAgent);
+var acRm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(acChoice!=='off'&&!acBot&&(acChoice==='on'||!acRm))document.documentElement.classList.add('ac-run');
 }catch(e){}
-setTimeout(function(){try{document.documentElement.classList.remove('ac-run')}catch(e){}},30000);`;
+(function(){var acStart=Date.now();var acIv=setInterval(function(){try{
+if(!document.documentElement.classList.contains('ac-run')||Date.now()-acStart>1200000){clearInterval(acIv);return;}
+if(!document.documentElement.getAttribute('data-ac-alive')&&Date.now()-acStart>12000){document.documentElement.classList.remove('ac-run');clearInterval(acIv);}
+}catch(e){clearInterval(acIv);}},2000);})();`;
 
   return (
     <html

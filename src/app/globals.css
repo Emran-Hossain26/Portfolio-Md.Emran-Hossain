@@ -491,10 +491,10 @@ html[data-fx-animation="off"] .chip i { animation: none }
 }
 
 /* ---- Effects button + glass panel (Stage 5.1, public site only) ---- */
-.fx-btn-root { position: fixed; top: 50%; right: max(14px, env(safe-area-inset-right, 0px)); transform: translateY(-50%); z-index: 80 }
+.fx-btn-root { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 80 }
 .fx-btn {
   display: inline-flex; align-items: center; gap: 10px;
-  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 600; cursor: grab; touch-action: none;
   color: var(--ink);
   background: var(--panel);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -504,6 +504,7 @@ html[data-fx-animation="off"] .chip i { animation: none }
   position: relative;
 }
 .fx-btn:hover { border-color: var(--accent) }
+.fx-btn:active { cursor: grabbing }
 .fx-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 .fx-dot {
   position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;

@@ -14,8 +14,8 @@ export async function Reviews() {
         {testimonials.map((item, index) => (
           <div className="card" data-ac="box" key={index}>
             <blockquote>
-              {pick(locale, item.quote)}
-              <footer>{item.name}</footer>
+              <p style={{ margin: 0 }} data-ac="text">{pick(locale, item.quote)}</p>
+              <footer data-ac="text">{item.name}</footer>
             </blockquote>
           </div>
         ))}

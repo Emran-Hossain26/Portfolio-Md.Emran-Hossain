@@ -725,6 +725,8 @@ export async function saveEffectsAction(formData: FormData) {
     touch_disable: on("touch_disable"),
     intensity: formData.get("intensity") === "low" ? "low" : formData.get("intensity") === "high" ? "high" : "medium",
     override_reduced: on("override_reduced"),
+    agentCursorCount: Math.max(4, Math.min(24, Number(formData.get("agentCursorCount") ?? 12) || 12)),
+    agentCursorSpeed: Math.max(1, Math.min(3, Number(formData.get("agentCursorSpeed") ?? 1.8) || 1.8)),
   };
   for (const k of ["mascot","trail","ripple","magnetic","comet","fairy","rune","firefly","tilt","parallax","scramble","counters","shimmer","cardGlow","sparkleBurst","floaters","aurora","network","starField","nebula","sparkleField","swarm"]) {
     value[k] = on(k);

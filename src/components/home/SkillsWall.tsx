@@ -25,7 +25,7 @@ export async function SkillsWall() {
         <div className="grid">
           {[...groups.entries()].map(([category, list]) => (
             <div className="card" data-ac="box" key={category}>
-              <h3 style={{ marginBottom: 12 }}>{category}</h3>
+              <h3 style={{ marginBottom: 12 }} data-ac="text">{category}</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {list.map((s) => (
                   <div key={s.id}>

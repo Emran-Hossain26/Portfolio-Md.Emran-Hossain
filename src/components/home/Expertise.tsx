@@ -14,8 +14,8 @@ export async function Expertise() {
         <div className="grid">
           {services.map((item) => (
             <div className="card" data-ac="box" key={item.id}>
-              <h3>{pick(locale, item.title)}</h3>
-              <p>{pick(locale, item.desc)}</p>
+              <h3 data-ac="text">{pick(locale, item.title)}</h3>
+              <p data-ac="text">{pick(locale, item.desc)}</p>
             </div>
           ))}
         </div>

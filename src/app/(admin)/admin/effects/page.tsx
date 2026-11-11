@@ -126,6 +126,36 @@ export default async function EffectsPage({
               <span style={{ color: "var(--mute)", fontSize: 12.5 }}>— scales particle counts and glow strength</span>
             </span>
           </label>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+            <span>
+              Agent Cursors swarm size:{" "}
+              <input
+                type="number"
+                name="agentCursorCount"
+                min={4}
+                max={24}
+                step={1}
+                defaultValue={fx.agentCursorCount}
+                style={{ font: "inherit", padding: "6px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--panel)", color: "var(--ink)", width: 72 }}
+              />
+            </span>
+            <span style={{ color: "var(--mute)", fontSize: 12.5 }}>— how many cursors run the intro (4–24)</span>
+          </label>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+            <span>
+              Agent Cursors speed:{" "}
+              <input
+                type="number"
+                name="agentCursorSpeed"
+                min={1}
+                max={3}
+                step={0.1}
+                defaultValue={fx.agentCursorSpeed}
+                style={{ font: "inherit", padding: "6px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--panel)", color: "var(--ink)", width: 72 }}
+              />
+            </span>
+            <span style={{ color: "var(--mute)", fontSize: 12.5 }}>— duration multiplier; higher is slower (1–3)</span>
+          </label>
         </div>
 
         <div>

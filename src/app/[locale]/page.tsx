@@ -133,7 +133,7 @@ export default async function HomePage({
       ))}
     </main>
     <EffectsButton allowed={fxAllowed} intensity={fxSettings.intensity} />
-    <AgentCursors />
+    <AgentCursors cursorCount={fxSettings.agentCursorCount} cursorSpeed={fxSettings.agentCursorSpeed} />
     </>
   );
 }

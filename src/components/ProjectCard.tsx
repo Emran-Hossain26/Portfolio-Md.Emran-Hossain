@@ -36,17 +36,17 @@ export function ProjectCard({
   return (
     <article className="card" data-ac="box">
       <ProjectMedia project={project} locale={locale} labels={labels} />
-      <h3>{pick(locale, project.title)}</h3>
+      <h3 data-ac="text">{pick(locale, project.title)}</h3>
       {project.problem && (
         <>
-          <h4>{labels.problem}</h4>
-          <p>{text(locale, project.problem)}</p>
+          <h4 data-ac="text">{labels.problem}</h4>
+          <p data-ac="text">{text(locale, project.problem)}</p>
         </>
       )}
       {project.solution && (
         <>
-          <h4>{labels.solution}</h4>
-          <p>{text(locale, project.solution)}</p>
+          <h4 data-ac="text">{labels.solution}</h4>
+          <p data-ac="text">{text(locale, project.solution)}</p>
         </>
       )}
       <div className="tags">

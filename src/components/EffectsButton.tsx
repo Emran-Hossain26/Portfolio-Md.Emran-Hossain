@@ -21,12 +21,87 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
       if (!allowed[k]) { out[k] = false; continue; }
       const def = effectDef(k);
       const stored = readEffect(k, def?.lsKey);
-      out[k] = stored === null ? true : stored;
+      if (stored !== null) { out[k] = stored; continue; }
+      // Agent Cursors intro: unset defaults to whatever it will actually do
+      // on its own (autoplay unless reduced-motion) — so the switch always
+      // reflects reality, and a reduced-motion visitor's first click is the
+      // explicit "on" the hint tells them to use, not an accidental "off".
+      if (k === "agentCursors") {
+        let reduced = false;
+        try { reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { /* noop */ }
+        out[k] = !reduced;
+      } else {
+        out[k] = true;
+      }
     }
     return out;
   });
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  // Draggable position: null = default (bottom-right, via CSS). Once the
+  // visitor drags it, we pin it with inline left/top and remember it.
+  // Starts null on both server and client render so the first paint always
+  // matches (no hydration mismatch) — the saved spot is applied a tick later
+  // from an effect, since localStorage only exists client-side.
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{ dragging: boolean; moved: boolean; sx: number; sy: number; ex: number; ey: number }>(
+    { dragging: false, moved: false, sx: 0, sy: 0, ex: 0, ey: 0 },
+  );
+
+  const clampPos = (x: number, y: number) => {
+    const w = boxRef.current?.offsetWidth ?? 60;
+    const h = boxRef.current?.offsetHeight ?? 44;
+    const maxX = Math.max(8, window.innerWidth - w - 8);
+    const maxY = Math.max(8, window.innerHeight - h - 8);
+    return { x: Math.min(Math.max(8, x), maxX), y: Math.min(Math.max(8, y), maxY) };
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("fx-btn-pos");
+      if (raw) {
+        const p = JSON.parse(raw) as { x: number; y: number };
+        if (typeof p.x === "number" && typeof p.y === "number") {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from a browser-only store; the extra render after mount is the point.
+          setPos(clampPos(p.x, p.y));
+        }
+      }
+    } catch { /* noop */ }
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setPos((p) => (p ? clampPos(p.x, p.y) : p));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const onDragPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const rect = boxRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    dragRef.current = { dragging: true, moved: false, sx: e.clientX, sy: e.clientY, ex: rect.left, ey: rect.top };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onDragPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current;
+    if (!d.dragging) return;
+    const dx = e.clientX - d.sx;
+    const dy = e.clientY - d.sy;
+    if (!d.moved && Math.hypot(dx, dy) < 5) return;
+    d.moved = true;
+    setPos(clampPos(d.ex + dx, d.ey + dy));
+  };
+  const onDragPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current;
+    if (!d.dragging) return;
+    d.dragging = false;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+    if (d.moved) {
+      setPos((p) => {
+        if (p) { try { localStorage.setItem("fx-btn-pos", JSON.stringify(p)); } catch { /* noop */ } }
+        return p;
+      });
+    }
+  };
   const stops = useRef<Partial<Record<string, () => void>>>({}); // group -> stop
   const running = useRef<Partial<Record<string, boolean>>>({});
   // Stage 6/7 staggered load: first start per group gets the delay.
@@ -40,6 +115,21 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
   const acLabels = locale === "bn"
     ? { switch: "এজেন্ট কারসর আনিম", replay: "আনিম পুনরায় চালান" }
     : { switch: "Agent Cursors intro", replay: "Replay intro" };
+  const acReducedMotionHint = locale === "bn"
+    ? "আপনার সিস্টেমে reduced motion চালু আছে। ইনট্রো চালু করতে এই সুইচ অন করুন।"
+    : "Your system has reduced motion on. Turn this switch on to enable the intro.";
+
+  // Shown only while the visitor hasn't made an explicit choice yet (three
+  // states: unset/on/off) and their OS asks for less motion — otherwise the
+  // intro's default autoplay stays off by design. Derived at render time
+  // (not effect+state) since it's cheap and keeps it in sync with `enabled`
+  // without an extra render pass.
+  let showAcHint = false;
+  try {
+    const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const stored = readEffect("agentCursors", "effects:agentCursors");
+    showAcHint = reduced && stored === null;
+  } catch { /* noop */ }
 
   // persist + broadcast on toggle
   const toggle = (key: string) => {
@@ -158,7 +248,11 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
   const allOff = !Object.keys(enabled).some((k) => enabled[k] && allowed[k]);
 
   return (
-    <div className="fx-btn-root" ref={boxRef}>
+    <div
+      className="fx-btn-root"
+      ref={boxRef}
+      style={pos ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" } : undefined}
+    >
       {open ? (
         <div className="fx-panel" id="fx-panel" role="dialog" aria-label="Effects" aria-modal="false" style={{ maxHeight: 420, overflowY: "auto" }}>
           {["cursor", "animation", "magical"].map((group) => {
@@ -169,19 +263,23 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
               <div key={group} style={{ marginBottom: 8 }}>
                 <p style={{ fontSize: 11, color: "var(--mute)", margin: "6px 2px 4px", textTransform: "uppercase", letterSpacing: ".08em" }}>{title}</p>
                 {items.map((e) => (
-                  <button
-                    key={e.key}
-                    type="button"
-                    role="switch"
-                    aria-checked={enabled[e.key]}
-                    className={"fx-row" + (enabled[e.key] ? " on" : "")}
-                    onClick={() => onToggle(e.key)}
-                    title={e.hint}
-                  >
-                    <span className="fx-row-label">{e.key === "agentCursors" ? acLabels.switch : e.label}</span>
-                    <span className="fx-row-state">{enabled[e.key] ? "ON" : "OFF"}</span>
-                    <span className="fx-knob-track" aria-hidden="true"><span className="fx-knob" /></span>
-                  </button>
+                  <div key={e.key}>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={enabled[e.key]}
+                      className={"fx-row" + (enabled[e.key] ? " on" : "")}
+                      onClick={() => onToggle(e.key)}
+                      title={e.hint}
+                    >
+                      <span className="fx-row-label">{e.key === "agentCursors" ? acLabels.switch : e.label}</span>
+                      <span className="fx-row-state">{enabled[e.key] ? "ON" : "OFF"}</span>
+                      <span className="fx-knob-track" aria-hidden="true"><span className="fx-knob" /></span>
+                    </button>
+                    {e.key === "agentCursors" && showAcHint ? (
+                      <p style={{ margin: "2px 2px 6px", fontSize: 12, color: "var(--mute)" }}>{acReducedMotionHint}</p>
+                    ) : null}
+                  </div>
                 ))}
                 {group === "magical" && allowed.agentCursors ? (
                   <button
@@ -206,7 +304,14 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
         aria-expanded={open}
         aria-controls="fx-panel"
         aria-label={open ? "Close effects panel" : "Open effects panel"}
-        onClick={() => setOpen((v) => !v)}
+        onPointerDown={onDragPointerDown}
+        onPointerMove={onDragPointerMove}
+        onPointerUp={onDragPointerUp}
+        onPointerCancel={onDragPointerUp}
+        onClick={() => {
+          if (dragRef.current.moved) { dragRef.current.moved = false; return; }
+          setOpen((v) => !v);
+        }}
       >
         ✨ Effects
         <span className="fx-btn-seg" aria-hidden="true"><i /></span>
