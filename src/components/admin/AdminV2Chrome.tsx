@@ -108,7 +108,7 @@ export function AdminV2Chrome({
       )}
       <aside aria-label="Admin navigation">
         <div className="brand"><i>E</i>Portfolio Admin</div>
-        <nav>
+        <div>
           {NAV.map(([group, items]) => (
             <details key={group} className="grp-d" open>
               <summary className="grp">{group}</summary>
@@ -132,7 +132,7 @@ export function AdminV2Chrome({
               ))}
             </details>
           ))}
-        </nav>
+        </div>
         <div className="side-f">
           <form action={logoutAction}>
             <button type="submit" className="nv" style={{ color: "var(--bad)" }}>

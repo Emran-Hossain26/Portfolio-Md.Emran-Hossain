@@ -20,7 +20,7 @@ export const site = {
  * /blog route forward to this URL. Replace with your own Hashnode profile
  * or publication URL, e.g. "https://yourblog.hashnode.dev".
  */
-export const blogExternalUrl = "https://hashnode.com/";
+export const blogExternalUrl = "https://hashnode.com/@emran-it";
 
 /**
  * Single source of truth for canonical/OG URLs.
