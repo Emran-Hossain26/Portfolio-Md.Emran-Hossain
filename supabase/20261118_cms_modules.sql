@@ -13,7 +13,14 @@
 
 -- ---------------------------------------------------------------------------
 -- 1. projects — U2 columns (idempotent re-declare) + U4 columns
+--    (some legacy DBs never got created_at/updated_at from the initial
+--    schema — add them defensively so the indexes below always apply)
 -- ---------------------------------------------------------------------------
+alter table public.projects add column if not exists created_at timestamptz not null default now();
+alter table public.projects add column if not exists updated_at timestamptz not null default now();
+alter table public.services add column if not exists updated_at timestamptz not null default now();
+alter table public.experience add column if not exists updated_at timestamptz not null default now();
+
 alter table public.projects add column if not exists status text not null default 'completed';
 alter table public.projects add column if not exists deleted_at timestamptz;
 alter table public.projects add column if not exists featured boolean not null default false;
