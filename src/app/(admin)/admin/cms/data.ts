@@ -64,7 +64,6 @@ export async function fetchCmsRows(module: CmsModule, tab: CmsTab): Promise<{ ro
   const cfg = CFG[module];
   const db = createServiceClient();
   const cols = COMMON_COLS(module);
-  const order = { [cfg.orderCol]: "asc" } as const;
 
   let q = db.from(cfg.table).select(`${cols},pub_status,updated_at`).order(cfg.orderCol);
   if (tab === "trash") q = q.not("deleted_at", "is", null);

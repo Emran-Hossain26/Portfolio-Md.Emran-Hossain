@@ -95,7 +95,6 @@ export function start({ intensity, effects }: { intensity: string; effects?: str
     const resize = () => { w = innerWidth; h = innerHeight; canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr); canvas.style.width=`${w}px`; canvas.style.height=`${h}px`; ctx.setTransform(dpr,0,0,dpr,0,0); };
     resize(); window.addEventListener("resize", resize);
     const N = Math.round(120 * scale);
-    type S = { x:number; y:number; r:number; phase:number; speed:number };
     const stars = Array.from({length:N}, () => ({ x: Math.random()*w, y: Math.random()*h, r: 0.4 + Math.random()*1.2, phase: Math.random()*Math.PI*2, speed: 0.3 + Math.random()*0.7 }));
     let raf = 0, last = performance.now();
     const tick = (now: number) => {

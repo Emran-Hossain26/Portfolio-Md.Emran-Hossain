@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "next-intl";
-import { EFFECTS, EFFECT_KEYS, writeEffect, readEffect, FX_EVENT, effectDef } from "@/lib/fx/effects";
+import { EFFECTS, EFFECT_KEYS, writeEffect, readEffect, effectDef } from "@/lib/fx/effects";
+
+/** Static effect-module loaders (stable identity — safe in effect deps). */
+const MODULES: Record<string, () => Promise<{ start: (cfg: { intensity: string; effects: string[] }) => () => void }>> = {
+  cursor: () => import("@/lib/fx/modules/cursor"),
+  animation: () => import("@/lib/fx/modules/animation"),
+  magical: () => import("@/lib/fx/modules/magical"),
+};
 
 export type EffectsButtonProps = {
   /** Per-effect availability from the admin (master already applied). */
@@ -106,11 +113,6 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
   const running = useRef<Partial<Record<string, boolean>>>({});
   // Stage 6/7 staggered load: first start per group gets the delay.
   const firstStart = useRef<Record<string, boolean>>({ cursor: true, animation: true, magical: true });
-  const groupOf = useMemo(() => {
-    const m: Record<string, string> = {};
-    for (const e of EFFECTS) m[e.key] = e.group;
-    return m;
-  }, []);
   const locale = useLocale();
   const acLabels = locale === "bn"
     ? { switch: "এজেন্ট কারসর আনিম", replay: "আনিম পুনরায় চালান" }
@@ -168,12 +170,6 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
       root.setAttribute(`data-fx-${e.key}`, enabled[e.key] && allowed[e.key] ? "on" : "off");
     }
   }, [enabled, allowed]);
-
-  const MODULES: Record<string, () => Promise<{ start: (cfg: { intensity: string; effects: string[] }) => () => void }>> = {
-    cursor: () => import("@/lib/fx/modules/cursor"),
-    animation: () => import("@/lib/fx/modules/animation"),
-    magical: () => import("@/lib/fx/modules/magical"),
-  };
 
   useEffect(() => {
     let cancelled = false;

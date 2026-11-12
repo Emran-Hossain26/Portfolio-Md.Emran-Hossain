@@ -115,10 +115,12 @@ export function ProjectMedia({
     return (
       <div className="media" role="img" aria-label={title}>
         {cover ? (
-          <img
+          <Image
             src={cover}
             alt={title}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            fill
+            sizes="(max-width: 760px) 100vw, 360px"
+            style={{ objectFit: "cover" }}
           />
         ) : (
           <div>

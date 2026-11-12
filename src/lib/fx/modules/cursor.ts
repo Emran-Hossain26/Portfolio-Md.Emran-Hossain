@@ -143,9 +143,8 @@ export function start({ intensity, effects }: { intensity: string; effects?: str
     const pts: Pt[] = [];
     const onMove = (e: PointerEvent) => { if (e.pointerType !== "mouse") return; pts.push({ x: e.clientX, y: e.clientY }); if (pts.length > 40) pts.shift(); };
     window.addEventListener("pointermove", onMove, { passive: true });
-    let raf = 0, last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(48, now - last) / 16.7; last = now;
+    let raf = 0;
+    const tick = () => {
       ctx.clearRect(0, 0, w, h);
       if (pts.length > 2) {
         ctx.lineCap = "round"; ctx.lineJoin = "round";
@@ -254,8 +253,8 @@ export function start({ intensity, effects }: { intensity: string; effects?: str
     window.addEventListener("pointermove", onMove, { passive: true });
     let raf = 0, last = performance.now();
     const tick = (now: number) => {
-      const dt = Math.min(48, now - last) / 16.7; last = now;
       ctx.clearRect(0, 0, w, h);
+      const dt = Math.min(48, now - last) / 16.7; last = now;
       for (const f of flies) {
         const dx = px - f.x, dy = py - f.y;
         const d = Math.hypot(dx, dy) || 1;

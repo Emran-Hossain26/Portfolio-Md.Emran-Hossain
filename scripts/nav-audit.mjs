@@ -7,7 +7,7 @@
 //     name the hub that reaches it in 2 clicks (nav → hub action).
 //  5. Redirect stubs (texts/messages) report their target.
 // Exits non-zero on any violation.
-import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = process.cwd();

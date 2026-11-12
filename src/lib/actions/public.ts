@@ -42,8 +42,6 @@ async function clientIp(): Promise<string> {
   );
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
 // Stage 6 item 6 — zod input schemas for every public form.
 const nameSchema = z.string().trim().min(1).max(120);
 const emailSchema = z.string().trim().email().max(200);

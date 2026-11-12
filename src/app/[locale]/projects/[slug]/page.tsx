@@ -11,7 +11,7 @@ export function generateStaticParams() {
 }
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
 import { siteUrl } from "@/data/site";
-import { getProject, getProjects } from "@/lib/cms";
+import { getProject } from "@/lib/cms";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { pick, type Locale } from "@/data/types";

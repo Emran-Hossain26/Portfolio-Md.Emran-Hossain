@@ -3,7 +3,6 @@
 import { useActionState } from "react";
 import { generateRecoveryCodesAction } from "@/app/(admin)/actions";
 
-type State = { codes: string[] } | { error: string } | null;
 
 /**
  * Stage 6 item 3 — 2FA recovery codes. Generating replaces every previous

@@ -29,8 +29,8 @@ const MODULES: Record<
   experience: { table: "experience", orderCol: "sort", label: "Experience", base: "/admin/experience" },
 };
 
-const PUB_STATUSES = ["draft", "published", "unpublished", "archived"] as const;
-type PubStatus = (typeof PUB_STATUSES)[number];
+type PubStatus = "draft" | "published" | "unpublished" | "archived";
+
 
 const isCmsModule = (m: string): m is CmsModule => m in MODULES;
 
