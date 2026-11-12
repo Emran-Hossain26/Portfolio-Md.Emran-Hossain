@@ -602,18 +602,6 @@ export async function getSections(): Promise<Section[]> {
   } catch { return []; }
 }
 
-export async function getFeatureFlags(): Promise<Record<string, boolean>> {
-  "use cache"; cacheTag("content");
-  if (!configured()) return {};
-  try {
-    const { data, error } = await db().from("feature_flags").select("key,enabled");
-    if (error || !data) return {};
-    const out: Record<string, boolean> = {};
-    for (const r of data) out[r.key as string] = (r.enabled as boolean) ?? false;
-    return out;
-  } catch { return {}; }
-}
-
 export async function getThemePresets(): Promise<{ id: string; key: string; name: string; nameBn: string; tokens: Record<string, string>; enabled: boolean; isDefault: boolean; sort: number }[]> {
   "use cache"; cacheTag("content");
   const SEED = [

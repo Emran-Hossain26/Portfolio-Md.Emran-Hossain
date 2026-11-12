@@ -393,3 +393,20 @@
 .av2 .mi small{color:var(--mut2)}
 .av2 .mi .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:6px}
 @media(max-width:980px){.av2 .inb{grid-template-columns:1fr}}
+
+/* ==== Task U5: collapsible nav groups + mobile drawer ==================== */
+.av2 .grp-d{margin:0 8px 2px}
+.av2 .grp-d > .grp{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;user-select:none}
+.av2 .grp-d > .grp::-webkit-details-marker{display:none}
+.av2 .grp-d > .grp::after{content:"▾";margin-left:auto;font-size:10px;color:var(--mut);transition:transform .15s}
+.av2 .grp-d:not([open]) > .grp::after{transform:rotate(-90deg)}
+.av2 .grp-d:not([open]) > .grp{color:var(--mut)}
+.av2 .menu-btn{display:none}
+.av2 .nav-backdrop{display:none}
+@media (max-width: 900px){
+  .av2 aside{position:fixed;left:0;top:0;z-index:50;height:100vh;transform:translateX(-100%);transition:transform .2s;box-shadow:none}
+  .av2.nav-open aside{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.35)}
+  .av2 .menu-btn{display:inline-flex}
+  .av2 .nav-backdrop{display:block;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.35);border:0;padding:0;cursor:pointer}
+  .av2 .top{padding-left:14px;gap:8px}
+}

@@ -62,3 +62,14 @@ Everything else is NOT DONE. Last updated: Session 2 wrap-up (2026-11-07).
   admin-write policies had USING (true) for ANY authenticated user — now
   restricted to public.is_admin(). USER MUST RE-RUN RUN_ALL once to apply.
 - QA cleanup: the pending "QA Session 2" testimonial was deleted.
+## Task U5 — navigation parity (2026-11-12)
+- All admin dashboards are now reachable from AdminV2Chrome.NAV (7 collapsible
+  groups, mobile off-canvas drawer); dead AdminSidebar/AdminChrome deleted.
+- Legacy duplicates redirected: /admin/texts → /admin/hero (both wrote the
+  same hero_texts key), /admin/messages → /admin/inbox (same data).
+- Feature flags: the orphaned getFeatureFlags() reader (cms.ts) was REMOVED
+  in code — no admin UI ever wrote the feature_flags table and no component
+  consumed it. The legacy `features` site_settings key has had no reader
+  since the Sections/Effects/Extras managers replaced it. The feature_flags
+  TABLE itself is untouched (not dropped) — harmless; cleanup is a
+  user-side decision for a future migration if ever wanted.
