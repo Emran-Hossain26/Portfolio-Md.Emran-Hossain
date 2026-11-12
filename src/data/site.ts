@@ -24,8 +24,8 @@ export const blogExternalUrl = "https://hashnode.com/";
 
 /**
  * Single source of truth for canonical/OG URLs.
- * Domain not purchased yet: keep the *.vercel.app URL and swap this one
- * variable (env var) when the real domain is added.
+ * Vercel project: emranhossain-it.vercel.app — swap via NEXT_PUBLIC_SITE_URL
+ * env var when a real domain is added.
  */
 export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://emran-portfolio.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://emranhossain-it.vercel.app";
