@@ -11,6 +11,7 @@ export function generateStaticParams() {
 }
 import { resolvePageMetadata } from "@/lib/seo";
 import { getBlogPosts, getPageSeo } from "@/lib/cms";
+import { siteUrl } from "@/data/site";
 import { breadcrumbLd } from "@/lib/seo";
 import { type Locale } from "@/data/types";
 import Link from "next/link";
@@ -85,7 +86,7 @@ async function ArchiveInner({
     itemListElement: posts.map((p, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      url: `https://emran-portfolio.vercel.app/blog/${p.slug}`,
+      url: `${siteUrl}/blog/${p.slug}`,
       name: resolved === "bn" ? p.title.bn || p.title.en : p.title.en || p.title.bn,
     })),
   };
