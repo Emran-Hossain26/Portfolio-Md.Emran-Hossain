@@ -35,7 +35,9 @@
     "projects": "Projects",
     "reviews": "Reviews",
     "blog": "Blog",
-    "contact": "Contact"
+    "contact": "Contact",
+    "experience": "Experience",
+    "faq": "FAQ"
   },
   "hero": {
     "heading": "I build and secure the systems your business runs on.",

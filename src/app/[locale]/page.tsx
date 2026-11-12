@@ -13,7 +13,6 @@ import { Expertise } from "@/components/home/Expertise";
 import { SkillsWall } from "@/components/home/SkillsWall";
 import { Projects } from "@/components/home/Projects";
 import { Reviews } from "@/components/home/Reviews";
-import { BlogPreview } from "@/components/home/BlogPreview";
 import { Contact } from "@/components/home/Contact";
 import { Certifications, Faq, Stats } from "@/components/home/Extras";
 import { NowSection } from "@/components/home/NowSection";
@@ -46,7 +45,6 @@ const SECTION_MAP: Record<string, () => React.ReactNode> = {
   reviews: () => <Reviews />,
   faq: () => <Faq />,
   now: () => <NowSection />,
-  blog: () => <BlogPreview />,
   contact: () => <Contact />,
 };
 
@@ -59,7 +57,6 @@ const DEFAULT_ORDER = [
   "reviews",
   "faq",
   "now",
-  "blog",
   "contact",
 ];
 

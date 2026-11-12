@@ -256,6 +256,41 @@ footer.site { padding: 32px 0; border-top: 1px solid var(--line); color: var(--m
 /* ---- Mobile menu (approved rule #9; reuses token look) ---- */
 .nav-burger { display: none }
 .nav-links { display: contents }
+
+/* Task U6: top-bar links — hover animation (lift + accent glow + underline) */
+.nav-links a {
+  position: relative;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform .18s ease;
+}
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-links a, .nav-links a::after { transition: none }
+  .nav-links a:hover { transform: none }
+}
 .mobile-menu {
   display: grid;
 }

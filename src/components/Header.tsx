@@ -5,12 +5,21 @@ import { MobileNav } from "./MobileNav";
 import { ThemePicker } from "./ThemePicker";
 import { getThemePresets, getThemeVisitorSwitch, getBranding } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
+import { blogExternalUrl } from "@/data/site";
 
+/**
+ * Task U6: the first four entries anchor-scroll to home sections
+ * (Expertise / Projects / Experience / FAQ "Common questions"); Blog points
+ * off-site (Hashnode — the site carries no posts); Reviews and Contact keep
+ * their pages.
+ */
 const NAV_ITEMS = [
   { key: "expertise", href: "/#expertise" },
-  { key: "projects", href: "/projects" },
+  { key: "projects", href: "/#projects" },
+  { key: "experience", href: "/#experience" },
   { key: "reviews", href: "/testimonials" },
-  { key: "blog", href: "/blog" },
+  { key: "faq", href: "/#faq" },
+  { key: "blog", href: blogExternalUrl, external: true },
   { key: "contact", href: "/contact" },
 ] as const;
 
@@ -20,6 +29,7 @@ export async function Header() {
   const links = NAV_ITEMS.map((item) => ({
     href: item.href,
     label: t(item.key),
+    external: "external" in item ? item.external : false,
   }));
 
   const presets = await getThemePresets();
@@ -54,11 +64,23 @@ export async function Header() {
             )}
           </b>
           <span className="nav-links">
-            {links.map((link) => (
-              <Link key={link.href} href={link.href} data-ac="text">
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) =>
+              link.external ? (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-ac="text"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link key={link.href} href={link.href} data-ac="text">
+                  {link.label}
+                </Link>
+              )
+            )}
           </span>
           <LanguageButton />
           <ThemePicker

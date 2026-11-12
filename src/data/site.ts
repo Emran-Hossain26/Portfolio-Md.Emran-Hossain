@@ -15,6 +15,14 @@ export const site = {
 };
 
 /**
+ * Blog lives off-site (Hashnode) — the site itself carries no posts, so
+ * visitors never load blog content here. The top-bar "Blog" link and the
+ * /blog route forward to this URL. Replace with your own Hashnode profile
+ * or publication URL, e.g. "https://yourblog.hashnode.dev".
+ */
+export const blogExternalUrl = "https://hashnode.com/";
+
+/**
  * Single source of truth for canonical/OG URLs.
  * Domain not purchased yet: keep the *.vercel.app URL and swap this one
  * variable (env var) when the real domain is added.
