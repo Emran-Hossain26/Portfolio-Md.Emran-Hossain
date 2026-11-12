@@ -21,6 +21,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { EFFECTS, writeEffect } from "@/lib/fx/effects";
 
 /** Tuning. `slow` multiplies every duration below (travel, drag, typing, pauses). */
 const CFG = {
@@ -101,7 +102,6 @@ export function AgentCursors({
     if (path.startsWith("/login") || path.startsWith("/admin")) return;
 
     const cleanupFns: (() => void)[] = [];
-    (window as unknown as { __acDebug?: string }).__acDebug = "effect-ran";
 
     const start = () => {
       stopRef.current?.();
@@ -159,6 +159,11 @@ export function AgentCursors({
             if (!t?.closest?.("a,button,[role='button'],input,select,textarea,label")) return;
             if (t.closest(".fx-btn-root")) return;
             try { sessionStorage.setItem(DEACT_KEY, "1"); } catch { /* noop */ }
+            // Task U7 extension: EVERY effect turns off, not just the cursors
+            // — persisted in the visitor's prefs; the Effects panel is how
+            // they turn any of them back on.
+            for (const e of EFFECTS) writeEffect(e.key, false, e.lsKey);
+            window.dispatchEvent(new CustomEvent("pf:fx-all-off"));
             stopRef.current?.();
             stopRef.current = null;
             window.removeEventListener("scroll", onScroll);

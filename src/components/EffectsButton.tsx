@@ -82,6 +82,24 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // Task U7: any button/link click on the portfolio page turns ALL effects
+  // off for the visitor (AgentCursors dispatches this). The panel stays
+  // usable — flipping a switch back on re-enables just that effect.
+  useEffect(() => {
+    const onAllOff = () => {
+      const next: Record<string, boolean> = {};
+      for (const k of EFFECT_KEYS) {
+        next[k] = false;
+        const def = effectDef(k);
+        writeEffect(k, false, def?.lsKey);
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reacting to an external broadcast, same shape as the resize sync above.
+      setEnabled(next);
+    };
+    window.addEventListener("pf:fx-all-off", onAllOff);
+    return () => window.removeEventListener("pf:fx-all-off", onAllOff);
+  }, []);
+
   const onDragPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     const rect = boxRef.current?.getBoundingClientRect();
     if (!rect) return;
