@@ -301,7 +301,11 @@ export function CmsManager({ module, base, rows, tab, saved, error, hasU4 }: Pro
                           <form action={duplicateCmsAction.bind(null, module, r.id)}>
                             <button className="btn s" type="submit">Duplicate</button>
                           </form>
-                          {r.pubStatus !== "published" && (
+                          {r.pubStatus === "archived" ? (
+                            <form action={cmsLifecycleAction.bind(null, module, r.id, "restore")}>
+                              <button className="btn s p" type="submit">Restore</button>
+                            </form>
+                          ) : (
                             <form action={cmsLifecycleAction.bind(null, module, r.id, "publish")}>
                               <button className="btn s p" type="submit">Publish</button>
                             </form>
