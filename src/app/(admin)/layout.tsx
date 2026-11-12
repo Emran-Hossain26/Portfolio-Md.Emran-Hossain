@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { connection } from "next/server";
 import { AdminV2Chrome } from "@/components/admin/AdminV2Chrome";
 import { cacheTag } from "next/cache";
 import { headers } from "next/headers";
@@ -78,6 +79,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // cacheComponents: the admin area uses request-time values (analytics
+  // windows, lockout timing). Force per-request rendering so the prerender
+  // pass never reaches Date.now() — every /admin route is dynamic anyway.
+  await connection();
   // Stage 6 item 1: route-level default guard, OUTSIDE the chrome's
   // Suspense hole — unauthenticated requests get a real 307 to /login
   // before any admin UI renders. /login renders bare and skips this.
