@@ -93,7 +93,6 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
         const def = effectDef(k);
         writeEffect(k, false, def?.lsKey);
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reacting to an external broadcast, same shape as the resize sync above.
       setEnabled(next);
     };
     window.addEventListener("pf:fx-all-off", onAllOff);
