@@ -3,15 +3,18 @@
 /**
  * Agent Cursors intro — a swarm of colored cursors builds the page live.
  *
- * One pass per page view, driven by scrolling:
- *  - On load (and as the visitor scrolls) cursors build whatever is inside
- *    the viewport (+ lookahead), in DOM order, parent before child.
- *  - Nothing is ever built off-screen in bulk, and nothing force-finishes.
- *    When there is nothing left to build in view, cursors idle near the
- *    pointer and wait for the next bit of page to scroll into view.
- *  - Once every target has been built, the swarm enters FOLLOW MODE: it
- *    stays near the pointer (fixed layer, transform-only, rAF-paused when
- *    the tab is hidden) until the effect is turned off or the route changes.
+ * Task U7 play rules (visitor-first):
+ *  - NO autoplay: the portfolio page renders fully built on load.
+ *  - The intro starts when the visitor has scrolled ~120px (they showed
+ *    engagement) — from then it behaves as before: cursors build whatever
+ *    is inside the viewport (+ lookahead) in DOM order, parent before child;
+ *    nothing force-finishes; between sections cursors idle near the pointer.
+ *  - Clicking ANY button/link on the portfolio page aborts the show and
+ *    deactivates it for the browsing session (sessionStorage) — the visitor
+ *    wants to interact, not watch. The visitor Effects panel is exempt
+ *    (its Replay is an explicit opt-in). Esc still skips mid-show.
+ *  - After every target is built the swarm enters FOLLOW MODE until turned
+ *    off, a click deactivates it, or the route changes.
  *
  * Scope: mounted on the portfolio route only; guarded against /login and /admin.
  */
@@ -32,6 +35,12 @@ const CFG = {
 const FLAG_KEY = "effects:agentCursors";
 const EVENT = "pf:agentCursors";
 const ALIVE_ATTR = "data-ac-alive";
+/** Task U7: clicking any button/link on the portfolio page deactivates the
+ * effect for THIS browsing session (sessionStorage) — the visitor is telling
+ * us they want to interact, not watch. Fresh session = intro available again. */
+const DEACT_KEY = "ac-deactivated";
+/** Scroll distance (px, accumulated) that arms the intro. */
+const SCROLL_ARM_PX = 120;
 /** One pass per page view by design (see spec). Flip to true to gate replays
  * on sessionStorage `ac-seen` again — it is then written only on a genuine
  * finish (never on mount/cleanup/a StrictMode remount). */
@@ -91,6 +100,9 @@ export function AgentCursors({
     const path = pathname ?? "";
     if (path.startsWith("/login") || path.startsWith("/admin")) return;
 
+    const cleanupFns: (() => void)[] = [];
+    (window as unknown as { __acDebug?: string }).__acDebug = "effect-ran";
+
     const start = () => {
       stopRef.current?.();
       stopRef.current = runBuild(cursorCount, cursorSpeed);
@@ -111,12 +123,60 @@ export function AgentCursors({
     const choice = readChoice();
     const bot = isBotLike();
     if (choice !== "off" && !bot) {
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (choice === "on" || !reduced) start();
+      // Same reduced-motion contract as the fx system (groups.ts): the admin
+      // override_reduced switch (data-fx-rm-override) lets the show run even
+      // when the OS asks for reduced motion.
+      const rmOverride = document.documentElement.dataset.fxRmOverride === "1";
+      const reduced = !rmOverride && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (choice === "on" || !reduced) {
+        // Task U7 play rules: the intro NEVER autoplays on load (the page
+        // renders fully built so readers are never disturbed). It starts on
+        // the visitor's first real scroll — and ANY button/link click on the
+        // portfolio page aborts the show and deactivates it for the session.
+        let deactivated = false;
+        try { deactivated = sessionStorage.getItem(DEACT_KEY) === "1"; } catch { /* noop */ }
+        if (!deactivated) {
+          let armed = false;
+          let acc = 0;
+          let lastY = window.scrollY;
+          const onScroll = () => {
+            if (armed) return;
+            acc += Math.abs(window.scrollY - lastY);
+            lastY = window.scrollY;
+            if (acc >= SCROLL_ARM_PX) {
+              armed = true;
+              // Scroll listener is done once the show starts — but the click
+              // listener stays armed for the whole visit (rule 3: any button
+              // click deactivates, mid-show or in follow mode).
+              window.removeEventListener("scroll", onScroll);
+              start();
+            }
+          };
+          const onDeactClick = (e: MouseEvent) => {
+            const t = e.target as HTMLElement | null;
+            // Anything interactive counts — except the visitor Effects panel
+            // itself, whose buttons are how a visitor deliberately replays.
+            if (!t?.closest?.("a,button,[role='button'],input,select,textarea,label")) return;
+            if (t.closest(".fx-btn-root")) return;
+            try { sessionStorage.setItem(DEACT_KEY, "1"); } catch { /* noop */ }
+            stopRef.current?.();
+            stopRef.current = null;
+            window.removeEventListener("scroll", onScroll);
+            window.removeEventListener("click", onDeactClick, true);
+          };
+          window.addEventListener("scroll", onScroll, { passive: true });
+          window.addEventListener("click", onDeactClick, true);
+          cleanupFns.push(() => {
+            window.removeEventListener("scroll", onScroll);
+            window.removeEventListener("click", onDeactClick, true);
+          });
+        }
+      }
     }
 
     return () => {
       window.removeEventListener(EVENT, onFx);
+      for (const fn of cleanupFns) fn();
       stopRef.current?.();
       stopRef.current = null;
     };

@@ -255,20 +255,13 @@ try{if(sessionStorage.getItem("pf_nav")==="1"){document.documentElement.setAttri
   // Agent Cursors intro — pre-paint gate. Adds `ac-run` to <html> before first
   // paint when: the visitor explicitly turned it on (runs even with
   // reduced-motion — explicit consent), or the choice is unset and the
-  // visitor isn't reduced-motion/bot-like. Plays on every load (no
-  // sessionStorage play-once — see AgentCursors.tsx CFG).
-  // Failsafe: the component writes a `data-ac-alive` heartbeat once it
-  // mounts; if that never appears (JS failed/blocked), ac-run is removed
-  // after 12s so the page is never stuck hidden. Once it does appear, the
-  // build is trusted to finish on its own (scroll/skip/escape), however
-  // long the visitor takes — watcher just stops polling.
+  // Task U7: the intro no longer autoplays — the boot script must NOT add
+  // `ac-run` pre-paint (that would hide the page on load). The page renders
+  // fully built; AgentCursors adds ac-run itself when the visitor's first
+  // scroll (~120px) arms the show. Failsafe stays: if ac-run ever exists
+  // without the component's `data-ac-alive` heartbeat (JS blocked), remove
+  // it after 12s so the page is never stuck hidden.
   const agentCursorsScript = `try{
-var acV=null;try{acV=localStorage.getItem('effects:agentCursors');}catch(e){}
-var acChoice=(acV==='on'||acV==='off')?acV:'unset';
-var acBot=!!navigator.webdriver||/googlebot|bingo|bingpreview|lighthouse|headless|phantom|spider|crawler|preview/i.test(navigator.userAgent);
-var acRm=matchMedia('(prefers-reduced-motion: reduce)').matches;
-if(acChoice!=='off'&&!acBot&&(acChoice==='on'||!acRm))document.documentElement.classList.add('ac-run');
-}catch(e){}
 (function(){var acStart=Date.now();var acIv=setInterval(function(){try{
 if(!document.documentElement.classList.contains('ac-run')||Date.now()-acStart>1200000){clearInterval(acIv);return;}
 if(!document.documentElement.getAttribute('data-ac-alive')&&Date.now()-acStart>12000){document.documentElement.classList.remove('ac-run');clearInterval(acIv);}
