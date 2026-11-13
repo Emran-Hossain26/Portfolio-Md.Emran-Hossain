@@ -25,7 +25,9 @@ export function readGroup(group: GroupKey): boolean {
     if (v === "off") return false;
     if (v === "on") return true;
   } catch {}
-  return true; // callers pass availability; default on when allowed
+  // Task U7-2 (visitor-first): effects are OFF unless the visitor explicitly
+  // opted in from the Effects panel (stored "on" per effect).
+  return false;
 }
 
 export function writeGroup(group: GroupKey, on: boolean) {

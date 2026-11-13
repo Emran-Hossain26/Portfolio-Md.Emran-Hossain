@@ -126,9 +126,7 @@ export function AgentCursors({
       // Same reduced-motion contract as the fx system (groups.ts): the admin
       // override_reduced switch (data-fx-rm-override) lets the show run even
       // when the OS asks for reduced motion.
-      const rmOverride = document.documentElement.dataset.fxRmOverride === "1";
-      const reduced = !rmOverride && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (choice === "on" || !reduced) {
+      if (choice === "on") {
         // Task U7 play rules: the intro NEVER autoplays on load (the page
         // renders fully built so readers are never disturbed). It starts on
         // the visitor's first real scroll — and ANY button/link click on the

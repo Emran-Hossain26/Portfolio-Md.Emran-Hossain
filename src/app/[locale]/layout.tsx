@@ -240,11 +240,11 @@ for(var ei=0;ei<${JSON.stringify(EFFECTS.map(e=>e.key))}.length;ei++){
   av[ek]=gok && allow([ek]);
   document.documentElement.setAttribute("data-fx-"+ek, (av[ek]?"on":"off"));
 }
-var lite=s.default_mode==="lite"&&(touch||slow)&&!localStorage.getItem("fx_chosen");
+var lite=false;
 var out={};
 ${JSON.stringify(EFFECTS.map(e=>e.key))}.forEach(function(k){
 var v=false;
-if(av[k]&&!rm&&!lite){try{v=localStorage.getItem("fx_effect_"+k)!=="off";}catch(e){v=true;}}
+if(av[k]&&!rm){try{v=localStorage.getItem("fx_effect_"+k)==="on";}catch(e){v=false;}}
 out[k]=v;
 document.documentElement.setAttribute("data-fx-"+k,v?"on":"off");
 });

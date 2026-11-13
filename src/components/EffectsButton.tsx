@@ -28,18 +28,9 @@ export function EffectsButton({ allowed, intensity }: EffectsButtonProps) {
       if (!allowed[k]) { out[k] = false; continue; }
       const def = effectDef(k);
       const stored = readEffect(k, def?.lsKey);
-      if (stored !== null) { out[k] = stored; continue; }
-      // Agent Cursors intro: unset defaults to whatever it will actually do
-      // on its own (autoplay unless reduced-motion) — so the switch always
-      // reflects reality, and a reduced-motion visitor's first click is the
-      // explicit "on" the hint tells them to use, not an accidental "off".
-      if (k === "agentCursors") {
-        let reduced = false;
-        try { reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { /* noop */ }
-        out[k] = !reduced;
-      } else {
-        out[k] = true;
-      }
+      // Task U7-2 (visitor-first): every effect defaults to OFF — the visitor
+      // opts in per effect from this panel (stored choice persists).
+      out[k] = stored === true;
     }
     return out;
   });
