@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
 
 /**
  * Global 404 — required because the site's root layout lives in
@@ -20,7 +18,7 @@ const themeScript = `try{var t=localStorage.getItem("theme")||(matchMedia("(pref
 
 export default function GlobalNotFound() {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
