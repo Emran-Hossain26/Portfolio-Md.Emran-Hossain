@@ -35,7 +35,7 @@ export const expertiseItems: { title: Localized; desc: Localized }[] = [
 export const statusItems: string[] = [
   "Windows Server / AD",
   "Linux & Networking",
-  "Cloud Security",
+  "IT Security & Endpoint Protection",
   "AI-Assisted Software Solutions",
 ];
 
