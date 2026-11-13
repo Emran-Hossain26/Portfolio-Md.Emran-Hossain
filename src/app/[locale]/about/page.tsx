@@ -101,7 +101,13 @@ export default async function AboutPage({
                     <p className="mute" style={{ margin: "4px 0 0" }}>
                       {[pick(resolved, item.org), item.period].filter(Boolean).join(" · ")}
                     </p>
-                    {item.details ? <p style={{ margin: "8px 0 0" }}>{item.details}</p> : null}
+                    {item.summary ? (
+                      /* Task content update: bilingual summary first; the legacy
+                         single-language `details` column is only a fallback. */
+                      <p style={{ margin: "8px 0 0" }}>{pick(resolved, item.summary)}</p>
+                    ) : item.details ? (
+                      <p style={{ margin: "8px 0 0" }}>{item.details}</p>
+                    ) : null}
                   </div>
                 </div>
               ))}

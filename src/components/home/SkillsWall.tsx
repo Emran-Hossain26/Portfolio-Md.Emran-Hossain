@@ -1,13 +1,23 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getSkills } from "@/lib/cms";
 
+/** Task content update: honest category headers with owner-reviewed Bengali
+ *  labels (the stored `category` value stays EN in the admin). */
+const CATEGORY_BN: Record<string, string> = {
+  "Professional experience": "পেশাদার অভিজ্ঞতা",
+  "Working knowledge": "কার্যকরী জ্ঞান",
+  "Project-based exposure": "প্রজেক্ট-ভিত্তিক অভিজ্ঞতা",
+};
+
 /**
- * Stage 6 #4 — tech stack / tools wall with proficiency. Skills are grouped
- * by their `category` column; the `level` percentage renders as a bar.
+ * Stage 6 #4 — tech stack / tools wall. Skills are grouped by their
+ * `category` column; the `level` value renders as a relative indicator bar
+ * only (numeric % proficiency claims were removed in the content update).
  * Renders nothing when the admin has no published skills.
  */
 export async function SkillsWall() {
   const t = await getTranslations("sections");
+  const locale = (await getLocale()) as "en" | "bn";
   const rows = await getSkills();
   if (!rows.length) return null;
 
@@ -25,7 +35,9 @@ export async function SkillsWall() {
         <div className="grid">
           {[...groups.entries()].map(([category, list]) => (
             <div className="card" data-ac="box" key={category}>
-              <h3 style={{ marginBottom: 12 }} data-ac="text">{category}</h3>
+              <h3 style={{ marginBottom: 12 }} data-ac="text">
+                {locale === "bn" ? CATEGORY_BN[category] ?? category : category}
+              </h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {list.map((s) => (
                   <div key={s.id}>

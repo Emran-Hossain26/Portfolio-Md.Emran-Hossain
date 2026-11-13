@@ -20,6 +20,20 @@ export function text(locale: Locale, value: { en: string; bn?: string } | undefi
   return locale === "bn" ? value.bn || value.en : value.en;
 }
 
+/** Deployment-status labels (stored EN in the admin `category` field) with
+ *  owner-reviewed Bengali translations. Prefix matching handles the
+ *  "formal handover pending" suffix on the IT Management System. */
+const STATUS_BN: [string, string][] = [
+  ["Operational — Local network · formal handover pending", "অভ্যন্তরীণ নেটওয়ার্কে চালু · আনুষ্ঠানিক হস্তান্তর বাকি"],
+  ["Operational — Local network", "অভ্যন্তরীণ নেটওয়ার্কে চালু"],
+  ["Published — publicly accessible", "প্রকাশিত"],
+  ["Project ready — not yet published", "প্রস্তুত, এখনো প্রকাশিত নয়"],
+];
+function statusBn(category: string): string | undefined {
+  for (const [en, bn] of STATUS_BN) if (category === en || category.startsWith(en)) return bn;
+  return undefined;
+}
+
 /**
  * A showcase card in the approved mockup style ("update info/index.html"):
  * 16:9 media area by media mode, title, Problem → Solution, tech tags and
@@ -60,9 +74,10 @@ export function ProjectCard({
         </span>
       )}
       <h3 data-ac="text">{pick(locale, project.title)}</h3>
-      {/* Task U-content: deployment status label from the admin `category`
+      {/* Task content update: deployment status label from the admin `category`
           field — distinguishes operational (local network), published and
-          not-yet-published projects honestly. */}
+          not-yet-published projects honestly. Bengali labels reviewed by the
+          portfolio owner; EN text is the stored admin value. */}
       {project.category && (
         <p
           data-ac="text"
@@ -74,7 +89,7 @@ export function ProjectCard({
             letterSpacing: "0.02em",
           }}
         >
-          {project.category}
+          {locale === "bn" ? statusBn(project.category) ?? project.category : project.category}
         </p>
       )}
       {project.problem && (
