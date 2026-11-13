@@ -58,3 +58,4 @@ next-env.d.ts
 .env*
 .vercel-env-sync.json
 backups/
+.perf/
