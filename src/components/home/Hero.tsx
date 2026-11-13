@@ -21,9 +21,11 @@ export async function Hero({
         <h1 id="h1">{texts ? pick(locale, texts.heading) : t("heading")}</h1>
         <p>{texts ? pick(locale, texts.intro) : t("intro")}</p>
         <div className="cta">
-          <a className="btn p" href="#contact">
-            {texts?.cta?.en ? (locale === "bn" ? texts.cta.bn || texts.cta.en : texts.cta.en) : t("hire")}
-          </a>
+          {texts?.cta?.en || texts?.cta?.bn ? (
+            <a className="btn p" href="#contact">
+              {locale === "bn" ? texts.cta.bn || texts.cta.en : texts.cta.en}
+            </a>
+          ) : null /* content phase: no commercial CTA until the owner re-enables it */}
           {cvPath ? (
             <a className="btn" href="/api/download-cv" target="_blank" rel="noopener noreferrer">
               {t("cv")}

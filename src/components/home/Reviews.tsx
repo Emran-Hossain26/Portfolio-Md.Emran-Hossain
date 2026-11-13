@@ -7,6 +7,9 @@ export async function Reviews() {
   const t = await getTranslations("sections");
   const testimonials = await getTestimonials();
 
+  // Content phase: no approved testimonials yet — render nothing.
+  if (!testimonials.length) return null;
+
   return (
     <section id="reviews" data-sec="reviews">
       <h2 data-ac="text">{t("reviews")}</h2>

@@ -8,7 +8,8 @@ export async function Experience() {
   const t = await getTranslations("pages.about");
   const rows = await getExperience();
   if (!rows.length) return null;
-  const show = rows.slice(0, 3);
+  // Content phase: show ALL six positions (complete career history).
+  const show = rows;
 
   return (
     <section id="experience" data-sec="experience">
