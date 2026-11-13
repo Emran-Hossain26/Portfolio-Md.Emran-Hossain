@@ -29,20 +29,15 @@ export async function SkillsWall() {
               <div style={{ display: "grid", gap: 10 }}>
                 {list.map((s) => (
                   <div key={s.id}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: 14,
-                        marginBottom: 4,
-                      }}
-                    >
+                    <div style={{ fontSize: 14, marginBottom: 6 }}>
                       <span>{s.name}</span>
-                      <span className="mute">{s.level}%</span>
+                      {/* Task content update: numeric % proficiency labels removed —
+                          levels remain only as relative indicator bars (honest
+                          presentation, no claimed precision). */}
                     </div>
                     <div
                       role="img"
-                      aria-label={`${s.name} ${s.level}%`}
+                      aria-label={`${s.name} — ${s.category}`}
                       style={{
                         height: 6,
                         borderRadius: 999,

@@ -60,6 +60,23 @@ export function ProjectCard({
         </span>
       )}
       <h3 data-ac="text">{pick(locale, project.title)}</h3>
+      {/* Task U-content: deployment status label from the admin `category`
+          field — distinguishes operational (local network), published and
+          not-yet-published projects honestly. */}
+      {project.category && (
+        <p
+          data-ac="text"
+          style={{
+            margin: "-2px 0 10px",
+            fontSize: 12.5,
+            color: "var(--accent, #2F6BFF)",
+            fontWeight: 600,
+            letterSpacing: "0.02em",
+          }}
+        >
+          {project.category}
+        </p>
+      )}
       {project.problem && (
         <>
           <h4 data-ac="text">{labels.problem}</h4>

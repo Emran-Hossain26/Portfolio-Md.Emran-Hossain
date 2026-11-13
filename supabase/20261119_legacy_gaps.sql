@@ -73,3 +73,8 @@ create table if not exists public.login_attempts (
 create index if not exists login_attempts_lookup_idx
   on public.login_attempts (identifier, created_at desc);
 alter table public.login_attempts enable row level security;
+
+-- 7. education: publication flags (legacy DB gap found 2026-11-14)
+alter table public.education add column if not exists published boolean not null default true;
+alter table public.education add column if not exists pub_status text not null default 'published';
+alter table public.education add column if not exists slug text not null default '';
