@@ -36,7 +36,7 @@ export const statusItems: string[] = [
   "Windows Server / AD",
   "Linux & Networking",
   "Cloud Security",
-  "Full Stack + AI",
+  "AI-Assisted Software Solutions",
 ];
 
 export function pickLocale(locale: Locale) {
