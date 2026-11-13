@@ -274,6 +274,17 @@ if(!document.documentElement.getAttribute('data-ac-alive')&&Date.now()-acStart>1
       suppressHydrationWarning
     >
       <head>
+        {/* LCP font preload: the hero H1 paints with Sora; next/font does not
+            emit font preloads on fully-dynamic (nonce-CSP) pages, so preload
+            the variable file directly. Hash is stable per font build — if the
+            font config changes, re-check this URL against .next/static/media. */}
+        <link
+          rel="preload"
+          href="/_next/static/media/bc8ed407dc77c57a-s.p.1hey5yyym6mz_.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: noFlashScript }} />
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: effectsScript }} />
         {/* Agent Cursors boot: portfolio route only (Stage 6/7 spec). */}
