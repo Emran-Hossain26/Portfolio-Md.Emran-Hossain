@@ -109,15 +109,19 @@ export default async function HomePage({
     agentCursors: true,
   };
 
-  // id="avail" — targeted by the visitor preview panel's availability toggle
-  const availabilityChip = (
+  // id="avail" — targeted by the visitor preview panel's availability toggle.
+  // Content phase: hidden entirely while availability text is empty (no
+  // commercial-availability claim until the owner re-enables it).
+  const availabilityText =
+    (resolved === "bn"
+      ? contact.availability.bn || contact.availability.en
+      : contact.availability.en || contact.availability.bn) || "";
+  const availabilityChip = availabilityText.trim() ? (
     <p className="chip on" id="avail" data-ac="text">
       <i aria-hidden="true" />
-      {resolved === "bn"
-        ? contact.availability.bn || contact.availability.en
-        : contact.availability.en || contact.availability.bn}
+      {availabilityText}
     </p>
-  );
+  ) : null;
 
   return (
     <>
