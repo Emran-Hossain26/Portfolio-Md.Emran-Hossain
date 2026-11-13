@@ -97,10 +97,32 @@ export default async function AboutPage({
                     }}
                   />
                   <div className="card" style={{ padding: "14px 16px" }}>
-                    <h3 style={{ margin: 0 }}>{pick(resolved, item.role)}</h3>
+                    <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                      {pick(resolved, item.role)}
+                      {item.isCurrent ? (
+                        <span className="exp-current">
+                          <i aria-hidden="true" />
+                          {resolved === "bn" ? "বর্তমানে কর্মরত" : "Currently Working"}
+                        </span>
+                      ) : null}
+                    </h3>
                     <p className="mute" style={{ margin: "4px 0 0" }}>
                       {[pick(resolved, item.org), item.period].filter(Boolean).join(" · ")}
                     </p>
+                    {item.websiteUrl ? (
+                      <p style={{ margin: "2px 0 0" }}>
+                        <a
+                          className="exp-link"
+                          href={item.websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={resolved === "bn" ? "নতুন ট্যাবে খুলবে" : "opens in a new tab"}
+                        >
+                          <span aria-hidden="true">↗</span>{" "}
+                          {item.websiteUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                        </a>
+                      </p>
+                    ) : null}
                     {item.summary ? (
                       /* Task content update: bilingual summary first; the legacy
                          single-language `details` column is only a fallback. */

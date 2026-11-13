@@ -3,7 +3,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Hind_Siliguri, Inter, Sora } from "next/font/google";
+import { Hind_Siliguri, Sora } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { headers } from "next/headers";
 
@@ -30,12 +30,6 @@ const sora = Sora({
   subsets: ["latin"],
   weight: ["500", "700"],
   variable: "--font-sora",
-  display: "swap",
-});
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-inter",
   display: "swap",
 });
 const hind = Hind_Siliguri({
@@ -270,7 +264,7 @@ if(!document.documentElement.getAttribute('data-ac-alive')&&Date.now()-acStart>1
   return (
     <html
       lang={resolved}
-      className={`${sora.variable} ${inter.variable} ${hind.variable}`}
+      className={`${sora.variable} ${hind.variable}`}
       suppressHydrationWarning
     >
       <head>

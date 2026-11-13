@@ -104,6 +104,25 @@ export function ProjectCard({
           <p data-ac="text">{text(locale, project.solution)}</p>
         </>
       )}
+      {/* Task: IT Management System — compact expandable 20-module list.
+          Native <details> = keyboard + aria for free; light, no re-renders. */}
+      {project.modules?.length ? (
+        <details className="module-list">
+          <summary>
+            <span className="module-summary-text">
+              {locale === "bn"
+                ? `সব ${project.modules.length}টি মডিউল দেখুন`
+                : `View all ${project.modules.length} modules`}
+            </span>
+            <span className="module-chevron" aria-hidden="true">▾</span>
+          </summary>
+          <ul className="module-grid">
+            {project.modules.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       <div className="tags">
         {project.tech.map((tag) => (
           <span key={tag}>{tag}</span>

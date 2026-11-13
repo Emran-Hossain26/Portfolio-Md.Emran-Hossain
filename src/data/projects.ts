@@ -45,6 +45,8 @@ export type Project = {  slug: string;
   role?: Localized;
   /** Key features list (U4, one per line). */
   features?: Localized;
+  /** Verified module names for the expandable list (ITMS). */
+  modules?: string[];
   /** Per-record SEO overrides (U4) — used by the project page metadata. */
   seo?: {
     title?: Localized;

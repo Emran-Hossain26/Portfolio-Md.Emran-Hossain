@@ -62,7 +62,7 @@ export async function getProjects(): Promise<Project[]> {
     const P_SELECT_U2 = P_SELECT_CASE.replace("tech,", "status,featured,live_url,repo_url,tech,");
     const P_SELECT_FULL = P_SELECT_U2.replace(
       "tech,",
-      "cover_url,category,project_type,role_en,role_bn,features_en,features_bn,pub_status,published_at,tech,"
+      "cover_url,category,project_type,role_en,role_bn,features_en,features_bn,pub_status,published_at,modules_en,tech,"
     );
     const fetchProjects = async (select: string, useU2 = true, usePub = true) => {
       let q = db().from("projects").select(select).eq("published", true);
@@ -113,6 +113,10 @@ export async function getProjects(): Promise<Project[]> {
         project_type: (row.project_type as string) || undefined,
         role: (row.role_en || row.role_bn) ? L(row.role_en, row.role_bn) : undefined,
         features: (row.features_en || row.features_bn) ? L(row.features_en, row.features_bn) : undefined,
+        modules:
+          typeof row.modules_en === "string" && row.modules_en.trim()
+            ? row.modules_en.split("\n").map((m) => m.trim()).filter(Boolean)
+            : undefined,
         seo: row.seo_title_en || row.seo_desc_en || row.og_image || row.noindex
           ? {
               title: (row.seo_title_en || row.seo_title_bn) ? L(row.seo_title_en, row.seo_title_bn) : undefined,
@@ -218,6 +222,7 @@ export type TimelineItem = {
   details: string;
   /** Stage U4 employment fields (experience module only). */
   logoUrl?: string;
+  isCurrent?: boolean;
   websiteUrl?: string;
   employmentType?: string;
   summary?: Localized;
@@ -268,6 +273,7 @@ export async function getExperience(): Promise<TimelineItem[]> {
         period: structured || String(row.period ?? ""),
         details: String(row.details ?? ""),
         logoUrl: (row.logo_url as string) || undefined,
+        isCurrent: row.is_current === true,
         websiteUrl: (row.website_url as string) || undefined,
         employmentType: (row.employment_type as string) || undefined,
         summary: (row.summary_en || row.summary_bn) ? L(row.summary_en, row.summary_bn) : undefined,

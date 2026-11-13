@@ -792,3 +792,24 @@ html.ac-run [data-ac="line"] { visibility: visible; transform: scaleX(0); transf
   border: 1px solid var(--line); background: var(--panel)
 }
 .status-chips .chip-s i { color: var(--ok); font-style: normal; font-size: 8px }
+
+/* ---- Task: experience enhancements (company links + current marker) ---- */
+.exp-link { font-size: 13px; color: var(--mute); text-decoration: none; display: inline-flex; gap: 4px; align-items: center; transition: color .15s ease; }
+.exp-link:hover, .exp-link:focus-visible { color: var(--accent); }
+.exp-current { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #15803d; letter-spacing: .02em; }
+.exp-current i { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, .16); }
+@media (prefers-reduced-motion: no-preference) {
+  .exp-current i { animation: exp-pulse 2.4s ease-in-out infinite; }
+}
+@keyframes exp-pulse { 50% { box-shadow: 0 0 0 6px rgba(22, 163, 74, .07); } }
+
+/* ---- Task: IT Management System expandable module list ---- */
+.module-list { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.module-list summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 12px; font-size: 13.5px; font-weight: 600; color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); transition: background .15s ease; }
+.module-list summary::-webkit-details-marker { display: none; }
+.module-list summary:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.module-list .module-chevron { transition: transform .18s ease; }
+.module-list[open] .module-chevron { transform: rotate(180deg); }
+.module-list[open] summary { border-bottom: 1px solid var(--line); }
+.module-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; padding: 10px 14px 12px; margin: 0; list-style: none; font-size: 13px; color: var(--mute); }
+@media (max-width: 480px) { .module-grid { grid-template-columns: 1fr; } }
