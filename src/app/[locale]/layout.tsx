@@ -28,13 +28,11 @@ import "../globals.css";
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
 const sora = Sora({
   subsets: ["latin"],
-  weight: ["500", "700"],
   variable: "--font-sora",
   display: "swap",
 });
 const hind = Hind_Siliguri({
   subsets: ["bengali", "latin"],
-  weight: ["400", "600"],
   variable: "--font-hind",
   display: "swap",
 });
