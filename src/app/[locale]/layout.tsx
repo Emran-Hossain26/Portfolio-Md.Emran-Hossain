@@ -33,6 +33,7 @@ const sora = Sora({
 });
 const hind = Hind_Siliguri({
   subsets: ["bengali", "latin"],
+  weight: ["400", "600"],
   variable: "--font-hind",
   display: "swap",
 });
