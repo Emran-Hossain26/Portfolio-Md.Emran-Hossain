@@ -1,5 +1,7 @@
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 // Stage 6 item 1: blocking route — /admin/* pages NEVER prerender, so an
 // unauthenticated request always hits the live guard (307 to /login), never
 // a cached shell.

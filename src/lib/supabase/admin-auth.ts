@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -50,7 +51,7 @@ async function requireAdminCore() {
   return { user, supabase };
 }
 
-export async function requireAdmin() {
+export const requireAdmin = cache(async function requireAdmin() {
   const { user, supabase } = await requireAdminCore();
 
   // Two-factor gate. Fail-open on infrastructure errors (the row read uses
@@ -79,7 +80,11 @@ export async function requireAdmin() {
   }
 
   return user;
-}
+});
+/** cache() dedupes the whole auth chain (getUser + is_admin + admins row) to
+ *  ONE pass per render, even when the outer layout, gate layout AND page each
+ *  call requireAdmin() — previously that was 3 × 3 sequential Supabase
+ *  round-trips per admin navigation (the main admin-panel bottleneck). */
 
 /** Guard for /admin/verify-2fa itself: authenticated admin whose 2FA
  *  session is NOT yet established. Anyone else is sent on their way. */

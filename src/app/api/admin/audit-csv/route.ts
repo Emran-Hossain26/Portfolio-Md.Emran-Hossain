@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/admin";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 /**
  * Task U4: activity-log CSV export. Same inline auth as messages-csv
  * (session + is_admin), else 401/403. Read-only over audit_log.

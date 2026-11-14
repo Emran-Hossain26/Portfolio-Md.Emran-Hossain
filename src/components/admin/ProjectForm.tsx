@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { saveCmsAction } from "@/app/(admin)/admin/cms/actions";
+import { ActionButton } from "./ActionButton";
 import { SeoFields, type SeoDefaults } from "./SeoFields";
 import { SlidesEditor, type Slide } from "./SlidesEditor";
 
@@ -172,9 +173,9 @@ export function ProjectForm({
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
-        <button className="btn p" type="submit" name="intent" value="keep">Save</button>
-        <button className="btn" type="submit" name="intent" value="draft">Save as Draft</button>
-        <button className="btn" type="submit" name="intent" value="publish">Publish Now</button>
+        <ActionButton className="btn p" pendingLabel="Saving…" name="intent" value="keep">Save</ActionButton>
+        <ActionButton pendingLabel="Saving…" name="intent" value="draft">Save as Draft</ActionButton>
+        <ActionButton pendingLabel="Publishing…" name="intent" value="publish">Publish Now</ActionButton>
         {!isNew && <Link className="btn" href={`/admin/preview/cms/projects/${id}`}>Preview</Link>}
         <Link className="btn" href="/admin/projects">Back to list</Link>
       </div>

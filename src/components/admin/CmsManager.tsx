@@ -10,6 +10,7 @@ import {
   reorderCmsAction,
 } from "@/app/(admin)/admin/cms/actions";
 import { TABS, type CmsAdminRow, type CmsModule } from "@/app/(admin)/admin/cms/shared";
+import { ActionButton } from "./ActionButton";
 
 const TAB_LABELS: Record<string, string> = {
   all: "All",
@@ -289,7 +290,7 @@ export function CmsManager({ module, base, rows, tab, saved, error, hasU4 }: Pro
                       {trashMode ? (
                         <>
                           <form action={cmsLifecycleAction.bind(null, module, r.id, "restore")}>
-                            <button className="btn s p" type="submit">Restore</button>
+                            <ActionButton className="btn s p" pendingLabel="Restoring…">Restore</ActionButton>
                           </form>
                           <DeleteForever module={module} id={r.id} name={r.name || r.slug} />
                         </>
@@ -299,29 +300,29 @@ export function CmsManager({ module, base, rows, tab, saved, error, hasU4 }: Pro
                           <Link className="btn s" href={`/admin/preview/cms/${module}/${r.id}`}>Preview</Link>
                           <Link className="btn s" href={`${base}/${r.id}/revisions`}>History</Link>
                           <form action={duplicateCmsAction.bind(null, module, r.id)}>
-                            <button className="btn s" type="submit">Duplicate</button>
+                            <ActionButton className="btn s" pendingLabel="Duplicating…">Duplicate</ActionButton>
                           </form>
                           {r.pubStatus === "archived" ? (
                             <form action={cmsLifecycleAction.bind(null, module, r.id, "restore")}>
-                              <button className="btn s p" type="submit">Restore</button>
+                              <ActionButton className="btn s p" pendingLabel="Restoring…">Restore</ActionButton>
                             </form>
                           ) : (
                             <form action={cmsLifecycleAction.bind(null, module, r.id, "publish")}>
-                              <button className="btn s p" type="submit">Publish</button>
+                              <ActionButton className="btn s p" pendingLabel="Publishing…">Publish</ActionButton>
                             </form>
                           )}
                           {r.pubStatus === "published" && (
                             <form action={cmsLifecycleAction.bind(null, module, r.id, "unpublish")}>
-                              <button className="btn s" type="submit">Unpublish</button>
+                              <ActionButton className="btn s" pendingLabel="Unpublishing…">Unpublish</ActionButton>
                             </form>
                           )}
                           {r.pubStatus !== "archived" && (
                             <form action={cmsLifecycleAction.bind(null, module, r.id, "archive")}>
-                              <button className="btn s" type="submit">Archive</button>
+                              <ActionButton className="btn s" pendingLabel="Archiving…">Archive</ActionButton>
                             </form>
                           )}
                           <form action={cmsLifecycleAction.bind(null, module, r.id, "trash")}>
-                            <button className="btn s" type="submit" style={{ color: "var(--bad)" }}>Trash</button>
+                            <ActionButton className="btn s" pendingLabel="Moving…" style={{ color: "var(--bad)" }}>Trash</ActionButton>
                           </form>
                         </>
                       )}

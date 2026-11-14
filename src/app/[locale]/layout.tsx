@@ -25,6 +25,8 @@ import { PreviewDock } from "@/components/PreviewDock";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 // Self-hosted fonts (deviation #4): same families/weights as the mockup.
 const sora = Sora({
   subsets: ["latin"],

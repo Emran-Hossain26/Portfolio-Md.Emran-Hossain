@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured } from "@/lib/supabase/admin";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 /**
  * Lightweight gate for client-side admin-only UI (the "Admin preview" dock
  * on the public site). Returns whether the current session belongs to an

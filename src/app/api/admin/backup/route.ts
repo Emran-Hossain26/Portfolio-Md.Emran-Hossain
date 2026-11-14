@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/admin";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 /**
  * Content backup export (MISSING-TASKS A10): every admin-managed table as
  * JSON plus the media list. Auth is checked inline (API route — no admin

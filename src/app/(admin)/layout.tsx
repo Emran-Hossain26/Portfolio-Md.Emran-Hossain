@@ -10,6 +10,8 @@ import { createServiceClient, adminConfigured } from "@/lib/supabase/service";
 import "../globals.css";
 import "./admin.css";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 // Admin area: never indexed.
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

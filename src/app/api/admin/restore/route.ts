@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/admin";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 /**
  * Stage 7 — content backup IMPORT (the mirror of /api/admin/backup).
  * Accepts the JSON produced by the backup export and upserts every row by

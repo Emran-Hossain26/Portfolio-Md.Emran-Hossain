@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { adminConfigured, createServiceClient } from "@/lib/supabase/admin";
 
+export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
+
 /**
  * Newsletter subscribers CSV export for /admin/newsletter (MISSING-TASKS
  * A13). Inline auth (session + is_admin), else 401 — API routes never

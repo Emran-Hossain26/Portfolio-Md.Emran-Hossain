@@ -1,4 +1,5 @@
 import { saveRowAction, deleteRowAction } from "@/app/(admin)/actions";
+import { ActionButton } from "./ActionButton";
 import type { ReactNode } from "react";
 
 export type AdminField = {
@@ -110,9 +111,9 @@ export function RowForm({
         })}
         {children}
         <div className="admin-actions">
-          <button type="submit" className="btn p">
+          <ActionButton className="btn p" pendingLabel="Saving…">
             Save
-          </button>
+          </ActionButton>
         </div>
       </form>
       <form action={deleteRowAction.bind(null, table, id)} className="admin-actions">
