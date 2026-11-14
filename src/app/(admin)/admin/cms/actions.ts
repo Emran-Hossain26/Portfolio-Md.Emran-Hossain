@@ -8,7 +8,6 @@ import { adminConfigured, createServiceClient } from "@/lib/supabase/service";
 import { requireAdmin } from "@/lib/supabase/admin-auth";
 import { logAdminAction, auditValue } from "@/lib/audit";
 
-export const preferredRegion = "icn1"; // co-located with the Supabase Seoul region — cuts DB round-trip latency
 
 const CONFIGURED_ERROR = "/login?reason=notconfigured";
 
