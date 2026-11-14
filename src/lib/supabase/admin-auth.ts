@@ -42,7 +42,9 @@ async function requireAdminCore() {
   }
 
   // The decisive check: admins-table membership via the SQL function.
+  const __rpcT0 = Date.now(); // TEMP review instrumentation: reveals function-to-DB latency
   const { data: isAdmin, error } = await supabase.rpc("is_admin");
+  console.log(`[auth-dedupe] is_admin rpc ${Date.now() - __rpcT0}ms (region probe) | chain runs: ${__authChainRuns}`);
   if (error || isAdmin !== true) {
     await supabase.auth.signOut();
     redirect("/login?reason=notadmin");
