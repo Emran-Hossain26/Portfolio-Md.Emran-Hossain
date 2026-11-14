@@ -4,5 +4,8 @@
       "path": "/api/cron/publish-scheduled",
       "schedule": "0 0 * * *"
     }
+  ],
+  "regions": [
+    "icn1"
   ]
 }
