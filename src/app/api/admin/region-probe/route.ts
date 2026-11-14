@@ -10,7 +10,10 @@ export async function GET() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: "unauthorized", vercelRegion: process.env.VERCEL_REGION ?? "(unset)" },
+      { status: 401 },
+    );
   }
   const { data: isAdmin } = await supabase.rpc("is_admin");
   if (isAdmin !== true) {
