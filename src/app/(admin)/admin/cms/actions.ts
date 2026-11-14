@@ -292,6 +292,7 @@ async function snapshotRevision(
 /* ------------------------------------------------------------------ */
 
 export async function saveCmsAction(module: string, id: string, fd: FormData) {
+  const __t0 = Date.now(); // perf instrumentation: duration-only, no payload data
   if (!adminConfigured()) redirect(CONFIGURED_ERROR);
   if (!isCmsModule(module)) redirect("/admin");
   const user = await requireAdmin();
@@ -351,6 +352,7 @@ export async function saveCmsAction(module: string, id: string, fd: FormData) {
     await db.from(cfg.table).update(patch).eq("id", id);
     await logAdminAction(user, "content_updated", module, id, auditValue({ prev_status: prevStatus }), auditValue({ name: row.title_en ?? row.role_en, prev_status: prevStatus, new_status: pubStatus, ip: await clientIp() }));
   }
+  console.log(`[admin-perf] save ${module} ${id === "__new" ? "create" : "update"} total=${Date.now() - __t0}ms`);
   refresh();
   redirect(`${cfg.base}?tab=all&saved=1&which=${entityId}`);
 }
