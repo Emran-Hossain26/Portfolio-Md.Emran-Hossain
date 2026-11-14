@@ -51,7 +51,10 @@ async function requireAdminCore() {
   return { user, supabase };
 }
 
+export let __authChainRuns = 0; // TEMP instrumentation (review round) — removed after approval
 export const requireAdmin = cache(async function requireAdmin() {
+  __authChainRuns += 1;
+  console.log(`[auth-dedupe] requireAdmin chain executed (call #${__authChainRuns} since cold start)`);
   const { user, supabase } = await requireAdminCore();
 
   // Two-factor gate. Fail-open on infrastructure errors (the row read uses
