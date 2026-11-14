@@ -1,0 +1,14 @@
+HTTP/1.1 307 Temporary Redirect
+Cache-Control: public, max-age=0, must-revalidate
+Content-Type: text/plain
+Date: Sat, 14 Nov 2026 16:26:19 GMT
+Location: /login
+Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+Referrer-Policy: strict-origin-when-cross-origin
+Server: Vercel
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Frame-Options: DENY
+X-Robots-Tag: noindex
+X-Vercel-Id: bom1::h5th7-1794673578072-9dd0fabccb2a
+Transfer-Encoding: chunked
+
