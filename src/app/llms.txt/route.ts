@@ -8,7 +8,7 @@ export function GET() {
   const base = siteUrl.replace(/\/$/, "");
   const body = `# ${site.name}
 
-> IT Infrastructure & Cybersecurity Engineer, Full Stack Developer with AI — ${site.location.en}
+> IT Infrastructure, Operations & Digital Solutions Professional — ${site.location.en}
 
 Location: ${site.location.en}
 Languages: English (/), Bangla (/bn)

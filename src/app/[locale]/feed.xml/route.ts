@@ -43,7 +43,7 @@ ${cats}
   <channel>
     <title>${esc(site.name)} — ${bn ? "ব্লগ" : "Blog"}</title>
     <link>${base}/${resolved === "bn" ? "bn/" : ""}blog</link>
-    <description>${bn ? "আইটি ইনফ্রাস্ট্রাকচার, সাইবারসিকিউরিটি ও ফুল-স্ট্যাক ডেভেলপমেন্ট নিয়ে লেখা।" : "Notes on IT infrastructure, cybersecurity and full-stack development."}</description>
+    <description>${bn ? "আইটি অবকাঠামো, অপারেশন, ডিজিটাল সমাধান ও AI-সহায়তায় সফটওয়্যার উন্নয়ন নিয়ে লেখা।" : "Notes on IT infrastructure, operations, digital solutions and AI-assisted software development."}</description>
     <language>${bn ? "bn-BD" : "en-US"}</language>
     <atom:link href="${base}/${resolved === "bn" ? "bn/" : ""}feed.xml" rel="self" type="application/rss+xml" />
 ${items}

@@ -88,7 +88,7 @@ function personJsonLd() {
     "@type": "Person",
     "@id": `${siteUrl}/#person`,
     name: site.name,
-    jobTitle: "IT Infrastructure, Cybersecurity & Full Stack Engineer",
+    jobTitle: "IT Infrastructure, Operations & Digital Solutions Professional",
     url: `${siteUrl}/`,
     email: site.email,
     telephone: site.phone,
@@ -110,10 +110,10 @@ function professionalServiceJsonLd() {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     "@id": `${siteUrl}/#professional-service`,
-    name: `${site.name} — IT Infrastructure & Cybersecurity`,
+    name: `${site.name} — IT Infrastructure, Operations & Digital Solutions`,
     url: `${siteUrl}/`,
     description:
-      "IT infrastructure, cybersecurity, networking and full-stack web development services for businesses in Dhaka, Bangladesh.",
+      "IT Infrastructure, Operations & Digital Solutions Professional for businesses in Dhaka, Bangladesh — enterprise infrastructure & operations, and AI-assisted business software solutions.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Dhaka",
@@ -132,7 +132,7 @@ function websiteJsonLd() {
     name: site.name,
     url: `${siteUrl}/`,
     description:
-      "IT infrastructure, cybersecurity and full-stack development portfolio",
+      "IT Infrastructure, Operations & Digital Solutions Professional portfolio",
     inLanguage: ["en", "bn"],
     publisher: { "@type": "Person", "@id": `${siteUrl}/#person`, name: site.name },
     potentialAction: {

@@ -9,10 +9,10 @@ export const expertiseItems: { title: Localized; desc: Localized }[] = [
     },
   },
   {
-    title: { en: "Cybersecurity & Cloud", bn: "সাইবার সিকিউরিটি ও ক্লাউড" },
+    title: { en: "IT Security & Endpoint Management", bn: "আইটি সিকিউরিটি ও এন্ডপয়েন্ট ম্যানেজমেন্ট" },
     desc: {
-      en: "Hardening, access control, network defence and secure cloud setups.",
-      bn: "হার্ডেনিং, অ্যাক্সেস কন্ট্রোল, নেটওয়ার্ক নিরাপত্তা ও নিরাপদ ক্লাউড সেটআপ।",
+      en: "SentinelOne endpoint protection, access control, user-wise asset assignment and secure configurations.",
+      bn: "SentinelOne এন্ডপয়েন্ট সুরক্ষা, অ্যাক্সেস কন্ট্রোল, ইউজার-ভিত্তিক অ্যাসেট অ্যাসাইনমেন্ট ও নিরাপদ কনফিগারেশন।",
     },
   },
   {
@@ -23,10 +23,10 @@ export const expertiseItems: { title: Localized; desc: Localized }[] = [
     },
   },
   {
-    title: { en: "Full Stack with AI", bn: "এআই-সহ ফুল স্ট্যাক" },
+    title: { en: "AI-Assisted Software Development", bn: "AI-সহায়তায় সফটওয়্যার উন্নয়ন" },
     desc: {
-      en: "PHP, TypeScript and modern web apps built faster with AI tooling.",
-      bn: "PHP, TypeScript এবং এআই টুলিংয়ে দ্রুত তৈরি আধুনিক ওয়েব অ্যাপ।",
+      en: "Independently led, prompt-directed development of business software — PHP, TypeScript and modern web apps built faster with AI tooling.",
+      bn: "স্বাধীনভাবে পরিচালিত, প্রম্পট-নির্দেশিত বিজনেস সফটওয়্যার উন্নয়ন — PHP, TypeScript এবং এআই টুলিংয়ে দ্রুত তৈরি আধুনিক ওয়েব অ্যাপ।",
     },
   },
 ];

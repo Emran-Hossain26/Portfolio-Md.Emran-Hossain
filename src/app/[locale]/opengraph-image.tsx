@@ -37,7 +37,7 @@ export default async function OgImage({
   const title = bn ? site.nameBn : site.name;
   const tagline = bn
     ? "আইটি ইনফ্রাস্ট্রাকচার · সাইবারসিকিউরিটি · ফুল-স্ট্যাক + এআই"
-    : "IT Infrastructure · Cybersecurity · Full Stack with AI";
+    : "IT Infrastructure · Operations · Digital Solutions · AI-Assisted Development";
 
   return new ImageResponse(
     (

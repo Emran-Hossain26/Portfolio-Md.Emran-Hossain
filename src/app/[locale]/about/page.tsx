@@ -163,7 +163,7 @@ export default async function AboutPage({
             name={site.name}
             role={resolved === "bn"
               ? "আইটি ইনফ্রাস্ট্রাকচার, সাইবারসিকিউরিটি ও ফুল-স্ট্যাক ইঞ্জিনিয়ার"
-              : "IT Infrastructure, Cybersecurity & Full Stack Engineer"}
+              : "IT Infrastructure, Operations & Digital Solutions Professional"}
             email={contact.email || site.email}
             location={resolved === "bn" ? "ঢাকা, বাংলাদেশ" : "Dhaka, Bangladesh"}
             skills={skills.slice(0, 10).map((s) => s.name)}

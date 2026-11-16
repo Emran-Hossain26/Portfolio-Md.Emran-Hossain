@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: `${site.name} — Portfolio`,
     short_name: site.name,
     description:
-      "IT infrastructure, cybersecurity and full-stack development portfolio",
+      "IT Infrastructure, Operations & Digital Solutions Professional portfolio",
     start_url: "/",
     display: "standalone",
     background_color: "#0C1524",
