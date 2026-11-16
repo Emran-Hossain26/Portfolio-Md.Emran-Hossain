@@ -9,7 +9,7 @@
       },
       "blog": {
         "title": "Blog | Md Emran Hossain",
-        "description": "Practical notes on IT operations, Windows Server, networking, digital transformation and AI-assisted software development."
+        "description": "Practical notes on IT operations, Windows Server, networking, digital solutions and AI-assisted software development."
       },
       "testimonials": {
         "title": "Testimonials | Md Emran Hossain",
@@ -21,11 +21,11 @@
       },
       "contact": {
         "title": "Contact | Md Emran Hossain",
-        "description": "Contact Md Emran Hossain for IT infrastructure, cybersecurity or web work: engremran.it@gmail.com, Dhaka, Bangladesh."
+        "description": "Contact Md Emran Hossain for IT infrastructure, operations or digital solutions work: engremran.it@gmail.com, Dhaka, Bangladesh."
       },
       "services": {
         "title": "Services & packages",
-        "description": "IT infrastructure, cybersecurity and full-stack development packages for businesses in Dhaka — request a quote online."
+        "description": "IT infrastructure, operations and digital solutions for businesses in Dhaka — planned and led with an AI-assisted development workflow."
       }
     }
   },
@@ -40,12 +40,12 @@
     "faq": "FAQ"
   },
   "hero": {
-    "heading": "I build and secure the systems your business runs on.",
-    "intro": "Md Emran Hossain: IT infrastructure and cybersecurity engineer, and AI-assisted full stack developer in Dhaka. Servers, networks, cloud and web applications, end to end.",
+    "heading": "IT Infrastructure, Operations & Digital Solutions Professional",
+    "intro": "Md. Emran Hossain — 13+ years of overall professional experience and 6+ years of IT-focused experience. Managing organizational IT infrastructure, network and server environments, technical operations and team coordination — while independently conceptualizing and leading AI-assisted business software solutions.",
     "hire": "Hire me",
     "cv": "Download CV",
     "cvSoon": "CV download will be enabled with the admin panel (milestone 3)",
-    "photoAlt": "Md Emran Hossain, IT infrastructure and cybersecurity engineer"
+    "photoAlt": "Md. Emran Hossain — IT Infrastructure, Operations & Digital Solutions Professional"
   },
   "status": {
     "online": "online"
