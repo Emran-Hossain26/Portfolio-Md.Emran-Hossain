@@ -813,3 +813,13 @@ html.ac-run [data-ac="line"] { visibility: visible; transform: scaleX(0); transf
 .module-list[open] summary { border-bottom: 1px solid var(--line); }
 .module-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; padding: 10px 14px 12px; margin: 0; list-style: none; font-size: 13px; color: var(--mute); }
 @media (max-width: 480px) { .module-grid { grid-template-columns: 1fr; } }
+
+/* ---- Project cards: clamp long descriptions so one card never towers
+        over the grid (full text stays on the case-study page) ---- */
+.clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pj .tags { max-height: 58px; overflow: hidden; }

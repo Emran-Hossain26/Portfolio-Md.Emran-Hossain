@@ -95,13 +95,13 @@ export function ProjectCard({
       {project.problem && (
         <>
           <h4 data-ac="text">{labels.problem}</h4>
-          <p data-ac="text">{text(locale, project.problem)}</p>
+          <p data-ac="text" className="clamp-4">{text(locale, project.problem)}</p>
         </>
       )}
       {project.solution && (
         <>
           <h4 data-ac="text">{labels.solution}</h4>
-          <p data-ac="text">{text(locale, project.solution)}</p>
+          <p data-ac="text" className="clamp-4">{text(locale, project.solution)}</p>
         </>
       )}
       {/* Task: IT Management System — compact expandable 20-module list.
