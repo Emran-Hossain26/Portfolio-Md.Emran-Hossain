@@ -823,3 +823,63 @@ html.ac-run [data-ac="line"] { visibility: visible; transform: scaleX(0); transf
   overflow: hidden;
 }
 .pj .tags { max-height: 58px; overflow: hidden; }
+
+/* ---- Blog post page: 3-column reading layout ---- */
+.read-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 30; pointer-events: none }
+.read-progress-bar { height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .08s linear }
+.post-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; padding-bottom: 40px }
+.post-main { order: 1; min-width: 0 }
+.post-aside { order: 2; min-width: 0 }
+.post-rail { display: none }
+.post-toc-desktop { display: none }
+.post-toc-mobile { margin: 0 0 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px 14px }
+.post-toc-mobile summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 4px 0 }
+.post-toc-mobile ul { list-style: none; padding: 8px 0 4px; margin: 0; display: grid; gap: 2px }
+.post-toc-mobile a { display: block; padding: 8px 0; font-size: 15px; color: var(--mute); text-decoration: none }
+.post-title { font-size: clamp(25px, 5.5vw, 36px); line-height: 1.2; margin: 0 0 14px }
+.post-meta { margin: 0 0 16px; font-size: 14px }
+.post-cover { width: 100%; height: auto; aspect-ratio: 16 / 9; max-height: 380px; object-fit: cover; border-radius: var(--radius, 12px); border: 1px solid var(--line); margin-bottom: 22px; display: block }
+.post-main .prose { max-width: none; font-size: 17px; line-height: 1.75; overflow-wrap: anywhere }
+.post-main .prose h2 { font-size: 24px; margin: 34px 0 12px }
+.post-main .prose h3 { font-size: 19px; margin: 26px 0 10px }
+.post-main .prose img { max-width: 100%; height: auto; border-radius: 10px }
+.post-main .prose table { display: block; overflow-x: auto; max-width: 100% }
+.post-main .prose h2, .post-main .prose h3 { scroll-margin-top: 84px }
+.post-side-title { display: block; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--mute); margin-bottom: 10px }
+.post-toc ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; border-left: 2px solid var(--line) }
+.post-toc a { display: block; padding: 5px 0 5px 12px; margin-left: -2px; border-left: 2px solid transparent; font-size: 14px; line-height: 1.4; color: var(--mute); text-decoration: none }
+.post-toc a:hover { color: var(--ink) }
+.post-toc a.on { color: var(--accent); border-left-color: var(--accent); font-weight: 600 }
+.post-related { margin-top: 28px }
+.post-related-list { display: grid; gap: 10px }
+.post-related-item { display: block; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); text-decoration: none; color: var(--ink) }
+.post-related-item:hover { border-color: var(--accent) }
+.post-related-item b { display: block; font-size: 15px; line-height: 1.35; font-weight: 600 }
+.post-related-item span { font-size: 13px; color: var(--mute) }
+.post-share { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+.post-share .btn { min-height: 40px; display: inline-flex; align-items: center }
+.post-rail .post-share { flex-direction: column; align-items: stretch }
+.post-rail .post-share .btn { justify-content: center }
+.post-author { display: flex; gap: 14px; align-items: center; margin-top: 30px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel) }
+.post-author-avatar { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 700; font-family: var(--font-sora), sans-serif }
+.post-author p { margin: 2px 0 0; font-size: 14px }
+.post-pager { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 22px }
+.post-pager a { display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); text-decoration: none; color: var(--ink) }
+.post-pager a:hover { border-color: var(--accent) }
+.post-pager small { display: block; color: var(--mute); font-size: 12px; margin-bottom: 4px }
+.post-pager b { font-size: 15px; line-height: 1.35; font-weight: 600 }
+@media (min-width: 560px) { .post-pager { grid-template-columns: 1fr 1fr } .post-pager .next { text-align: right } }
+@media (min-width: 760px) {
+  .post-grid { grid-template-columns: 230px minmax(0, 1fr); gap: 32px }
+  .post-main { order: 2 }
+  .post-aside { order: 1; position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 4px }
+  .post-toc-desktop { display: block }
+  .post-toc-mobile { display: none }
+  .post-related { margin-top: 28px }
+}
+@media (min-width: 1180px) {
+  .post-grid { grid-template-columns: 250px minmax(0, 780px) 180px; justify-content: center; gap: 36px }
+  .post-rail { display: block; order: 3; position: sticky; top: 84px }
+  .post-inline-share { display: none }
+}
+@media (prefers-reduced-motion: reduce) { .read-progress-bar { transition: none } }
