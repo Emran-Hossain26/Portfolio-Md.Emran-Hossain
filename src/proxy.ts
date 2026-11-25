@@ -1,5 +1,4 @@
 import { NextResponse, NextRequest } from "next/server";
-import { blogExternalUrl } from "@/data/site";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { createServerClient } from "@supabase/ssr";
@@ -87,18 +86,6 @@ export default async function proxy(request: NextRequest) {
   if (isSkipped) {
     response = NextResponse.next({ request: { headers: requestHeaders } });
   } else {
-    // Task U6: the blog lives off-site (Hashnode) — forward before any render
-    // so old links and the nav entry never load a local blog page. Post deep
-    // links (/blog/<slug>) still render the DB post for old bookmarks.
-    if (
-      pathname === "/blog" ||
-      pathname === "/en/blog" ||
-      pathname === "/bn/blog" ||
-      pathname.startsWith("/blog/category/") ||
-      pathname.startsWith("/blog/tag/")
-    ) {
-      return NextResponse.redirect(blogExternalUrl, 307);
-    }
     const redirects = await loadRedirects();
     const match = redirects.find((r) => r.from_url === pathname);
     if (match) {
