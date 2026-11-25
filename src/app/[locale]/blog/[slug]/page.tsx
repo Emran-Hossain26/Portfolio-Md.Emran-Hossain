@@ -16,6 +16,7 @@ import { getBlogPost, getRelatedPosts, extractToc, blogPostHref } from "@/lib/cm
 import { renderMarkdown } from "@/lib/markdown";
 import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
+import { BlogEngagement } from "@/components/BlogEngagement";
 import { ViewCounter } from "@/components/ViewCounter";
 import { pick, type Locale } from "@/data/types";
 import Link from "next/link";
@@ -175,6 +176,8 @@ export default async function PostPage({
           </div>
         ) : null}
       </article>
+
+      <BlogEngagement slug={post.slug} locale={resolved} />
 
       {related.length ? (
         <section style={{ marginTop: 40 }}>
