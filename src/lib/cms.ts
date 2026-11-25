@@ -72,7 +72,14 @@ export async function getProjects(): Promise<Project[]> {
       if (error) return null;
       return (data as unknown as Record<string, unknown>[]) ?? null;
     };
-    let data = await fetchProjects(P_SELECT_FULL);
+    // Per-project SEO overrides (admin "SEO" tab). Tried first; falls back to
+    // the older column sets if any of these columns is missing in the DB.
+    const P_SELECT_SEO = P_SELECT_FULL.replace(
+      "tech,",
+      "seo_title_en,seo_title_bn,seo_desc_en,seo_desc_bn,seo_keywords,og_image,canonical,noindex,tech,"
+    );
+    let data = await fetchProjects(P_SELECT_SEO);
+    if (!data) data = await fetchProjects(P_SELECT_FULL);
     if (!data) data = await fetchProjects(P_SELECT_U2);
     if (!data) data = await fetchProjects(P_SELECT_CASE);
     if (!data) data = await fetchProjects(P_SELECT, false, false);
