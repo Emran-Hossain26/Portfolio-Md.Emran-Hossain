@@ -5,7 +5,6 @@ import { MobileNav } from "./MobileNav";
 import { ThemePicker } from "./ThemePicker";
 import { getThemePresets, getThemeVisitorSwitch, getBranding } from "@/lib/cms";
 import { pick, type Locale } from "@/data/types";
-import { blogExternalUrl } from "@/data/site";
 
 /**
  * Task U6: the first four entries anchor-scroll to home sections
@@ -19,7 +18,7 @@ const NAV_ITEMS = [
   { key: "experience", href: "/#experience" },
   { key: "reviews", href: "/testimonials" },
   { key: "faq", href: "/#faq" },
-  { key: "blog", href: blogExternalUrl, external: true },
+  { key: "blog", href: "/blog" },
   { key: "contact", href: "/contact" },
 ] as const;
 
@@ -29,7 +28,7 @@ export async function Header() {
   const links = NAV_ITEMS.map((item) => ({
     href: item.href,
     label: t(item.key),
-    external: "external" in item ? item.external : false,
+    external: false as boolean,
   }));
 
   const presets = await getThemePresets();
