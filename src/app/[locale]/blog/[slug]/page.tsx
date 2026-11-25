@@ -12,9 +12,11 @@ export function generateStaticParams() {
 }
 import { pageMetadata, breadcrumbLd } from "@/lib/seo";
 import { siteUrl } from "@/data/site";
-import { getBlogPost, getRelatedPosts, extractToc, blogPostHref } from "@/lib/cms";
+import { getBlogPost, getBlogPosts, getRelatedPosts, extractToc, blogPostHref } from "@/lib/cms";
 import { renderMarkdown } from "@/lib/markdown";
-import { Breadcrumbs, PageHeading } from "@/components/Breadcrumbs";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { PostToc } from "@/components/PostToc";
+import { ReadingProgress } from "@/components/ReadingProgress";
 import { JsonLd } from "@/components/JsonLd";
 import { BlogEngagement } from "@/components/BlogEngagement";
 import { ViewCounter } from "@/components/ViewCounter";
@@ -74,128 +76,150 @@ export default async function PostPage({
   const shareUrl = encodeURIComponent(`${siteUrl}${url}`);
   const shareTitle = encodeURIComponent(title);
 
+  const bn = resolved === "bn";
+  const tocLabel = bn ? "সূচিপত্র" : "On this page";
+
+  // Newest-first list → neighbours for the previous / next links.
+  const all = await getBlogPosts();
+  const idx = all.findIndex((p) => p.slug === post.slug);
+  const newer = idx > 0 ? all[idx - 1] : undefined;
+  const older = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : undefined;
+
+  const shareLinks = (
+    <div className="post-share">
+      <span className="mute" style={{ fontSize: 13 }}>{bn ? "শেয়ার:" : "Share:"}</span>
+      <a className="btn" href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`} target="_blank" rel="noopener noreferrer">X / Twitter</a>
+      <a className="btn" href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a className="btn" href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer">Facebook</a>
+    </div>
+  );
+
+  const tagList = post.tags.length ? (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {post.tags.map((tg) => (
+        <Link key={tg} href={`/blog/tag/${encodeURIComponent(tg)}`}>
+          <span className="tags" style={{ display: "inline-block" }}>#{tg}</span>
+        </Link>
+      ))}
+    </div>
+  ) : null;
+
   return (
     <main className="wrap" id="main">
+      <ReadingProgress targetId="post-article" />
       <Breadcrumbs
         items={[
           { label: crumbs("blog"), href: "/blog" },
           { label: title },
         ]}
       />
-      <article>
-        <PageHeading>{title}</PageHeading>
-        {/* Admin-uploaded cover (posts.cover_url); the post is text-only when unset. */}
-        {post.cover_url ? (
-          <Image
-            src={post.cover_url}
-            alt={title}
-            width={1200}
-            height={630}
-            priority
-            sizes="(min-width: 760px) 720px, calc(100vw - 40px)"
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: "var(--radius, 12px)",
-              border: "1px solid var(--line)",
-              marginBottom: 18,
-            }}
-          />
-        ) : null}
-        <p className="mute" style={{ marginTop: post.cover_url ? 0 : -16, marginBottom: 18 }}>
-          {pick(resolved, post.meta) || `${minutes} ${resolved === "bn" ? "মিনিট পড়া" : "min read"}`}
-          {post.view_count > 0 ? (
-            <span style={{ marginLeft: 12 }}>
-              · {post.view_count} {resolved === "bn" ? "বার পড়া হয়েছে" : "views"}
-            </span>
+      <div className="post-grid">
+        {/* Left: contents + related (stacks under the article on phones) */}
+        <aside className="post-aside" aria-label={bn ? "পাশের তালিকা" : "Sidebar"}>
+          {toc.length > 0 ? (
+            <div className="post-toc-desktop">
+              <PostToc items={toc} label={tocLabel} />
+            </div>
           ) : null}
-        </p>
+          {related.length ? (
+            <section className="post-related">
+              <b className="post-side-title">{bn ? "সম্পর্কিত লেখা" : "Related posts"}</b>
+              <div className="post-related-list">
+                {related.map((r) => (
+                  <Link key={r.slug} href={blogPostHref(resolved, r)} className="post-related-item">
+                    <b>{pick(resolved, r.title)}</b>
+                    <span>{r.reading_time} {bn ? "মিনিট" : "min read"}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </aside>
 
-        {toc.length > 0 ? (
-          <nav aria-label="Table of contents" className="card" style={{ marginBottom: 24, padding: 16, display: "block", height: "auto" }}>
-            <b style={{ fontSize: 14, display: "block", marginBottom: 8 }}>
-              {resolved === "bn" ? "সূচিপত্র" : "On this page"}
-            </b>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 4 }}>
-              {toc.map((h) => (
-                <li key={h.id} style={{ paddingLeft: h.level === 3 ? 16 : 0 }}>
-                  <a href={`#${h.id}`} style={{ fontSize: 14, color: "var(--mute)" }}>
-                    {h.text}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ) : null}
+        <div className="post-main">
+          <article id="post-article">
+            <h1 className="post-title">{title}</h1>
+            <p className="mute post-meta">
+              {pick(resolved, post.meta) || `${minutes} ${bn ? "মিনিট পড়া" : "min read"}`}
+              {post.view_count > 0 ? (
+                <span style={{ marginLeft: 12 }}>
+                  · {post.view_count} {bn ? "বার পড়া হয়েছে" : "views"}
+                </span>
+              ) : null}
+            </p>
+            {/* Admin-uploaded cover (posts.cover_url): cropped 16:9, never stretched. */}
+            {post.cover_url ? (
+              <Image
+                className="post-cover"
+                src={post.cover_url}
+                alt={title}
+                width={1280}
+                height={720}
+                quality={90}
+                priority
+                sizes="(min-width: 1180px) 780px, (min-width: 760px) 60vw, 100vw"
+              />
+            ) : null}
 
-        {/* Admin-written Markdown, sanitised server-side */}
-        <div
-          className="prose"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }}
-        />
+            {toc.length > 0 ? (
+              <details className="post-toc-mobile">
+                <summary>{tocLabel}</summary>
+                <ul>
+                  {toc.map((h) => (
+                    <li key={h.id} style={{ paddingLeft: h.level === 3 ? 14 : 0 }}>
+                      <a href={`#${h.id}`}>{h.text}</a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
 
-        {/* Share buttons */}
-        <div style={{ marginTop: 28, display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span className="mute" style={{ fontSize: 13, alignSelf: "center" }}>
-            {resolved === "bn" ? "শেয়ার:" : "Share:"}
-          </span>
-          <a
-            className="btn"
-            href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            X / Twitter
-          </a>
-          <a
-            className="btn"
-            href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            LinkedIn
-          </a>
-          <a
-            className="btn"
-            href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Facebook
-          </a>
+            {/* Admin-written Markdown, sanitised server-side */}
+            <div className="prose" dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
+
+            <div className="post-inline-share" style={{ marginTop: 28 }}>{shareLinks}</div>
+            {tagList ? <div style={{ marginTop: 18 }}>{tagList}</div> : null}
+          </article>
+
+          <div className="post-author">
+            <span className="post-author-avatar" aria-hidden="true">E</span>
+            <div>
+              <b>Md Emran Hossain</b>
+              <p className="mute">
+                {bn
+                  ? "আইটি ইনফ্রাস্ট্রাকচার, অপারেশনস ও ডিজিটাল সলিউশনস প্রফেশনাল। "
+                  : "IT infrastructure, operations and digital solutions professional. "}
+                <Link href="/about">{bn ? "আমার সম্পর্কে" : "About me"}</Link>
+              </p>
+            </div>
+          </div>
+
+          {newer || older ? (
+            <div className="post-pager">
+              {older ? (
+                <Link href={blogPostHref(resolved, older)} className="prev">
+                  <small>← {bn ? "আগের লেখা" : "Previous post"}</small>
+                  <b>{pick(resolved, older.title)}</b>
+                </Link>
+              ) : <span />}
+              {newer ? (
+                <Link href={blogPostHref(resolved, newer)} className="next">
+                  <small>{bn ? "পরের লেখা" : "Next post"} →</small>
+                  <b>{pick(resolved, newer.title)}</b>
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+
+          <BlogEngagement slug={post.slug} locale={resolved} />
         </div>
 
-        {/* Tags */}
-        {post.tags.length ? (
-          <div style={{ marginTop: 20, display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {post.tags.map((tg) => (
-              <Link key={tg} href={`/blog/tag/${encodeURIComponent(tg)}`}>
-                <span className="tags" style={{ display: "inline-block" }}>#{tg}</span>
-              </Link>
-            ))}
-          </div>
-        ) : null}
-      </article>
-
-      <BlogEngagement slug={post.slug} locale={resolved} />
-
-      {related.length ? (
-        <section style={{ marginTop: 40 }}>
-          <h2 style={{ fontSize: 22, marginBottom: 14 }}>
-            {resolved === "bn" ? "সম্পর্কিত লেখা" : "Related posts"}
-          </h2>
-          <div className="grid" style={{ gap: 14 }}>
-            {related.map((r) => (
-              <Link key={r.slug} href={blogPostHref(resolved, r)} className="card" style={{ textDecoration: "none" }}>
-                <h3 style={{ fontSize: 17 }}>{pick(resolved, r.title)}</h3>
-                <p className="mute" style={{ fontSize: 13 }}>
-                  {r.reading_time} {resolved === "bn" ? "মিনিট" : "min"}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
+        {/* Right rail (wide screens): share + tags stay in view */}
+        <div className="post-rail">
+          {shareLinks}
+          {tagList ? <div style={{ marginTop: 18 }}>{tagList}</div> : null}
+        </div>
+      </div>
 
       {/* Counts against the canonical slug so both URL forms share one counter */}
       <ViewCounter slug={post.slug} />
