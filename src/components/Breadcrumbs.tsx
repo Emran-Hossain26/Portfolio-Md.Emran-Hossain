@@ -16,7 +16,7 @@ export async function Breadcrumbs({
     <nav
       aria-label="Breadcrumb"
       className="mute"
-      style={{ paddingTop: 32, fontSize: 14 }}
+      style={{ display: "block", height: "auto", paddingTop: 32, paddingBottom: 14, fontSize: 14, lineHeight: 1.5 }}
     >
       <Link href="/">{t("home")}</Link>
       {items.map((item) => (
