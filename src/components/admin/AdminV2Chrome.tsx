@@ -31,6 +31,7 @@ const NAV: [string, [string, string, string][]][] = [
   ]],
   ["Content", [
     ["/admin/blog", "Blog", "✎"],
+    ["/admin/comments", "Comments", "💬"],
     ["/admin/sections", "Sections", "☰"],
     ["/admin/hero", "Hero editor", "Aa"],
     ["/admin/branding", "Branding", "◇"],
