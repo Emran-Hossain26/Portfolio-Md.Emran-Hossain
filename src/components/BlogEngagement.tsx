@@ -59,7 +59,7 @@ function LikeButton({
   return (
     <button
       type="button"
-      className="btn"
+      className={"cm-like" + (liked ? " on" : "") + (small ? " sm" : "")}
       disabled={pending}
       aria-pressed={liked}
       aria-label={`${liked ? activeLabel : label} (${count})`}
@@ -73,14 +73,10 @@ function LikeButton({
           else onChange(liked, count);
         });
       }}
-      style={{
-        padding: small ? "2px 10px" : undefined,
-        fontSize: small ? 13 : undefined,
-        borderColor: liked ? "var(--accent)" : undefined,
-        color: liked ? "var(--accent)" : undefined,
-      }}
     >
-      <span aria-hidden="true">{liked ? "♥" : "♡"}</span> {liked ? activeLabel : label} · {count}
+      <span className="cm-heart" aria-hidden="true">{liked ? "♥" : "♡"}</span>
+      <span>{liked ? activeLabel : label}</span>
+      <span className="cm-count">{count}</span>
     </button>
   );
 }
@@ -99,42 +95,51 @@ function CommentForm({
 
   if (state.ok) {
     return (
-      <div className="card" role="status" style={{ padding: 14 }}>
-        <p style={{ margin: 0 }}>{t.thanks}</p>
+      <div className="cm-done" role="status">
+        <p>{t.thanks}</p>
         {onDone ? (
-          <button type="button" className="btn" style={{ marginTop: 10 }} onClick={onDone}>
-            OK
-          </button>
+          <button type="button" className="cm-btn ghost" onClick={onDone}>OK</button>
         ) : null}
       </div>
     );
   }
 
   return (
-    <form ref={formRef} action={action} style={{ display: "grid", gap: 10 }}>
+    <form ref={formRef} action={action} className="cm-form">
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="parent_id" value={parentId ?? ""} />
       <input type="hidden" name="t" value={t0} />
-      <label>
-        {t.name}
+      <label className="cm-field">
+        <span>{t.name}</span>
         <input name="name" required maxLength={80} autoComplete="nickname" />
       </label>
-      <label>
-        {parentId ? t.replyTo : t.comment}
-        <textarea name="body" required minLength={2} maxLength={2000} rows={parentId ? 3 : 4} />
+      <label className="cm-field">
+        <span>{parentId ? t.replyTo : t.comment}</span>
+        <textarea name="body" required minLength={2} maxLength={2000} rows={parentId ? 3 : 5} />
       </label>
       <TurnstileWidget />
       <input
         type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true"
         style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
       />
-      {state.error ? <p role="alert" style={{ color: "var(--bad)", margin: 0, fontSize: 14 }}>{t[state.error]}</p> : null}
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <button className="btn" type="submit" disabled={pending}>{pending ? t.sending : t.send}</button>
-        {onDone ? <button className="btn" type="button" onClick={onDone}>{t.cancel}</button> : null}
-        <span className="mute" style={{ fontSize: 13 }}>{t.limit}</span>
+      {state.error ? <p role="alert" className="cm-error">{t[state.error]}</p> : null}
+      <div className="cm-actions">
+        <span className="cm-note">{t.limit}</span>
+        <div className="cm-actions-btns">
+          {onDone ? <button className="cm-btn ghost" type="button" onClick={onDone}>{t.cancel}</button> : null}
+          <button className="cm-btn" type="submit" disabled={pending}>{pending ? t.sending : t.send}</button>
+        </div>
       </div>
     </form>
+  );
+}
+
+function Avatar({ name }: { name: string }) {
+  const hue = [...name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 7);
+  return (
+    <span className="cm-avatar" aria-hidden="true" style={{ background: `hsl(${hue} 55% 42%)` }}>
+      {(name.trim()[0] ?? "?").toUpperCase()}
+    </span>
   );
 }
 
@@ -148,34 +153,43 @@ function CommentItem({
   const [replying, setReplying] = useState(false);
   const fmt = (iso: string) =>
     new Date(iso).toLocaleDateString(locale === "bn" ? "bn-BD" : "en-GB", { year: "numeric", month: "short", day: "numeric" });
-  const body = (x: C, isReply: boolean) => (
-    <div key={x.id} style={{ marginLeft: isReply ? 24 : 0, paddingLeft: isReply ? 14 : 0, borderLeft: isReply ? "2px solid var(--line)" : "none" }}>
-      <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
-        <b>{x.name}</b>
-        <span className="mute" style={{ fontSize: 13 }}>{fmt(x.created_at)}</span>
-      </div>
-      <p style={{ margin: "6px 0 8px", whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: "var(--ink)" }}>{x.body}</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <LikeButton
-          small target={"comment:" + x.id} count={x.likes} liked={x.liked}
-          label={t.like} activeLabel={t.liked}
-          onChange={(l, n) => setLike(x.id, l, n)}
-        />
-        {!isReply ? (
-          <button type="button" className="btn" style={{ padding: "2px 10px", fontSize: 13 }} onClick={() => setReplying((v) => !v)}>
-            {t.reply}
-          </button>
-        ) : null}
+
+  const one = (x: C, isReply: boolean) => (
+    <div key={x.id} className={"cm-row" + (isReply ? " reply" : "")}>
+      <Avatar name={x.name} />
+      <div className="cm-body">
+        <div className="cm-head">
+          <b>{x.name}</b>
+          <span>{fmt(x.created_at)}</span>
+        </div>
+        <p className="cm-text">{x.body}</p>
+        <div className="cm-tools">
+          <LikeButton
+            small target={"comment:" + x.id} count={x.likes} liked={x.liked}
+            label={t.like} activeLabel={t.liked}
+            onChange={(l, n) => setLike(x.id, l, n)}
+          />
+          {!isReply ? (
+            <button type="button" className="cm-link" onClick={() => setReplying((v) => !v)}>
+              {t.reply}
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
+
   return (
-    <li style={{ display: "grid", gap: 12 }}>
-      {body(c, false)}
-      {replies.map((r) => body(r, true))}
-      {replying ? (
-        <div style={{ marginLeft: 24 }}>
-          <CommentForm slug={slug} parentId={c.id} locale={locale} onDone={() => setReplying(false)} />
+    <li className="cm-item">
+      {one(c, false)}
+      {replies.length || replying ? (
+        <div className="cm-replies">
+          {replies.map((r) => one(r, true))}
+          {replying ? (
+            <div className="cm-reply-form">
+              <CommentForm slug={slug} parentId={c.id} locale={locale} onDone={() => setReplying(false)} />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -210,8 +224,11 @@ export function BlogEngagement({ slug, locale }: { slug: string; locale: "en" | 
     setData((d) => ({ ...d, comments: d.comments.map((c) => (c.id === id ? { ...c, liked, likes: count } : c)) }));
 
   return (
-    <section aria-label={t.comments} style={{ marginTop: 36, display: "grid", gap: 20 }}>
-      <div>
+    <section aria-label={t.comments} className="cm">
+      <div className="cm-bar">
+        <h2>
+          {t.comments} <span>{data.comments.length}</span>
+        </h2>
         <LikeButton
           target={"post:" + slug} count={data.likes} liked={data.liked}
           label={t.like} activeLabel={t.liked}
@@ -219,19 +236,18 @@ export function BlogEngagement({ slug, locale }: { slug: string; locale: "en" | 
         />
       </div>
 
-      <h2 style={{ fontSize: 22, margin: 0 }}>{t.comments} ({data.comments.length})</h2>
       {tops.length === 0 ? (
-        <p className="mute" style={{ margin: 0 }}>{t.none}</p>
+        <p className="cm-empty">{t.none}</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 22 }}>
+        <ul className="cm-list">
           {tops.map((c) => (
             <CommentItem key={c.id} c={c} replies={repliesOf.get(c.id) ?? []} slug={slug} locale={locale} setLike={setCommentLike} />
           ))}
         </ul>
       )}
 
-      <div className="card" style={{ padding: 16 }}>
-        <h3 style={{ marginTop: 0 }}>{t.leave}</h3>
+      <div className="cm-card">
+        <h3>{t.leave}</h3>
         <CommentForm slug={slug} locale={locale} />
       </div>
     </section>
