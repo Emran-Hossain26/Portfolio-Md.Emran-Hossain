@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSocial, SLUG_RE, VOTER_COOKIE } from "@/lib/blog-social";
 
-export const dynamic = "force-dynamic";
-
 /** GET /api/blog-social?slug=<post slug> → likes, liked-by-me, approved comments. */
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug") ?? "";
