@@ -397,6 +397,10 @@ export async function saveRowAction(table: string, id: string, formData: FormDat
   if (table === "posts") {
     const sched = String(row.scheduled_at ?? "").trim();
     row.scheduled_at = sched ? sched : null;
+    // RLS (posts_public_read) needs published = true AND status = 'published'.
+    // The form only edits `status`, so keep the boolean in sync, otherwise a
+    // "published" post stays invisible on the public site.
+    row.published = String(row.status ?? "") === "published";
   }
 
   const db = createServiceClient();
