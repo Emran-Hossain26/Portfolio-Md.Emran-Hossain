@@ -392,14 +392,26 @@ export async function saveRowAction(table: string, id: string, formData: FormDat
   }
 
   const row = parse(spec, formData);
+  // posts.scheduled_at is timestamptz: an empty form value must be NULL,
+  // otherwise Postgres rejects the whole update ("invalid input syntax").
+  if (table === "posts") {
+    const sched = String(row.scheduled_at ?? "").trim();
+    row.scheduled_at = sched ? sched : null;
+  }
 
   const db = createServiceClient();
+  let writeError: { message: string } | null = null;
   if (table === "posts" && id === "__new") {
-    await db.from(table).insert({ ...row, updated_at: new Date().toISOString() });
+    ({ error: writeError } = await db.from(table).insert({ ...row, updated_at: new Date().toISOString() }));
   } else if (id === "__new") {
-    await db.from(table).insert(row);
+    ({ error: writeError } = await db.from(table).insert(row));
   } else {
-    await db.from(table).update(row).eq("id", id);
+    ({ error: writeError } = await db.from(table).update(row).eq("id", id));
+  }
+  // Never report a silent failure as success (posts only, to keep other
+  // tables' behaviour unchanged).
+  if (writeError && table === "posts") {
+    throw new Error(`Saving post failed: ${writeError.message}`);
   }
   await logAdminAction(
     user,
@@ -410,7 +422,8 @@ export async function saveRowAction(table: string, id: string, formData: FormDat
     auditValue(row),
   );
   refresh();
-  redirect(`/admin/${table === "education" ? "education" : table}`);
+  // The posts admin lives at /admin/blog (there is no /admin/posts route).
+  redirect(`/admin/${table === "posts" ? "blog" : table}`);
 }
 
 export async function deleteRowAction(table: string, id: string) {
@@ -421,7 +434,8 @@ export async function deleteRowAction(table: string, id: string) {
   await createServiceClient().from(table).delete().eq("id", id);
   await logAdminAction(user, "delete", table, id);
   refresh();
-  redirect(`/admin/${table === "education" ? "education" : table}`);
+  // The posts admin lives at /admin/blog (there is no /admin/posts route).
+  redirect(`/admin/${table === "posts" ? "blog" : table}`);
 }
 
 /* ------------------------------------------------------------------ */
