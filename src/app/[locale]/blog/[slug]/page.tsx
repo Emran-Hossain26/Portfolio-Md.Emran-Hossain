@@ -111,7 +111,7 @@ export default async function PostPage({
         </p>
 
         {toc.length > 0 ? (
-          <nav aria-label="Table of contents" className="card" style={{ marginBottom: 24, padding: 16 }}>
+          <nav aria-label="Table of contents" className="card" style={{ marginBottom: 24, padding: 16, display: "block", height: "auto" }}>
             <b style={{ fontSize: 14, display: "block", marginBottom: 8 }}>
               {resolved === "bn" ? "সূচিপত্র" : "On this page"}
             </b>
